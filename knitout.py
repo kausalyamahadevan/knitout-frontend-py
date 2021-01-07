@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # python3
 # see example() for usage
-
+import sys
 import re
 validHeaders = ['Carriers', 'Machine', 'Position', 'Yarn', 'Gauge']
 ############### helpers ######################################################
@@ -90,7 +90,7 @@ class Writer:
 
     def ingripper(self, *args):
         argl = list(args)
-        self.perations.append('in ' +  shiftCarrierSet(argl, self.carriers))
+        self.operations.append('in ' +  shiftCarrierSet(argl, self.carriers))
 
 
     def inhook(self, *args):
@@ -184,6 +184,15 @@ class Writer:
     def stitchNumber(self, val):
         self.operations.append('x-stitch-number ' + str(val))
 
+    def speedNumber(self, val):
+        self.operations.append('x-speed-number ' + str(val))
+
+    def rollerAdvance(self, val):
+        self.operations.append('x-roller-advance ' + str(val))
+
+    def addRollerAdvance(self,val):
+        self.operations.append('x-add-roller-advance ' + str(val))
+
     def fabricPresser(self, mode):
         if not (mode == 'auto' or mode == 'on' or mode == 'off'):
             raise ValueError("Mode must be one of 'auto','on','off' : "+ str(mode))
@@ -198,9 +207,14 @@ class Writer:
         version = ';!knitout-2\n'
         content = version + '\n'.join(self.headers) + '\n' +  '\n'.join(self.operations)
         try:
-            with open(filename, "w") as out:
-                print(content, file=out)
-            print('wrote file ' + filename)
+            # with open(filename, "w") as out:
+            #     sys.stdout = out
+            #     print(content)
+            out = open(filename,'w')
+            sys.stdout = out
+            print(content)
+            out.close()
+            # print('wrote file ' + filename)
         except IOError as error:
             print('Could not write to file ' + filename)
 
