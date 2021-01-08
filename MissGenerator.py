@@ -38,6 +38,8 @@ for h in range(1,length+1):
             counter=counter+1
             if counter<=knits:
                 k.knit('+',('f',i),carrier)
+            else:
+                k.miss('+',('f'i),carrier)
 
             if counter==repeat:
                 counter=0
@@ -49,6 +51,8 @@ for h in range(1,length+1):
         for i in range(width,0,-1):
             if counter<=knits:
                 k.knit('-',('f',i),carrier)
+            else:
+                k.miss('-',('f'i),carrier)
 
             counter=counter-1
             if counter==0:
