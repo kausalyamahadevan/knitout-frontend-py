@@ -10,5 +10,5 @@ kwriter.ingripper(waste)
 kwriter.ingripper(draw)
 kwriter.ingripper(main)
 
-caston(kwriter,xsize,[draw,waste,main])
+caston(kwriter,3,[draw,waste,main])
 kwriter.write('caston.k')
