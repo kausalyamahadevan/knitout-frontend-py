@@ -22,7 +22,7 @@ def catchyarns(k,width,carriers):
                         k.tuck('-',('b',s),c)
                     elif s%8 == 4:
                         k.tuck('-',('f',s),c)
-            k.miss('+',('f',width),c) #moves carriers to the edge, maybe not necessary?
+            # k.miss('+',('f',width),c) #moves carriers to the edge, maybe not necessary?
 
 def interlock(k,width,length,c,side):
     k.rack(0)
