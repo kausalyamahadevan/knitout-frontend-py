@@ -10,14 +10,14 @@ def catchyarns(k,width,carriers):
     k.rack(0)
     for c in carriers:
         for h in range(1,7):
-            if h%2 ==1:
+            if h%2 ==0:
                 for s in range(1,width+1):
                     if s%8 == 0:
                         k.tuck('+',('f',s),c)
                     elif s%8 == 4:
                         k.tuck('+',('b',s),c)
             else:
-                for s in range(width,0):
+                for s in range(width,0,-1):
                     if s%8 == 0:
                         k.tuck('-',('b',s),c)
                     elif s%8 == 4:
