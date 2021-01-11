@@ -11,6 +11,7 @@ k.ingripper('1')
 
 
 #set sample size
+
 width = 20
 length= 10
 
