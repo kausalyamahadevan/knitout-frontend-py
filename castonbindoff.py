@@ -1,18 +1,11 @@
 import knitout
 import numpy as np
 
-xrepeats = 2
-yrepeats = 2
-
-xpatternsize = 20
-ypatternsize = 60 #?
-
-xsize = xrepeats*xpatternsize
-ysize = yrepeats*ypatternsize
-
+xsize = 5
 '''Functions to knit a section. Can be stacked.
    Should always end with the carriage and yarn feeder on the left
    However, "side" tells us what side the carriage (and yarn feeder) is on at the beginning'''
+
 def catchyarns(width,carriers):
     k.rack(0)
     for c in carriers:
@@ -29,12 +22,13 @@ def catchyarns(width,carriers):
                         k.tuck('-',('b',s),c)
                     elif s%8 == 4:
                         k.tuck('-',('f',s),c)
+            k.miss('+',('f',width),c) #moves carriers to the edge, maybe not necessary?
 
 def interlock(width,length,c,side):
     k.rack(0)
     k.rollerAdvance(150)
     if side == 'r':
-        for s in range(width+1,1,-1):
+        for s in range(width,0,-1):
             if s%2 == 0:
                 k.knit('-',('f',s),c)
             else:
@@ -42,7 +36,7 @@ def interlock(width,length,c,side):
 
     for h in range(1,length*2):
         if h%2 ==0:
-            for s in range(width+1,1,-1):
+            for s in range(width,0,-1):
                 if s%2 == 0:
                     k.knit('-',('f',s),c)
                 else:
@@ -58,27 +52,16 @@ def circular(width,length,c,side):
     k.rack(0)
     k.rollerAdvance(150)
     if side == 'r':
-        for s in range(width+1,1,-1):
+        for s in range(width,0,-1):
             k.knit('-',('f',s),c)
 
     for h in range(1,length*2):
         if h%2 ==0:
-            for s in range(width+1,1,-1):
+            for s in range(width,0,-1):
                 k.knit('-',('f',s),c)
         else:
             for s in range(1,width+1):
                 k.knit('+',('b',s),c)
-
-def pleats(width,length,space,c,side):
-    k.rack(0)
-    # transfer
-    for s in range(1,width+1):
-        if s%xpatternsize==0:
-            k.xfer(('f',s),('b',s))
-        elif s%xpatternsize == xpatternsize/2:
-            k.xfer(('b',s),('f',s))
-    k.rack(0.5)
-    #full needle rib without those needles
 
 k = knitout.Writer('1 2 3 4 5 6')
 
@@ -92,7 +75,11 @@ k.ingripper(draw)
 k.ingripper(main)
 
 # cast on every needle
-# catchyarns(xsize,['1','2,','3'])
+catchyarns(xsize,['1','2','3'])
+#Move draw thread to the right side.
+for s in range(1,xsize+1):
+    k.knit('+',('f',s),draw)
+
 k.rack(0.5)
 for s in range(1,xsize+1):
     k.knit('+',('f',s),waste)
@@ -100,19 +87,20 @@ for s in range(1,xsize+1):
 
 
 #interlock / waste yarn
-interlock(xsize,18,waste,'r')
+interlock(xsize,16,waste,'r')
 #circular / waste Yarn
-circular(xsize,2,waste,'l')
-k.outgripper(waste)
+circular(xsize,4,waste,'r')
 
-# draw thread
-circular(xsize,2,draw,'l')
-k.outgripper(draw)
+for s in range(1,xsize+1):
+    k.drop(('b',s))
 
-# # cast on every needle
-# k.rack(0.5)
-# for s in range(1,xsize+1):
-#     k.knit('+',('f',s),main)
-#     k.knit('+',('b',s),main)
+for s in range(xsize,0,-1):
+    k.knit('-',('f',s),draw)
 
-k.write('muiraori.k')
+#Case on main yarn!
+k.rack(0.5)
+for s in range(1,xsize+1):
+    k.knit('+',('f',s),main)
+    k.knit('+',('b',s),main)
+
+k.write('caston.k')
