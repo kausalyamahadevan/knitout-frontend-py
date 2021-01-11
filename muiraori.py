@@ -1,4 +1,5 @@
 import knitout
+from castonbindoff import *
 import numpy as np
 
 xrepeats = 2
@@ -9,65 +10,6 @@ ypatternsize = 60 #?
 
 xsize = xrepeats*xpatternsize
 ysize = yrepeats*ypatternsize
-
-'''Functions to knit a section. Can be stacked.
-   Should always end with the carriage and yarn feeder on the left
-   However, "side" tells us what side the carriage (and yarn feeder) is on at the beginning'''
-def catchyarns(width,carriers):
-    k.rack(0)
-    for c in carriers:
-        for h in range(1,7):
-            if h%2 ==0:
-                for s in range(1,width+1):
-                    if s%8 == 0:
-                        k.tuck('+',('f',s),c)
-                    elif s%8 == 4:
-                        k.tuck('+',('b',s),c)
-            else:
-                for s in range(1,width+1):
-                    if s%8 == 0:
-                        k.tuck('-',('b',s),c)
-                    elif s%8 == 4:
-                        k.tuck('-',('f',s),c)
-
-def interlock(width,length,c,side):
-    k.rack(0)
-    k.rollerAdvance(150)
-    if side == 'r':
-        for s in range(width+1,1,-1):
-            if s%2 == 0:
-                k.knit('-',('f',s),c)
-            else:
-                k.knit('-',('b',s),c)
-
-    for h in range(1,length*2):
-        if h%2 ==0:
-            for s in range(width+1,1,-1):
-                if s%2 == 0:
-                    k.knit('-',('f',s),c)
-                else:
-                    k.knit('-',('b',s),c)
-        else:
-            for s in range(1,width+1):
-                if s%2 == 1:
-                    k.knit('+',('f',s),c)
-                else:
-                    k.knit('+',('b',s),c)
-
-def circular(width,length,c,side):
-    k.rack(0)
-    k.rollerAdvance(150)
-    if side == 'r':
-        for s in range(width+1,1,-1):
-            k.knit('-',('f',s),c)
-
-    for h in range(1,length*2):
-        if h%2 ==0:
-            for s in range(width+1,1,-1):
-                k.knit('-',('f',s),c)
-        else:
-            for s in range(1,width+1):
-                k.knit('+',('b',s),c)
 
 def pleats(width,length,space,c,side):
     k.rack(0)
@@ -92,7 +34,7 @@ k.ingripper(draw)
 k.ingripper(main)
 
 # cast on every needle
-# catchyarns(xsize,['1','2,','3'])
+catchyarns(xsize,['1','2','3'])
 k.rack(0.5)
 for s in range(1,xsize+1):
     k.knit('+',('f',s),waste)
