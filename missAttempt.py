@@ -1,3 +1,5 @@
+#creates just a miss section of knit (no tube)
+
 import knitout
 import numpy as np
 import math
@@ -62,10 +64,19 @@ for h in range(1,waste):
             else:
                 k.knit('+',('b',s),wastecarrier)
 
+#add tube
+for h in range(1,3):
+    if h%2 == 1:
+        k.knit('-',('f',s),wastecarrier)
+    else:
+        k.knit('+',('b',s),wastecarrier)
+
+
+# drop back
+
+
+
 #add draw thread
-
-
-k.rack(0.5)
 
 for s in range(1,width+1):
     k.knit('+',('f',s),drawcarrier)
@@ -113,11 +124,11 @@ for b in range (1, passes+1):
 
             for m in range(1,repeat+1):
                 if (m==1 and z==1) or (z==numberRepeats and m==repeat) or m==knitPos:
-                    print('knit:' + str((z*repeat)+m-repeat))
+                    #print('knit:' + str((z*repeat)+m-repeat))
                     k.knit('+',('f',((z*repeat)+m-repeat)),maincarrier)
 
                 else:
-                    print('miss:' + str((z*repeat)+m-repeat))
+                    #print('miss:' + str((z*repeat)+m-repeat))
                     k.miss('+',('f',((z*repeat)+m-repeat)),maincarrier)
 
 
@@ -126,11 +137,11 @@ for b in range (1, passes+1):
 
             for m in range(repeat,0,-1):
                 if (m==1 and z==1) or (z==numberRepeats and m==repeat) or m==knitPos:
-                    print('knit:' + str((z*repeat)+m-repeat))
+                    #print('knit:' + str((z*repeat)+m-repeat))
                     k.knit('-',('f',((z*repeat)+m-repeat)),maincarrier)
 
                 else:
-                    print('miss:' + str((z*repeat)+m-repeat))
+                    #print('miss:' + str((z*repeat)+m-repeat))
                     k.miss('-',('f',((z*repeat)+m-repeat)),maincarrier)
 
 
