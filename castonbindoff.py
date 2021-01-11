@@ -14,14 +14,14 @@ def catchyarns(k,width,carriers):
                 for s in range(1,width+1):
                     if s%8 == 0:
                         k.tuck('+',('f',s),c)
-                    # elif s%8 == 4:
-                    #     k.tuck('+',('b',s),c)
+                    elif s%8 == 4:
+                        k.tuck('+',('b',s),c)
             else:
-                for s in range(1,width+1):
+                for s in range(width,0):
                     if s%8 == 0:
                         k.tuck('-',('b',s),c)
-                    # elif s%8 == 4:
-                    #     k.tuck('-',('f',s),c)
+                    elif s%8 == 4:
+                        k.tuck('-',('f',s),c)
             k.miss('+',('f',width),c) #moves carriers to the edge, maybe not necessary?
 
 def interlock(k,width,length,c,side):
