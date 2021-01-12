@@ -1,2 +1,4 @@
 *.k
 *.dat
+*.pyc
+*.swp
