@@ -1,4 +1,6 @@
-import knitout
+import sys
+sys.path.append('../knitout-frontend-py')
+from library import knitout
 import numpy as np
 k = knitout.Writer('1 2 3 4 5 6')
 

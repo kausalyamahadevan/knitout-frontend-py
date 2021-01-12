@@ -1,6 +1,9 @@
 import sys
-sys.path.append('../knitout-frontend-py/')
+sys.path.append('../knitout-frontend-py')
 from library.castonbindoff import *
+## How to import from another folder (example)
+# from inprogress.fnrib import *
+
 kwriter = knitout.Writer('1 2 3 4 5 6')
 
 kwriter.addHeader('Machine','kniterate')
