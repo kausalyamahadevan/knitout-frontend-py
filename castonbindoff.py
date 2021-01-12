@@ -1,28 +1,30 @@
 import knitout
 import numpy as np
 
-xsize = 15
 '''Functions to knit a section. Can be stacked.
    Should always end with the carriage and yarn feeder on the left
    However, "side" tells us what side the carriage (and yarn feeder) is on at the beginning'''
 
 def catchyarns(k,width,carriers):
     k.rack(0)
-    for c in carriers:
-        for h in range(1,7):
+    for i,c in enumerate(carriers):
+        for h in range(1,5):
             if h%2 ==1:
-                for s in range(1,width+1):
+                k.knit('+',('f',i+1),c)
+                for s in range(1,width+1-i):
                     if s%8 == 0:
-                        k.tuck('+',('f',s),c)
+                        k.knit('+',('f',s+i),c)
                     elif s%8 == 4:
-                        k.tuck('+',('b',s),c)
+                        k.knit('+',('b',s+i),c)
             else:
-                for s in range(width,0,-1):
+                for s in range(width-i,0,-1):
                     if s%8 == 0:
-                        k.tuck('-',('b',s),c)
+                        k.knit('-',('b',s+i),c)
                     elif s%8 == 4:
-                        k.tuck('-',('f',s),c)
-            # k.miss('+',('f',width),c) #moves carriers to the edge, maybe not necessary?
+                        k.knit('-',('f',s+i),c)
+                k.knit('-',('b',i+1),c)
+            if i !=0:
+                k.miss('-',('f',1),c) #moves carriers to the edge, maybe not necessary?
 
 def interlock(k,width,length,c,side):
     k.rack(0)
@@ -72,7 +74,7 @@ def caston(k,width,carriers):
     for s in range(1,width+1):
         k.knit('+',('f',s),draw)
 
-    k.rack(0.5)
+    k.rack(0.25)
     for s in range(1,width+1):
         k.knit('+',('f',s),waste)
         k.knit('+',('b',s),waste)
@@ -90,7 +92,7 @@ def caston(k,width,carriers):
         k.knit('-',('f',s),draw)
 
     #Cast on main yarn!
-    k.rack(0.5)
+    k.rack(0.25)
     for s in range(1,width+1):
         k.knit('+',('f',s),main)
         k.knit('+',('b',s),main)
