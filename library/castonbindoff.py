@@ -23,8 +23,8 @@ def catchyarns(k,width,carriers):
                     elif s%8 == 4:
                         k.knit('-',('f',s+i),c)
                 k.knit('-',('b',i+1),c)
-            if i !=0:
-                k.miss('-',('f',1),c) #moves carriers to the edge, maybe not necessary?
+        if i !=0:
+            k.miss('-',('f',1),c) #moves carriers to the edge, maybe not necessary?
 
 def interlock(k,width,length,c,side):
     k.rack(0)
