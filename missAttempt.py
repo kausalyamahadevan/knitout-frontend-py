@@ -10,16 +10,16 @@ k.addHeader('Machine','kniterate')
 
 
 #set cariers
-draw = '1'
-waste = '2'
+# draw = '1'
+# waste = '2'
 main = '3'
-k.ingripper(waste)
-k.ingripper(draw)
+# k.ingripper(waste)
+# k.ingripper(draw)
 k.ingripper(main)
 
 
 #set sample size
-width = 50
+width = 30
 passes = 30
 
 
@@ -38,18 +38,21 @@ numberRepeats=width/repeat
 
 
 
-k.speedNumber(300)
+k.speedNumber(100)
 k.stitchNumber(5)
-caston(k,width,[draw,waste,main])
 
-''' making'''
+#cast on every needle
+k.rack(.5)
+for s in range(1,width+1):
+    k.tuck('+',('f',s),main)
+    k.tuck('+',('b',s),main)
 
 # add edge interlock
 k.rack(0)
 k.stitchNumber(5)
-k.rollerAdvance(150)
+k.rollerAdvance(175)
 k.speedNumber(300)
-for h in range(1,6):
+for h in range(1,80):
     if h%2 == 1:
         for s in range(width,0,-1):
             if s%2 == 0:
@@ -72,9 +75,9 @@ for q in range(1, width+1):
 
 #add jersey
 k.stitchNumber(5)
-k.rollerAdvance(300)
+k.rollerAdvance(400)
 k.speedNumber(300)
-for h in range(2,12):
+for h in range(2,6):
     if h%2 == 1:
         for s in range(width,0,-1):
             k.knit('-',('f',s),main)
@@ -84,7 +87,7 @@ for h in range(2,12):
 
 #begin knitting miss section
 k.stitchNumber(4)
-k.rollerAdvance(75)
+k.rollerAdvance(100)
 k.speedNumber(300)
 for b in range (1, passes+1):
 #set the knit position for this row..
@@ -101,7 +104,7 @@ for b in range (1, passes+1):
         for z in range(1,numberRepeats+1):
 
             for m in range(1,repeat+1):
-                if (m==1 and z==1) or (z==numberRepeats and m==repeat) or m==knitPos:
+                if (m==1 and z==1) or (z==numberRepeats and m==repeat) or (m==knitPos):
                     #print('knit:' + str((z*repeat)+m-repeat))
                     k.knit('+',('f',((z*repeat)+m-repeat)),main)
 
@@ -125,7 +128,7 @@ for b in range (1, passes+1):
 
 #add edge jersey
 k.stitchNumber(5)
-k.rollerAdvance(300)
+k.rollerAdvance(400)
 k.speedNumber(300)
 for h in range(2,12):
     if h%2 == 1:
@@ -140,10 +143,10 @@ for s in range(1,width+1):
     k.drop(('f',s))
     k.drop(('b',s))
 
-k.outgripper(waste)
-k.outgripper(draw)
+# k.outgripper(waste)
+# k.outgripper(draw)
 k.outgripper(main)
 
 
 
-k.write('newmissOnly.k')
+k.write('anewmissOnly.k')

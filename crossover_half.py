@@ -66,13 +66,16 @@ for z in range(1,length+1):
 
 
 #crossoverHalf_function
-def crossoverHalf(width,length,c,side):
+def crossoverHalf(k,width,length,c,side):
 
-    if side == 'r':
-        for s in range(width,0,-1):
-            k.knit('-',('f',s),c)
+    #account for starting position
+    if side == 'l':
+        start=1
+    else:
+        start=2
+        length=length+1 #make sure we still get the full amount of passes desired
 
-    for z in range(1,length+1):
+    for z in range(start,length+1):
 
         if z%2==1:
 
@@ -99,7 +102,7 @@ def crossoverHalf(width,length,c,side):
 
         else:
             for w in range(width,0,-1):
-                k.knit('-',('f',w),maincarrier)
+                k.knit('-',('f',w),c)
 
 
 
