@@ -10,41 +10,41 @@ def catchyarns(k,width,carriers):
     for i,c in enumerate(carriers):
         for h in range(1,5):
             if h%2 ==1:
-                k.knit('+',('f',i+1),c)
-                for s in range(1,width+1-i):
+                # k.knit('+',('f',i),c)
+                for s in range(width-i):
                     if s%8 == 0:
                         k.knit('+',('f',s+i),c)
                     elif s%8 == 4:
                         k.knit('+',('b',s+i),c)
             else:
-                for s in range(width-i,0,-1):
+                for s in range(width-i-1,-1,-1):
                     if s%8 == 0:
                         k.knit('-',('b',s+i),c)
                     elif s%8 == 4:
                         k.knit('-',('f',s+i),c)
-                k.knit('-',('b',i+1),c)
+                # k.knit('-',('b',i+1),c)
         if i !=0:
-            k.miss('-',('f',1),c) #moves carriers to the edge, maybe not necessary?
+            k.miss('-',('f',0),c) #moves carriers to the edge, maybe not necessary?
 
 def interlock(k,width,length,c,side):
     k.rack(0)
     k.rollerAdvance(200)
     if side == 'r':
-        for s in range(width,0,-1):
+        for s in range(width-1,-1,-1):
             if s%2 == 0:
                 k.knit('-',('f',s),c)
             else:
                 k.knit('-',('b',s),c)
 
-    for h in range(1,length*2+1):
-        if h%2 ==0:
-            for s in range(width,0,-1):
+    for h in range(length*2):
+        if h%2 ==1:
+            for s in range(width-1,-1,-1):
                 if s%2 == 0:
                     k.knit('-',('f',s),c)
                 else:
                     k.knit('-',('b',s),c)
         else:
-            for s in range(1,width+1):
+            for s in range(width):
                 if s%2 == 1:
                     k.knit('+',('f',s),c)
                 else:
@@ -54,15 +54,15 @@ def circular(k,width,length,c,side):
     k.rack(0)
     k.rollerAdvance(200)
     if side == 'r':
-        for s in range(width,0,-1):
+        for s in range(width-1,-1,-1):
             k.knit('-',('f',s),c)
 
-    for h in range(1,int(length*2+1)):
+    for h in range(1,int(length*2)):
         if h%2 ==0:
-            for s in range(width,0,-1):
+            for s in range(width-1,-1,-1):
                 k.knit('-',('f',s),c)
         else:
-            for s in range(1,width+1):
+            for s in range(width):
                 k.knit('+',('b',s),c)
 
 # cast on every needle
@@ -72,7 +72,7 @@ def caston(k,width,carriers):
     catchyarns(k,width,carriers)
     draw,waste,main = carriers
     #Move draw thread to the right side.
-    for s in range(1,width+1):
+    for s in range(width):
         k.knit('+',('f',s),draw)
 
     # k.rack(0.25)
@@ -81,19 +81,19 @@ def caston(k,width,carriers):
     #     k.knit('+',('b',s),waste)
     #interlock / waste yarn
     k.speedNumber(400)
-    interlock(k,width,36,waste,'l')
+    interlock(k,width,36,waste,'r')
     #circular / waste Yarn
     circular(k,width,4,waste,'l')
 
-    for s in range(1,width+1):
+    for s in range(width):
         k.drop(('b',s))
 
-    for s in range(width,0,-1):
+    for s in range(width-1,-1,-1):
         k.knit('-',('f',s),draw)
 
     #Cast on main yarn!
     k.rack(0.25)
-    for s in range(1,width+1):
+    for s in range(width):
         k.knit('+',('f',s),main)
         k.knit('+',('b',s),main)
     circular(k,width,0.5,main,'r')
