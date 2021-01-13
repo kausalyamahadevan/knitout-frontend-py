@@ -1,5 +1,4 @@
-import knitout
-import numpy as np
+# import library.knitout as knitout
 
 '''Functions to knit a section. Can be stacked.
    Should always end with the carriage and yarn feeder on the left

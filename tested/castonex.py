@@ -1,5 +1,6 @@
 import sys
 sys.path.append('../knitout-frontend-py')
+from library import knitout
 from library.castonbindoff import *
 ## How to import from another folder (example)
 # from inprogress.fnrib import *

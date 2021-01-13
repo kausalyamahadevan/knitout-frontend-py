@@ -1,10 +1,12 @@
 import sys
 sys.path.append('../knitout-frontend-py')
+from library import knitout
 from library.castonbindoff import *
+import numpy as np
 # 0 -> knit on front bed, 1 -> knit on back bed
 ribpattern = np.array([0,0,1,1,1,1])
 ribsize = len(ribpattern)
-totrepeats
+totrepeats = 1
 width  = ribsize*totrepeats
 kwriter = knitout.Writer('1 2 3 4 5 6')
 
@@ -25,5 +27,5 @@ kwriter.rack(0)
 kwriter.speedNumber(100)
 kwriter.rollerAdvance(100)
 
-for s in range(1,width+1):
+for s in range(width):
     kwriter.xfer(('f',s),('b',s))
