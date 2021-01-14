@@ -27,7 +27,7 @@ def catchyarns(k,width,carriers):
 
 def interlock(k,width,length,c,side):
     k.rack(0)
-    k.rollerAdvance(200)
+    k.rollerAdvance(300)
     if side == 'r':
         for s in range(width-1,-1,-1):
             if s%2 == 0:
@@ -51,13 +51,13 @@ def interlock(k,width,length,c,side):
 
 def circular(k,width,length,c,side):
     k.rack(0)
-    k.rollerAdvance(200)
+    k.rollerAdvance(250)
     if side == 'r':
         for s in range(width-1,-1,-1):
             k.knit('-',('f',s),c)
 
-    for h in range(1,int(length*2)):
-        if h%2 ==0:
+    for h in range(int(length*2)):
+        if h%2 ==1:
             for s in range(width-1,-1,-1):
                 k.knit('-',('f',s),c)
         else:
@@ -80,7 +80,7 @@ def caston(k,width,carriers):
     #     k.knit('+',('b',s),waste)
     #interlock / waste yarn
     k.speedNumber(400)
-    interlock(k,width,36,waste,'r')
+    interlock(k,width,36,waste,'l')
     #circular / waste Yarn
     circular(k,width,4,waste,'l')
 
@@ -95,4 +95,4 @@ def caston(k,width,carriers):
     for s in range(width):
         k.knit('+',('f',s),main)
         k.knit('+',('b',s),main)
-    circular(k,width,0.5,main,'r')
+    circular(k,width,1,main,'r')

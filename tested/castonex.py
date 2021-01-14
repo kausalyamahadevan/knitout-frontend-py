@@ -9,9 +9,8 @@ kwriter = knitout.Writer('1 2 3 4 5 6')
 
 kwriter.addHeader('Machine','kniterate')
 
-width = 26
-length = 75
-ribwidth  = 4
+width = 120
+length = 150
 
 draw = '1'
 waste = '2'
@@ -34,7 +33,7 @@ for s in range(width-1,-1,-1):
         kwriter.xfer(('f',s),('b',s))
 
 kwriter.speedNumber(400)
-kwriter.rollerAdvance(400)
+kwriter.rollerAdvance(550)
 for h in range(length):
     if h%2 ==1:
         for s in range(width-1,-1,-1):
