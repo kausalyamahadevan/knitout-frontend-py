@@ -6,6 +6,8 @@ from library import castonbindoff
 
 from crossover_full import *
 from crossover_half import *
+from seedKnit import*
+from jersey import*
 import numpy as np
 import math
 
@@ -14,9 +16,15 @@ k.addHeader('Machine','kniterate')
 
 c='3'
 
+k.stitchNumber(5)
 castonbindoff.caston(k,20,['1','2','3'])
-crossoverFull(k,20,20,c,'l')
-crossoverHalf(k,20,20,c,'l')
+#crossoverFull(k,20,20,c,'l')
+k.stitchNumber(6)
+k.speedNumber(300)
+k.rollerAdvance(400)
+jerseyKnit(k,20,5,c,'l')
+
+
 
 
 k.write('aatestdump.k')

@@ -6,7 +6,9 @@ k.addHeader('Machine','kniterate')
 
 
 #set carrier to one and bring in
-carrier = '1'
+carrier = '3'
+castonCarrier=1
+k.ingripper('3')
 k.ingripper('1')
 
 
@@ -29,6 +31,35 @@ if remainder!=0:
     firstcounter=remainder
 else:
     firstcounter=repeat
+
+k.rack(.5)
+k.speedNumber(100)
+for z in range(1, length+1):
+    # cast on every needle
+    for s in range(1,width+1):
+        k.tuck('+',('f',s),Carrier)
+        k.tuck('+',('b',s),Carrier)
+
+# interlock
+k.rack(0)
+k.speedNumber(300)
+k.stitchNumber(5)
+k.rollerAdvance(150)
+for h in range(1,61):
+    if h%2 == 1:
+        for s in range(width,0,-1):
+            if s%2 == 0:
+                k.knit('-',('f',s),carrier)
+            else:
+                k.knit('-',('b',s),carrier)
+    else:
+        for s in range(1,width+1):
+
+            if s%2 == 1:
+                k.knit('+',('f',s),carrier)
+            else:
+                k.knit('+',('b',s),carrier)
+
 
 
 for h in range(1,length+1):
@@ -66,4 +97,4 @@ for s in range(1,width+1):
     k.drop(('f',s))
     k.drop(('b',s))
 
-k.write('ribtrial.k')
+k.write('Aribtrial.k')

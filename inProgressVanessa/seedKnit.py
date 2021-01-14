@@ -1,4 +1,7 @@
-import knitout
+import sys
+sys.path.append('../knitout-frontend-py')
+from library import knitout
+
 import numpy as np
 k = knitout.Writer('1 2 3 4 5 6')
 k.addHeader('Machine','kniterate')
@@ -26,48 +29,59 @@ k.rack(0)
 for h in range(1,waste):
     if h%2 == 1:
         for s in range(width,0,-1):
-            print('we neg', s)
             if s%2 == 0:
                 k.knit('-',('f',s),carrier)
             else:
                 k.knit('-',('b',s),carrier)
     else:
         for s in range(1,width+1):
-            print('we pos', s)
+
             if s%2 == 1:
                 k.knit('+',('f',s),carrier)
             else:
                 k.knit('+',('b',s),carrier)
 
-for h in range(waste, length+1):
 
-#if we are an odd row move left to right
-    if h%2 == 1:
-        for s in range (width,0,-1):
-            if s%2==1:
-                k.knit('-', ('f',s),carrier)
-            else:
-                k.knit('-',('b',s),carrier)
 
-        for s in range (width,0,-1):
-            if s%2==1:
-                k.xfer('f',s,'b',s)
-            else:
-                k.xfer('b',s,'f',s)
+def seedKnit(k,width,length,c,side):
 
-#if even row move from right to left
+    if side == 'l':
+        start=2
+        length=length+1
+
     else:
-        for s in range(1,width+1):
-            if s%2==1:
-                k.knit('+', ('b',s),carrier)
-            else:
-                k.knit('+',('f',s),carrier)
+        start=1
 
-        for s in range(1,width+1):
-            if s%2==1:
-                k.xfer('b',s,'f',s)
-            else:
-                k.xfer('f',s,'b',s)
+
+    for h in range(start, length+1):
+
+    #if we are an odd row move left to right
+        if h%2 == 1:
+            for s in range (width,0,-1):
+                if s%2==1:
+                    k.knit('-', ('f',s-1),c)
+                else:
+                    k.knit('-',('b',s-1),c)
+
+            for s in range (width,0,-1):
+                if s%2==1:
+                    k.xfer('f',s-1,'b',s-1)
+                else:
+                    k.xfer('b',s-1,'f',s-1)
+
+    #if even row move from right to left
+        else:
+            for s in range(1,width+1):
+                if s%2==1:
+                    k.knit('+', ('b',s-1),c)
+                else:
+                    k.knit('+',('f',s-1),c)
+
+            for s in range(1,width+1):
+                if s%2==1:
+                    k.xfer('b',s-1,'f',s-1)
+                else:
+                    k.xfer('f',s-1,'b',s-1)
 
 k.outgripper(carrier)
 
