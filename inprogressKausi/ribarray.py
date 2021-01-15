@@ -36,6 +36,7 @@ for s in range(width):
 
 kwriter.speedNumber(400)
 kwriter.rollerAdvance(400)
+kwriter.stitchNumber(6)
 
 for h in range(length):
     if h%2 ==0:
@@ -59,4 +60,4 @@ kwriter.addRollerAdvance(1000)
 kwriter.outgripper(draw)
 kwriter.outgripper(main)
 kwriter.outgripper(waste)
-kwriter.write('knitting-files/rib.k')
+kwriter.write('Anewrib.k')
