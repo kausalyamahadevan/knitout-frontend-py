@@ -69,10 +69,10 @@ def caston(k,width,carriers):
     #carriers is a list like ['1','2','3']
     k.speedNumber(200)
     catchyarns(k,width,carriers)
-    draw,waste,main = carriers
+    # draw,waste,main, = carriers
     #Move draw thread to the right side.
     for s in range(width):
-        k.knit('+',('f',s),draw)
+        k.knit('+',('f',s),carriers[0])
 
     # k.rack(0.25)
     # for s in range(1,width+1):
@@ -80,19 +80,19 @@ def caston(k,width,carriers):
     #     k.knit('+',('b',s),waste)
     #interlock / waste yarn
     k.speedNumber(400)
-    interlock(k,width,36,waste,'l')
+    interlock(k,width,36,carriers[1],'l')
     #circular / waste Yarn
-    circular(k,width,4,waste,'l')
+    circular(k,width,4,carriers[2],'l')
 
     for s in range(width):
         k.drop(('b',s))
 
     for s in range(width-1,-1,-1):
-        k.knit('-',('f',s),draw)
+        k.knit('-',('f',s),carriers[0])
 
     #Cast on main yarn!
     k.rack(0.25)
     for s in range(width):
-        k.knit('+',('f',s),main)
-        k.knit('+',('b',s),main)
-    circular(k,width,1,main,'r')
+        k.knit('+',('f',s),carriers[2])
+        k.knit('+',('b',s),carriers[2])
+    circular(k,width,1,carriers[2],'r')
