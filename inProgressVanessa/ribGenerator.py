@@ -1,4 +1,7 @@
-import knitout
+import sys
+sys.path.append('../knitout-frontend-py')
+from library import knitout
+
 import numpy as np
 import math
 k = knitout.Writer('1 2 3 4 5 6')
@@ -37,15 +40,15 @@ k.speedNumber(100)
 for z in range(1, length+1):
     # cast on every needle
     for s in range(1,width+1):
-        k.tuck('+',('f',s),Carrier)
-        k.tuck('+',('b',s),Carrier)
+        k.tuck('+',('f',s),carrier)
+        k.tuck('+',('b',s),carrier)
 
 # interlock
 k.rack(0)
 k.speedNumber(300)
 k.stitchNumber(5)
 k.rollerAdvance(150)
-for h in range(1,61):
+for h in range(1,60):
     if h%2 == 1:
         for s in range(width,0,-1):
             if s%2 == 0:
@@ -61,6 +64,16 @@ for h in range(1,61):
                 k.knit('+',('b',s),carrier)
 
 
+counter=0
+for i in range(1,width+1):
+    counter=counter+1
+    if counter<=knits:
+        k.xfer(('b',h),('f',h))
+    else:
+        k.xfer(('f',h),('b',h))
+
+    if counter==repeat:
+        counter=0
 
 for h in range(1,length+1):
 
