@@ -30,7 +30,7 @@ kwriter.speedNumber(100)
 kwriter.rollerAdvance(100)
 
 xfertorib(kwriter,ribpattern,totrepeats)
-
+kwriter.stitchNumber(6)
 kwriter.speedNumber(400)
 kwriter.rollerAdvance(400)
 
