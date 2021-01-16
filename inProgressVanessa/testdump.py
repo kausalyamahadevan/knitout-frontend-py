@@ -6,6 +6,7 @@ from library import castonbindoff
 
 # from crossover_full import *
 from library.crossover_half import *
+from library.crossover_full import *
 
 # from seedKnit import*
 from library.jersey import*
@@ -37,6 +38,14 @@ jerseyKnit(k,width,4,c,'l')
 k.stitchNumber(5)
 crossoverHalf(k,width,20,c,'l')
 #
+k.stitchNumber(6)
+k.speedNumber(300)
+k.rollerAdvance(400)
+jerseyKnit(k,width,10,c,'l')
+
+k.stitchNumber(5)
+crossoverFull(k,width,20,c,'l')
+
 k.stitchNumber(6)
 k.speedNumber(300)
 k.rollerAdvance(400)
