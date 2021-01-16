@@ -2,6 +2,8 @@
 #crossoverHalf_function
 def crossoverHalf(k,width,length,c,side):
 
+    #make sure all stitches on front to start
+    k.speedNumber(100)
     for w in range(width):
         k.xfer(('b',w),('f',w))
 
