@@ -2,6 +2,9 @@
 #crossoverHalf_function
 def crossoverHalf(k,width,length,c,side):
 
+    for w in range(width):
+        k.xfer(('b',w),('f',w))
+
     #account for starting position
     if side == 'l':
         start=1
@@ -11,32 +14,37 @@ def crossoverHalf(k,width,length,c,side):
 
     for z in range(start,length+1):
 
+
         if z%2==1:
-
+            k.speedNumber(400)
+            k.rollerAdvance(400)
             #knit all stitches
-            for w in range(1,width+1):
-                k.knit('+',('f',w-1),c)
+            for w in range(0,width):
+                k.knit('+',('f',w),c)
 
+
+            k.speedNumber(100)
+            k.rollerAdvance(50)
+            k.rack(0)
             #transfer all stitches to back
-            for w in range(1,width+1):
-                k.xfer(('f',w-1),('b',w-1))
+            for w in range(1,width-1):
+                k.xfer(('f',w),('b',w))
 
             #rack +1 and transfer every other stitch
             k.rack(1)
-            for w in range(1,width+1):
+            for w in range(1,width-1):
                 if w%2==1:
-                    k.xfer(('b',w-1),('f',w))
+                    k.xfer(('b',w),('f',w+1))
 
-            #rack -1 and transfer
+            # rack -1 and transfer
             k.rack(-1)
-            for w in range(1,width+1):
+            for w in range(1,width-1):
                 if w%2!=1:
-                    k.xfer(('b',w-1),('f',w-2))
+                    k.xfer(('b',w),('f',w-1))
 
 
         else:
-            for w in range(width,0,-1):
-                k.knit('-',('f',w-1),c)
-
-
-k.write('across.k')
+            k.speedNumber(400)
+            k.rollerAdvance(400)
+            for w in range(width-1,-1,-1):
+                k.knit('-',('f',w),c)
