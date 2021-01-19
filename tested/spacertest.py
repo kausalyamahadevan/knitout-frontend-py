@@ -10,9 +10,9 @@ length = 70
 kwriter = knitout.Writer('1 2 3 4 5 6')
 kwriter.addHeader('Machine','kniterate')
 
-frontsize = 4
-backsize = 4
-tucksize = 2
+# frontsize = 4
+# backsize = 4
+# tucksize = 2
 
 draw = '1'
 waste = '2'

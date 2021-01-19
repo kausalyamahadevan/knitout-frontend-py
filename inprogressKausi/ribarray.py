@@ -34,13 +34,13 @@ kwriter.stitchNumber(6)
 kwriter.speedNumber(400)
 kwriter.rollerAdvance(400)
 
-ribKnit(kwriter,ribpattern,totrepeats,length/2-1,main)
+ribKnit(kwriter,ribpattern,totrepeats,length/2,main)
 
 rib2 = np.array([0,1,0,1])
 
 rib2ribXfer(kwriter,ribpattern,rib2,totrepeats)
 
-ribKnit(kwriter,rib2,totrepeats,length/2,main)
+ribKnit(kwriter,rib2,totrepeats,length/2,main,'r')
 for s in range(width):
     kwriter.drop(('f',s))
     kwriter.drop(('b',s))

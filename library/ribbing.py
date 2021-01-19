@@ -20,11 +20,16 @@ def xfertorib(k,ribarray,repeats):
 knits as many rows as you like of a given rib knit pattern.
 Stitches must already be configured on the correct needles
 '''
-def ribKnit(k,ribarray,repeats,length,c):
+def ribKnit(k,ribarray,repeats,length,c,side='l'):
     ribsize = len(ribarray)
     w  = ribsize*repeats
     ref = np.tile(ribarray,repeats)
-    for h in range(length):
+    if side == 'r':
+        start = 1
+        length = length+1
+    else:
+        start = 0
+    for h in range(start,length):
         if h%2 ==0:
             for s in range(w):
                 if ref[s] == 1:
