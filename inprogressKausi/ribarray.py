@@ -5,7 +5,7 @@ from library.castonbindoff import *
 from library.ribbing import *
 import numpy as np
 # 0 -> knit on front bed, 1 -> knit on back bed
-ribpattern = np.array([0,0,1,1,1,1]) # 1 means knit on back bed
+ribpattern = np.array([0,0,1,1]) # 1 means knit on back bed
 ribsize = len(ribpattern)
 totrepeats = 10
 width  = ribsize*totrepeats
@@ -34,8 +34,13 @@ kwriter.stitchNumber(6)
 kwriter.speedNumber(400)
 kwriter.rollerAdvance(400)
 
-ribKnit(kwriter,ribpattern,totrepeats,length,main)
+ribKnit(kwriter,ribpattern,totrepeats,length/2-1,main)
 
+rib2 = np.array([0,1,0,1])
+
+rib2ribXfer(kwriter,ribpattern,rib2,totrepeats)
+
+ribKnit(kwriter,rib2,totrepeats,length/2,main)
 for s in range(width):
     kwriter.drop(('f',s))
     kwriter.drop(('b',s))
