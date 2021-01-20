@@ -43,6 +43,11 @@ def ribKnit(k,ribarray,repeats,length,c,side='l'):
                 else:
                     k.knit('-',('f',s),c)
 
+'''
+Given two arrays of the same size, sets up for the
+rib pattern given in ribarray2
+'''
+
 def rib2ribXfer(k,ribarray1,ribarray2,repeats):
     ribsize = len(ribarray1)
     w  = ribsize*repeats
@@ -54,3 +59,23 @@ def rib2ribXfer(k,ribarray1,ribarray2,repeats):
             k.xfer(('b',s),('f',s))
         elif xferref[s] == -1:
             k.xfer(('f',s),('b',s))
+
+''' Given an array and repeats, knits and purls'''
+
+def knitArray(k,array,xrepeats,yrepeats,c,side='l'):
+    m, n = array.shape
+    for i in range(yrepeats):
+        for j in range(m):
+            k.speedNumber(400)
+            k.rollerAdvance(400)
+            ribKnit(k,array[j],xrepeats,1,c,side)
+            if side == 'l':
+                side = 'r'
+            else:
+                side = 'l'
+            k.speedNumber(100)
+            k.rollerAdvance(100)
+            if j !=m-1:
+                rib2ribXfer(k,array[j],array[j+1],xrepeats)
+            else:
+                rib2ribXfer(k,array[j],array[0],xrepeats)

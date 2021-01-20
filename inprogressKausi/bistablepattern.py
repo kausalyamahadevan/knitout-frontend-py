@@ -26,7 +26,7 @@ knitroller = 400
 
 draw = '1'
 waste = '2'
-main = '3'
+main = '5'
 
 kwriter.ingripper(waste)
 kwriter.ingripper(draw)
