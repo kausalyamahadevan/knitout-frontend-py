@@ -21,11 +21,23 @@ def jerseyStitches(k,stitcharray,width,length,c,side):
         if b%2==1:
             for w in range(width):
                 k.stitchNumber(ref[w])
+                k.rollerAdvance(0)
                 k.knit('+',('f',w),c)
+
+            k.rollerAdvance(500)
+            k.miss('-',('f',width),c)
+
         else:
             for w in range(width-1,-1,-1):
                 k.stitchNumber(ref[w])
+                k.rollerAdvance(0)
+                # k.rollerAdvance(ref[w]*90)
                 k.knit('-',('f',w),c)
+
+            k.rollerAdvance(500)
+            k.miss('+',('f',0),c)
+
+
 
 # def ribKnit(k,ribarray,repeats,length,c):
 #     ribsize = len(ribarray)

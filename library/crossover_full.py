@@ -3,8 +3,8 @@
 def crossoverFull(k,width,length,c,side):
 
     #easy changeout for roller and speed params
-    transferspeed=100
-    transferroller=50
+    transferspeed=75
+    transferroller=0
     jerseyspeed=400
     jerseyroller=400
 
@@ -35,8 +35,9 @@ def crossoverFull(k,width,length,c,side):
         k.speedNumber(jerseyspeed)
         k.rollerAdvance(jerseyroller)
         k.rack(0)
-        if z%2==1:
+        k.stitchNumber(7)
 
+        if z%2==1:
 
             #knit all stitches
             for w in range(width):

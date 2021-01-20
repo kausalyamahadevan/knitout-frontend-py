@@ -2,8 +2,15 @@
 #crossoverHalf_function
 def crossoverHalf(k,width,length,c,side):
 
+    #easy changeout for roller and speed params
+    transferspeed=75
+    transferroller=0
+    jerseyspeed=400
+    jerseyroller=400
+
     #make sure all stitches on front to start
-    k.speedNumber(100)
+    k.rollerAdvance(transferroller)
+    k.speedNumber(transferspeed)
     for w in range(width):
         k.xfer(('b',w),('f',w))
 
@@ -18,15 +25,16 @@ def crossoverHalf(k,width,length,c,side):
 
 
         if z%2==1:
-            k.speedNumber(400)
-            k.rollerAdvance(400)
+            k.stitchNumber(7)
+            k.speedNumber(jerseyspeed)
+            k.rollerAdvance(jerseyroller-100)
             #knit all stitches
             for w in range(0,width):
                 k.knit('+',('f',w),c)
 
 
-            k.speedNumber(100)
-            k.rollerAdvance(50)
+            k.speedNumber(transferspeed)
+            k.rollerAdvance(transferroller)
             k.rack(0)
             #transfer all stitches to back
             for w in range(1,width-1):
@@ -46,7 +54,8 @@ def crossoverHalf(k,width,length,c,side):
 
 
         else:
-            k.speedNumber(400)
-            k.rollerAdvance(400)
+            k.speedNumber(jerseyspeed)
+            k.rollerAdvance(jerseyroller)
+            k.stitchNumber(5)
             for w in range(width-1,-1,-1):
                 k.knit('-',('f',w),c)
