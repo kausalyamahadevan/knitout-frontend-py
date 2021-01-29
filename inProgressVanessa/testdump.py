@@ -10,6 +10,7 @@ from library import castonbindoff
 
 # from seedKnit import*
 from library.jersey import*
+from library.tuckstuff import*
 # from library.fairIsleStiffFxn import*
 # from library.jerseyVariedStitches import*
 from library.ribbing import*
@@ -42,22 +43,14 @@ k.speedNumber(400)
 k.rollerAdvance(400)
 jerseyKnit(k,width,30,c3,'l')
 
-k.speedNumber(100)
-rib2ribXfer(k,[0,0,0,0,0,0],[1,1,1,0,0,0],10)
-
 k.stitchNumber(4)
-k.speedNumber(400)
-k.rollerAdvance(400)
-ribKnit(k,[1,1,1,0,0,0],10,40,c3,'l')
-
-k.speedNumber(100)
-rib2ribXfer(k,[1,1,1,0,0,0],[0,0,0,0,0,0],10)
+tuckSingleSide(k,width,30,[0,1,0,1],[1,0,1,0],c3,'l')
 
 k.stitchNumber(4)
 k.speedNumber(400)
 k.rollerAdvance(400)
 jerseyKnit(k,width,30,c3,'l')
-#
+
 # # # jerseyarray = [4,4,4,4,4,4,8,8,8,8,8,8,8,8,8,8,4,4,4,4,4,4,4]
 # # # # k.rollerAdvance(300)
 # # # k.speedNumber(300)
@@ -90,4 +83,4 @@ k.outgripper(c1)
 k.outgripper(c2)
 k.outgripper(c3)
 
-k.write('ribbingStretchTest.k')
+k.write('tuckParty.k')

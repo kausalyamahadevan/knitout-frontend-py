@@ -2,7 +2,7 @@ import math
 import numpy as np
 
 
-def tuckSingleSide(k, width,length,firstarray,secondarray,c1,side='l')
+def tuckSingleSide(k, width,length,firstarray,secondarray,c1,side='l'):
 
     # width=20
     # length=20
@@ -15,6 +15,11 @@ def tuckSingleSide(k, width,length,firstarray,secondarray,c1,side='l')
     tucklength=3
     tuckoffset=2
     edgeProtect=4
+
+    transferroller=150
+    knitroller=50
+    transferspeed=100
+    knitspeed=300
 
     RepeatSize = len(firstarray)
     totalRepeatsHoriz=int(math.ceil(float(width)/RepeatSize))
@@ -33,7 +38,8 @@ def tuckSingleSide(k, width,length,firstarray,secondarray,c1,side='l')
     counter=0
     setting=0
     for b in range(start,length+1):
-
+        k.rollerAdvance(knitroller)
+        k.speedNumber(knitspeed)
         if b%2==1:
             if setting==0:
                 for w in range(width):
@@ -42,6 +48,8 @@ def tuckSingleSide(k, width,length,firstarray,secondarray,c1,side='l')
                     else:
                         k.tuck('+',('b',w),c1)
 
+                k.speedNumber(transferspeed)
+                k.rollerAdvance(transferroller)
                 for w in range(width-1,-1,-1):
                     if refFirst[w]==0:
                         k.xfer(('b',w),('f',w))
@@ -53,6 +61,8 @@ def tuckSingleSide(k, width,length,firstarray,secondarray,c1,side='l')
                     else:
                         k.tuck('+',('b',w),c1)
 
+                k.speedNumber(transferspeed)
+                k.rollerAdvance(transferroller)
                 for w in range(width-1,-1,-1):
                     if refSecond[w]==0:
                         k.xfer(('b',w),('f',w))
@@ -61,23 +71,29 @@ def tuckSingleSide(k, width,length,firstarray,secondarray,c1,side='l')
 
         else:
             if setting==0:
+
                 for w in range(width-1,-1,-1):
                     if refFirst[w]==1:
                         k.knit('-',('f',w),c1)
                     else:
-                        k.tuck('-',('f',w),c1)
+                        k.tuck('-',('b',w),c1)
 
+                k.speedNumber(transferspeed)
+                k.rollerAdvance(transferroller)
                 for w in range(width):
                     if refFirst[w]==0:
                         k.xfer(('b',w),('f',w))
 
             else:
+
                 for w in range(width-1,-1,-1):
                     if refSecond[w]==1:
                         k.knit('-',('f',w),c1)
                     else:
                         k.tuck('-',('b',w),c1)
 
+                k.speedNumber(transferspeed)
+                k.rollerAdvance(transferroller)
                 for w in range(width):
                     if refSecond[w]==0:
                         k.xfer(('b',w),('f',w))
