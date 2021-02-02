@@ -22,17 +22,19 @@ k.addHeader('Machine','kniterate')
 
 c1='1'
 c2='2'
-c3='5'
+c3='3'
+c5='5'
 
 
 k.ingripper(c1)
 k.ingripper(c2)
 k.ingripper(c3)
+k.ingripper(c5)
 
-width=60
+width=30
 
 k.stitchNumber(5)
-castonbindoff.caston(k,width,[c1,c2,c3])
+castonbindoff.caston(k,width,[c1,c2,c3,c5])
 #
 
 for w in range(width):
@@ -44,12 +46,15 @@ k.rollerAdvance(400)
 jerseyKnit(k,width,30,c3,'l')
 
 k.stitchNumber(4)
-tuckSingleSide(k,width,30,[0,1,0,1],[1,0,1,0],c3,'l')
+k.speedNumber(400)
+k.rollerAdvance(400)
+jerseyKnit(k,width,30,c5,'l')
+
 
 k.stitchNumber(4)
 k.speedNumber(400)
 k.rollerAdvance(400)
-jerseyKnit(k,width,30,c3,'l')
+jerseyKnit(k,width,10,c2,'l')
 
 # # # jerseyarray = [4,4,4,4,4,4,8,8,8,8,8,8,8,8,8,8,4,4,4,4,4,4,4]
 # # # # k.rollerAdvance(300)
@@ -82,5 +87,6 @@ for s in range(width):
 k.outgripper(c1)
 k.outgripper(c2)
 k.outgripper(c3)
+k.outgripper(c5)
 
-k.write('tuckParty.k')
+k.write('jerseySensor.k')

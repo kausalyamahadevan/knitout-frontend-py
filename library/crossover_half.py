@@ -1,5 +1,5 @@
 
-#crossoverHalf_function
+
 def crossoverHalf(k,width,length,c,side):
 
     #easy changeout for roller and speed params
