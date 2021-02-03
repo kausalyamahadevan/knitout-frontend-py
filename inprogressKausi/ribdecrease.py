@@ -35,6 +35,8 @@ kwriter.speedNumber(400)
 kwriter.rollerAdvance(400)
 
 ribKnit(kwriter,ribpattern,totrepeats,length,main)
+stitchesleft = ribsize
+reflen = len(ref)
 # second to last repeat
 for s in range(ribsize*(totrepeats-2),ribsize*(totrepeats-1)):
     if ref[s] == 0:
@@ -50,8 +52,9 @@ for s in range(ribsize*(totrepeats-1),ribsize*totrepeats):
 kwriter.rack(2)
 #ribsize*(totrepeats-1)-2 -> ribsize*(totrepeats-1)
 #ribsize*(totrepeats-1)-1 -> ribsize*(totrepeats-1)+1
-kwriter.xfer(('b',ribsize*(totrepeats-1)-2),('f',ribsize*(totrepeats-1)))
-kwriter.xfer(('b',ribsize*(totrepeats-1)-1),('f',ribsize*(totrepeats-1)+1))
+# kwriter.xfer(('b',ribsize*(totrepeats-1)-2),('f',ribsize*(totrepeats-1)))
+# kwriter.xfer(('b',ribsize*(totrepeats-1)-1),('f',ribsize*(totrepeats-1)+1))
+
 
 ''' Last repeat totally on the front bed, second to last repeat (shortened) on the back bed'''
 ref = np.delete(ref, [ribsize*(totrepeats-1)-2,ribsize*(totrepeats-1)-1])
