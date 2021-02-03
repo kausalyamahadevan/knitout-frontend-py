@@ -54,11 +54,15 @@ def rib2ribXfer(k,ribarray1,ribarray2,repeats):
     ref1 = np.tile(ribarray1,repeats)
     ref2 = np.tile(ribarray2,repeats)
     xferref = ref1-ref2 # 0: do not transfer. 1: back to front -1: front to back
+    k.rollerAdvance(0)
+    k.addRollerAdvance(-300)
     for s in range(w):
         if xferref[s] == 1:
             k.xfer(('b',s),('f',s))
         elif xferref[s] == -1:
             k.xfer(('f',s),('b',s))
+    k.addRollerAdvance(300)
+    k.rollerAdvance(400)
 
 ''' Given an array and repeats, knits and purls'''
 

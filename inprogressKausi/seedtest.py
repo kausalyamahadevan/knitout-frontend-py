@@ -42,6 +42,7 @@ kwriter.rollerAdvance(400)
 # rib2ribXfer(kwriter,ribpattern,rib2,totrepeats)
 #
 # ribKnit(kwriter,rib2,totrepeats,length/2,main,'r')
+seedpattern = np.array([[1,0],[0,1]])
 knitArray(kwriter,seedpattern,totrepeats,length,main)
 for s in range(width):
     kwriter.drop(('f',s))

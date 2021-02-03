@@ -17,7 +17,7 @@ yrepeats = 4
 kwriter = knitout.Writer('1 2 3 4 5 6')
 kwriter.addHeader('Machine','kniterate')
 knitheight = 10
-ribheight = 20
+ribheight = 14
 
 xferspeed = 100
 xferroller = 100

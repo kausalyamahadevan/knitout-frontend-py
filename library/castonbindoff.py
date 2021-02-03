@@ -25,7 +25,7 @@ def catchyarns(k,width,carriers):
         if i !=0:
             k.miss('-',('f',0),c) #moves carriers to the edge, maybe not necessary?
 
-def interlock(k,width,length,c,side):
+def interlock(k,width,length,c,side='l'):
     k.rack(0)
     k.rollerAdvance(300)
     if side == 'r':
@@ -49,7 +49,7 @@ def interlock(k,width,length,c,side):
                 else:
                     k.knit('+',('b',s),c)
 
-def circular(k,width,length,c,side):
+def circular(k,width,length,c,side='l'):
     k.rack(0)
     k.rollerAdvance(300)
     if side == 'r':

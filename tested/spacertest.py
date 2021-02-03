@@ -5,8 +5,8 @@ from library.castonbindoff import *
 from library.spacer import *
 import numpy as np
 # 0 -> knit on front bed, 1 -> knit on back bed
-width  = 60
-length = 70
+width  = 40
+length = 50
 kwriter = knitout.Writer('1 2 3 4 5 6')
 kwriter.addHeader('Machine','kniterate')
 
@@ -17,8 +17,8 @@ kwriter.addHeader('Machine','kniterate')
 draw = '1'
 waste = '2'
 front = '3'
-middle = '5'
-back = '6'
+middle = '6'
+back = '5'
 
 kwriter.ingripper(waste)
 kwriter.ingripper(draw)
@@ -36,7 +36,7 @@ kwriter.rollerAdvance(250)
 spacerFabric(kwriter,width,length,front,back,middle)
 
 kwriter.stitchNumber(4)
-circular(kwriter,width,5,front,'l')
+circular(kwriter,width,3,front,'l')
 for s in range(width):
     kwriter.drop(('f',s))
 for s in range(width-1,-1,-1):
