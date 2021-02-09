@@ -4,6 +4,31 @@ import numpy as np
     1 : knit back bed only
     -1: knit front bed only '''
 
+def pleatsrib(k,refarray,length,c,side='l'):
+    width = len(refarray)
+    k.rack(0.25)
+    k.rollerAdvance(450)
+    if side =='r':
+        for s in range(width-1,-1,-1):
+            if refarray[s] !=-1:
+                k.knit('-',('b',s),c)
+            if refarray[s] != 1:
+                k.knit('-',('f',s),c)
+        length = length-1
+    for h in range(length):
+        if h%2 ==0:
+            for s in range(width):
+                if refarray[s] !=1:
+                    k.knit('+',('f',s),c)
+                if refarray[s] !=-1:
+                    k.knit('+',('b',s),c)
+        else:
+            for s in range(width-1,-1,-1):
+                if refarray[s] !=-1:
+                    k.knit('-',('b',s),c)
+                if refarray[s] != 1:
+                    k.knit('-',('f',s),c)
+
 def pleats(k,refarray,length,c,side='l'):
     width = len(refarray)
     k.rack(0)
@@ -32,6 +57,8 @@ def pleats(k,refarray,length,c,side='l'):
 
 def beginpleats(k,refarray):
     w = len(refarray)
+    k.rack(0)
+    k.stitchNumber(2)
     for s in range(w):
         if refarray[s] == 1:
             k.xfer(('f',s),('b',s))
@@ -39,6 +66,8 @@ def beginpleats(k,refarray):
             k.xfer(('b',s),('f',s))
 
 def xferpleats(k,ref1,ref2):
+    k.rack(0)
+    k.stitchNumber(2)
     w = len(ref2)
     xferref = ref1-ref2
     for s in range(w):
@@ -47,3 +76,7 @@ def xferpleats(k,ref1,ref2):
                 k.xfer(('f',s),('b',s))
             elif xferref[s] == 1 or xferref[s] == 2:
                 k.xfer(('b',s),('f',s))
+
+def knitArray(k,array,xrepeats,yrepeats,c,side='l'):
+    m, n = array.shape
+    for i in range(yrepeats):
