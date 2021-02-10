@@ -2,10 +2,10 @@
 import math
 import numpy as np
 
-def stiffFairIsle(k,stitcharray,width,length,c1,c2,side):
+def stiffFairIsle(k,stitcharray,width,length,c1,c2,side,offset=1):
 
     #offset the length
-    offset=1
+    # offset=1
 
     #tells how much the checkerboard fair isle
     #to protect edge should be

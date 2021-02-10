@@ -12,7 +12,7 @@ def interlocktwoColorMix(k,width,length,c1,c2,side='l'):
     else:
         start=1
 
-    for h in range(start, length*2+1):
+    for h in range(start, length+1):
 
         if h%2 ==1:
             for s in range(width-1,-1,-1):
@@ -53,7 +53,7 @@ def interlocktwoColorStriped(k,width,length,c1,c2,side='l'):
     else:
         start=1
 
-    for h in range(start, length*2+1):
+    for h in range(start, length+1):
 
         if h%2 ==1:
             for s in range(width-1,-1,-1):

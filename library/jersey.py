@@ -3,7 +3,7 @@ import sys
 sys.path.append('../knitout-frontend-py')
 from library import knitout
 
-def jerseyKnit(k,width,length,c,side):
+def jerseyKnit(k,width,length,c,side='l',bed='f'):
 
     #account for starting position and add first row of knitting
     if side == 'l':
@@ -17,7 +17,7 @@ def jerseyKnit(k,width,length,c,side):
 
         if b%2==1:
             for w in range(0, width):
-                k.knit('+',('f',w),c)
+                k.knit('+',(bed,w),c)
         else:
             for w in range(width-1,-1,-1):
-                k.knit('-',('f',w),c)
+                k.knit('-',(bed,w),c)
