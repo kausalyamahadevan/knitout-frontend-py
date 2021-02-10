@@ -178,6 +178,10 @@ class Writer:
             raise ValueError('comment has to be string')
         self.operations.append(';' + commentString)
 
+    def kcodecomment(self, commentString):
+        if type(commentString) != str:
+            raise ValueError('comment has to be string')
+        self.operations.append(';kniterate ' + commentString)
 
     #Extensions
 
