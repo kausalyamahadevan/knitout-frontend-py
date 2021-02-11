@@ -20,28 +20,39 @@ kwriter.addHeader('Machine','kniterate')
 draw = '1'
 waste = '2'
 main = '3'
+mono = '6'
 xrep = 4
-yrep = 4
+yrep = 2
 width = len(refarray[0])*xrep
 
 kwriter.ingripper(waste)
 kwriter.ingripper(draw)
 kwriter.ingripper(main)
-kwriter.stitchNumber(2)
+kwriter.ingripper(mono)
+kwriter.stitchNumber(4)
 
-caston(kwriter,width,[draw,waste,main])
+caston(kwriter,width,[draw,waste,main,mono])
 
+kwriter.kcodecomment('first transfers')
 kwriter.speedNumber(100)
-kwriter.addRollerAdvance(-200)
+#i thought add roller advance only added for one pass but actually does it for all transfwer passes
 kwriter.rollerAdvance(0)
+# kwriter.addRollerAdvance(-50)
 beginpleats(kwriter,refarray[0],xrep)
 
-pleatArray(kwriter,refarray,xrep,yrep,main)
+pleatArray(kwriter,refarray,xrep,yrep,mono)
+kwriter.rollerAdvance(300)
+kwriter.speedNumber(450)
+circular(kwriter,width,6,main)
+circular(kwriter,width,2,draw)
+interlock(kwriter,width,14,waste)
 
 for s in range(width):
     kwriter.drop(('f',s))
+for s in range(width-1,-1,-1):
     kwriter.drop(('b',s))
 kwriter.outgripper(draw)
 kwriter.outgripper(main)
 kwriter.outgripper(waste)
+kwriter.outgripper(mono)
 kwriter.write('knitting-files/origami.k')

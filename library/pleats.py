@@ -90,14 +90,14 @@ def pleatArray(k,array,xrepeats,yrepeats,c,side='l'):
         for j in range(m):
             k.speedNumber(450)
             k.rollerAdvance(450)
-            k.stitchNumber(2)
+            k.stitchNumber(4)
             pleatsrib(k,array[j],xrepeats,2,c,side)
             # if side == 'l':
             #     side = 'r'
             # else:
             #     side = 'l'
             k.speedNumber(100)
-            k.addRollerAdvance(-200)
+            # k.addRollerAdvance(-50)
             k.rollerAdvance(0)
             k.stitchNumber(2)
             if j !=m-1:
