@@ -34,7 +34,7 @@ stitchsize=4;
 tuckstitchsize=2;
 transfersize=2;
 standardKnitSpeed=400;
-standardRoller=400
+standardRoller=400;
 
 k.stitchNumber(stitchsize)
 castonbindoff.caston(k,width,[c1,c2,c3,c5])
@@ -73,7 +73,7 @@ for b in range(int(length/2)):
     k.rollerAdvance(int(standardRoller/2))
 
 
-    for z in range(totalWidth-1,-1,c1Width-1):
+    for z in range(totalWidth-1,c1Width-1,-1):
         k.knit('-',('f',z),c5)
 
     k.rollerAdvance(0)
@@ -101,5 +101,10 @@ jersey.jerseyKnit(k, width, 10, c3)
 
 for s in range(width):
     k.drop(('f',s))
+
+k.outgripper(c1)
+k.outgripper(c2)
+k.outgripper(c3)
+k.outgripper(c5)
 
 k.write('firstIntarsia.k')

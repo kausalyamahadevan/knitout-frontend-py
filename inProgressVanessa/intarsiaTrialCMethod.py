@@ -39,8 +39,6 @@ standardRoller=400
 
 
 
-
-
 k.stitchNumber(stitchsize)
 castonbindoff.caston(k,width,[c1,c2,c3,c5])
 
@@ -103,5 +101,10 @@ jersey.jerseyKnit(k, width, 10, c3)
 
 for s in range(width):
     k.drop(('f',s))
+
+k.outgripper(c1)
+k.outgripper(c2)
+k.outgripper(c3)
+k.outgripper(c5)
 
 k.write('cmuIntarsia.k')
