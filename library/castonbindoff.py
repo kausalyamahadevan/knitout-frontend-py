@@ -119,3 +119,18 @@ def caston(k,width,carriers):
         k.knit('+',('f',s),carriers[2])
         k.knit('+',('b',s),carriers[2])
     circular(k,width,1,carriers[2],'r')
+
+
+def bindoff(k, width,c,side='l'):
+
+    k.rack(0)
+
+    for s in range(width):
+        k.tuck('-',('b',s),c)
+        k.xfer(('b',s),('f',s))
+        k.rack(-1)
+        k.xfer(('f',s),('b',s+1))
+        k.rack(0)
+        k.addRollerAdvance(-50)
+        k.drop('b',s-1)
+        k.knit('+',('b',s+1),c)

@@ -59,7 +59,7 @@ k.speedNumber(400)
 
 castonbindoff.interlock(k,width,4,c3,'l')
 
-for x in range(length-1):
+for x in range(length):
 
     jersey.jerseyKnit(k,interlockStart,1,c3,'l')
     castonbindoff.interlockRange(k,interlockStart,width,1,c3,'l')
