@@ -71,11 +71,12 @@ for x in range(length):
     jersey.jerseyKnit(k,interlockStart,1,c3,'r')
 
 
-castonbindoff.interlock(k,width,6,c3,'l')
+castonbindoff.interlock(k,width,7,c3,'l')
+castonbindoff.bindoff(k,0,width,c3,'r',1)
 
-for s in range(width):
-    k.drop(('f',s))
-    k.drop('b',s)
+# for s in range(width):
+#     k.drop(('f',s))
+#     k.drop('b',s)
 
 k.outgripper(c1)
 k.outgripper(c2)

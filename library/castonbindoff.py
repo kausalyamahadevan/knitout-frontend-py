@@ -120,7 +120,6 @@ def caston(k,width,carriers):
         k.knit('+',('b',s),carriers[2])
     circular(k,width,1,carriers[2],'r')
 
-''' Bind off function"
 
 def bindoff(k, start,width,c,side='l',onfront=1):
 
@@ -138,17 +137,17 @@ def bindoff(k, start,width,c,side='l',onfront=1):
         #first stitches start
         k.tuck('-',('b',start-1),c)
         k.knit('+',('b',start),c)
-        k.xfer(('b',start)),('f',start))
+        k.xfer(('b',start),('f',start))
         k.rack(-1)
-        k.xfer(('f',start)),('b',start+1))
+        k.xfer(('f',start),('b',start+1))
         k.rack(0)
         k.knit('+',('b',start+1),c)
 
         k.tuck('-',('b',start),c)
         k.drop('b',start-1)
-        k.xfer(('b',start+1)),('f',start+1))
+        k.xfer(('b',start+1),('f',start+1))
         k.rack(-1)
-        k.xfer(('f',start+1)),('b',start+2))
+        k.xfer(('f',start+1),('b',start+2))
         k.rack(0)
         k.addRollerAdvance(-50)
         k.drop('b',start)
@@ -181,24 +180,24 @@ def bindoff(k, start,width,c,side='l',onfront=1):
     else:
         k.tuck('+',('b',width),c)
         k.knit('-',('b',width-1),c)
-        k.xfer(('b',width-1)),('f',width-1))
+        k.xfer(('b',width-1),('f',width-1))
         k.rack(1)
-        k.xfer(('f',width-1)),('b',width-2))
+        k.xfer(('f',width-1),('b',width-2))
         k.rack(0)
         k.knit('-',('b',width-2),c)
 
         k.tuck('+',('b',width-1),c)
         k.drop('b',width)
-        k.xfer(('b',width-2)),('f',width-2))
+        k.xfer(('b',width-2),('f',width-2))
         k.rack(1)
-        k.xfer(('f',width-2)),('b',start-3))
+        k.xfer(('f',width-2),('b',width-3))
         k.rack(0)
         k.addRollerAdvance(-50)
         k.drop('b',width-1)
-        k.knit('-',('b',knit-3),c)
+        k.knit('-',('b',width-3),c)
 
 
-        for s in range(width-2,-1,-1):
+        for s in range(width-3,-1,-1):
 
             k.tuck('+',('b',s+1),c)
             k.xfer(('b',s),('f',s))
@@ -209,6 +208,8 @@ def bindoff(k, start,width,c,side='l',onfront=1):
             k.drop('b',s+1)
             k.knit('-',('b',s-1),c)
 
+        print(s)
+
         #make the chain
         k.rollerAdvance(200)
         for m in range(8):
@@ -217,6 +218,7 @@ def bindoff(k, start,width,c,side='l',onfront=1):
             k.miss('+',('b',s+1),c)
             k.knit('-',('b',s),c)
 
+
         #drop the last stitch
         k.addRollerAdvance(200)
-        k.drop('b',s)
+        k.drop(('b',s))
