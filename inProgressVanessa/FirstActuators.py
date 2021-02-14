@@ -46,7 +46,7 @@ k.rollerAdvance(0)
 ribbing.rib2ribXfer(k,initial,skipArray,1)
 
 
-k.rollerAdvance(300)
+k.rollerAdvance(200)
 k.speedNumber(400)
 for x in range(length-1):
 

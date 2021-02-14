@@ -63,35 +63,39 @@ for z in range(totalWidth):
 k.rollerAdvance(int(standardRoller/2))
 
 for b in range(int(length/2)):
-    for z in range(c1Width-1):
+    for z in range(c1Width-2):
         k.knit('+',('f',z),c3)
 
     #add one tuck at the end of each row - will count as extra pass
     k.rollerAdvance(0)
     k.stitchNumber(tuckstitchsize)
 
+    k.tuck('+',('f',c1Width-2),c3)
     k.tuck('+',('f',c1Width-1),c3)
+    k.tuck('+',('f',c1Width),c3)
 
     k.stitchNumber(stitchsize)
     k.rollerAdvance(int(standardRoller/2))
 
 
-    for z in range(c1Width-1,-1,-1):
+    for z in range(c1Width,-1,-1):
         k.knit('-',('f',z),c3)
 
-    for z in range(totalWidth-1,c1Width-1,-1):
+    for z in range(totalWidth-1,c1Width,-1):
         k.knit('-',('f',z),c5)
 
     #add one tuck at the end of each row - will count as extra pass
     k.rollerAdvance(0)
     k.stitchNumber(tuckstitchsize)
 
+    k.tuck('-',('f',c1Width),c5)
     k.tuck('-',('f',c1Width-1),c5)
+    k.tuck('-',('f',c1Width-2),c5)
 
     k.stitchNumber(stitchsize)
     k.rollerAdvance(int(standardRoller/2))
 
-    for z in range(c1Width-1,totalWidth):
+    for z in range(c1Width-2,totalWidth):
         k.knit('+',('f',z),c5)
 
 
@@ -107,4 +111,4 @@ k.outgripper(c2)
 k.outgripper(c3)
 k.outgripper(c5)
 
-k.write('cmuIntarsia.k')
+k.write('cmuIntarsiaThick.k')
