@@ -50,8 +50,7 @@ def interlock(k,width,length,c,side='l'):
                     k.knit('+',('b',s),c)
 
 def interlockRange(k,start,end,length,c,side='l'):
-    k.rack(0)
-    k.rollerAdvance(300)
+
     if side == 'r':
         for s in range(end-1,start-1,-1):
             if s%2 == 0:
