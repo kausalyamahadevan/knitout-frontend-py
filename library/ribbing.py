@@ -20,7 +20,7 @@ def xfertorib(k,ribarray,repeats):
 knits as many rows as you like of a given rib knit pattern.
 Stitches must already be configured on the correct needles
 '''
-def ribKnit(k,ribarray,repeats,length,c,side='l'):
+def ribKnit(k,ribarray,repeats,length,c,side='l',n0=0):
     ribsize = len(ribarray)
     w  = ribsize*repeats
     ref = np.tile(ribarray,repeats)
@@ -33,15 +33,15 @@ def ribKnit(k,ribarray,repeats,length,c,side='l'):
         if h%2 ==0:
             for s in range(w):
                 if ref[s] == 1:
-                    k.knit('+',('b',s),c)
+                    k.knit('+',('b',s+n0),c)
                 else:
-                    k.knit('+',('f',s),c)
+                    k.knit('+',('f',s+n0),c)
         else:
             for s in range(w-1,-1,-1):
                 if ref[s] == 1:
-                    k.knit('-',('b',s),c)
+                    k.knit('-',('b',s+n0),c)
                 else:
-                    k.knit('-',('f',s),c)
+                    k.knit('-',('f',s+n0),c)
 
 '''
 Given two arrays of the same size, sets up for the

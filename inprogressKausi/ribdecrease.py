@@ -5,9 +5,9 @@ from library.castonbindoff import *
 from library.ribbing import *
 import numpy as np
 # 0 -> knit on front bed, 1 -> knit on back bed
-ribpattern = np.array([0,0,0,0,1,1]) # 1 means knit on back bed
+ribpattern = np.array([0,0,0,0,1,1,0,0,0,0,1,1]) # 1 means knit on back bed
 ribsize = len(ribpattern)
-totrepeats = 10
+totrepeats = 5
 width  = ribsize*totrepeats
 length = 30
 kwriter = knitout.Writer('1 2 3 4 5 6')
@@ -35,33 +35,71 @@ kwriter.speedNumber(400)
 kwriter.rollerAdvance(400)
 
 ribKnit(kwriter,ribpattern,totrepeats,length,main)
+''' decrease 1 repeate on RIGHT'''
 stitchesleft = ribsize
 reflen = len(ref)
+reps = stitchesleft/4
 # second to last repeat
-for s in range(ribsize*(totrepeats-2),ribsize*(totrepeats-1)):
-    if ref[s] == 0:
-        kwriter.xfer(('f',s),('b',s))
+for i in range(reps):
+    for s in range(reflen-ribsize-2,reflen-ribsize):
+        if ref[s] == 1:
+            kwriter.xfer(('b',s),('f',s))
 
-#last repeat
-for s in range(ribsize*(totrepeats-1),ribsize*totrepeats):
-    if ref[s] == 1:
-        kwriter.xfer(('b',s),('f',s))
-''' now the second to last repeat is on the back bed and
-    the last repeat on the front bed'''
+    #last repeat
+    for s in range(reflen-ribsize,reflen):
+        if ref[s] == 0:
+            kwriter.xfer(('f',s),('b',s))
+    ''' now the second to last repeat is on the front bed and
+        the last repeat on the back bed'''
 
-kwriter.rack(2)
-#ribsize*(totrepeats-1)-2 -> ribsize*(totrepeats-1)
-#ribsize*(totrepeats-1)-1 -> ribsize*(totrepeats-1)+1
-# kwriter.xfer(('b',ribsize*(totrepeats-1)-2),('f',ribsize*(totrepeats-1)))
-# kwriter.xfer(('b',ribsize*(totrepeats-1)-1),('f',ribsize*(totrepeats-1)+1))
+    kwriter.rack(-2)
+    for s in range(reflen-ribsize,reflen):
+        kwriter.xfer(('b',s),('f',s-2))
 
+    ''' everything on the front bed now '''
+    kwriter.rack(0)
+    ref = np.delete(ref, [ribsize*(totrepeats-1)-2,ribsize*(totrepeats-1)-1])
+    reflen = len(ref)
+    for s in range(reflen-ribsize,reflen):
+        if ref[s] == 1:
+            kwriter.xfer(('f',s),('b',s))
+    ribKnit(kwriter,ref,1,2,main)
+    stitchesleft = stitchesleft-2
 
-''' Last repeat totally on the front bed, second to last repeat (shortened) on the back bed'''
-ref = np.delete(ref, [ribsize*(totrepeats-1)-2,ribsize*(totrepeats-1)-1])
-kwriter.rack(0)
-for s in range(ribsize*(totrepeats-2),ribsize*(totrepeats-1)-2):
-    if ref[s] == 0:
-        kwriter.xfer(('b',s),('f',s))
+''' -----------------------
+    DECREASE 1 REPEAT ON LEFT '''
+ribKnit(kwriter,ref,1,1,main)
 
-# ribKnit(kwriter,ref,1,1,main)
+stitchesleft = ribsize
+reflen = len(ref)
+reps = stitchesleft/4
+# second to last repeat
+startn = 0
+for i in range(reps):
+    for s in range(ribsize+1,ribsize+3):
+        if ref[s] == 1:
+            kwriter.xfer(('b',s+startn),('f',s+startn))
+
+    #last repeat
+    for s in range(0,ribsize):
+        if ref[s] == 0:
+            kwriter.xfer(('f',s+startn),('b',s+startn))
+    ''' now the second to last repeat is on the front bed and
+        the last repeat on the back bed'''
+
+    kwriter.rack(2)
+    for s in range(0,ribsize):
+        kwriter.xfer(('b',s+startn),('f',s+2+startn))
+
+    ''' everything on the front bed now '''
+    kwriter.rack(0)
+    ref = np.delete(ref, [ribsize+1,ribsize+2])
+    reflen = len(ref)
+    startn +=2
+    for s in range(0,ribsize*2):
+        if ref[s] == 1:
+            kwriter.xfer(('f',s+startn),('b',s+startn))
+
+    ribKnit(kwriter,ref,1,2,main,n0=startn,side = 'r')
+    stitchesleft = stitchesleft-2
 kwriter.write('knitting-files/ribdecrease.k')
