@@ -102,4 +102,7 @@ for i in range(reps):
 
     ribKnit(kwriter,ref,1,2,main,n0=startn,side = 'r')
     stitchesleft = stitchesleft-2
+
+''' --------------------------- '''
+ribKnit(kwriter,ref,1,15,main,n0=startn,side = 'r')
 kwriter.write('knitting-files/ribdecrease.k')

@@ -11,7 +11,7 @@ e = np.vstack((np.zeros((4,4)),np.identity(4),np.zeros((8,4))))
 b = np.vstack((np.ones((12,1)),-np.ones((4,1))))
 d = np.vstack((-np.ones((4,1)),np.ones((12,1))))
 block = np.hstack((a,b,c,d,e))
-
+print(block)
 refarray = np.vstack((block,-block))
 # refarray = np.array([[0,1,0,0,-1,0],[0,-1,0,0,1,0]])
 kwriter = knitout.Writer('1 2 3 4 5 6')
@@ -24,7 +24,6 @@ mono = '6'
 xrep = 4
 yrep = 2
 width = len(refarray[0])*xrep
-
 kwriter.ingripper(waste)
 kwriter.ingripper(draw)
 kwriter.ingripper(main)

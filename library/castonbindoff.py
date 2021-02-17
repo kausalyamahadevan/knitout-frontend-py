@@ -102,6 +102,12 @@ def circular(k,width,length,c,side='l'):
     if side == 'r':
         for s in range(width-1,-1,-1):
             k.knit('-',('f',s),c)
+        start = 1
+        length = length+1
+    else:
+        start = 0
+        # for s in range(width-1,-1,-1):
+        #     k.knit('-',('f',s),c)
 
     for h in range(int(length*2)):
         if h%2 ==1:
@@ -129,7 +135,7 @@ def caston(k,width,carriers):
     k.speedNumber(400)
     interlock(k,width,36,carriers[1],'l')
     #circular / waste Yarn
-    circular(k,width,4,carriers[1],'l')
+    circular(k,width,8,carriers[1],'l')
 
     for s in range(width):
         k.drop(('b',s))
@@ -142,7 +148,7 @@ def caston(k,width,carriers):
     for s in range(width):
         k.knit('+',('f',s),carriers[2])
         k.knit('+',('b',s),carriers[2])
-    circular(k,width,1,carriers[2],'r')
+    circular(k,width,2,carriers[2],'r')
 
 
 def bindoff(k, start,width,c,side='l',onfront=1):
