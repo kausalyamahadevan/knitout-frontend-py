@@ -51,14 +51,14 @@ def interlock(k,width,length,c,side='l'):
 
 def interlockRange(k,start,end,length,c,side='l'):
 
-    if side == 'r':
-        for s in range(end-1,start-1,-1):
-            if s%2 == 0:
-                k.knit('-',('f',s),c)
-            else:
-                k.knit('-',('b',s),c)
+    if side == 'l':
+        beg=0
 
-    for h in range(length*2):
+    else:
+        beg=1
+        length=length+1
+
+    for h in range(beg,length*2):
         if h%2 ==1:
             for s in range(end-1,start-1,-1):
                 if s%2 == 0:

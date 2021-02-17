@@ -22,6 +22,26 @@ def jerseyKnit(k,width,length,c,side='l',bed='f'):
             for w in range(width-1,-1,-1):
                 k.knit('-',(bed,w),c)
 
+def jerseyRange(k,beg,end,length,c,side='l',bed='f'):
+
+    #account for starting position and add first row of knitting
+    if side == 'l':
+        start=1
+
+    else:
+        start=2
+        length=length+1
+
+    for b in range(start,length+1):
+
+        if b%2==1:
+            for w in range(beg, end):
+                k.knit('+',(bed,w),c)
+        else:
+            for w in range(end-1,beg-1,-1):
+                k.knit('-',(bed,w),c)
+
+
 
 def jerseySkip(k,width,length,c,skip=2,side='l',bed='f'):
 
@@ -44,7 +64,21 @@ def jerseySkip(k,width,length,c,skip=2,side='l',bed='f'):
                 k.knit('-',(bed,w),c)
 
 
+def jerseyArraySkipTransfer(k,width,c,array,bed='f'):
+
+    #transfer stitches we kip to opposite bed
+    for m in range(width):
+        if array[m]==0:
+            if bed=='f':
+                k.xfer(('f',m),('b',m))
+            else:
+                k.xfer(('b',m),('f',m))
+
+
 def jerseyArraySkip(k,width,length,c,array,side='l',bed='f'):
+
+    k.rack(0)
+
     if side == 'l':
         start=1
 
