@@ -138,7 +138,8 @@ def stiffFairIsleArray(k,stitcharray,start,finish,length,c1,c2,side='l',bed='f',
         length=length+1
 
     #set counter to make offset
-    counter=offset+current
+    current=current%repeatSize
+    counter=offset+current-1
 
     for b in range(beg, length+1):
         if counter>=repeatSize:

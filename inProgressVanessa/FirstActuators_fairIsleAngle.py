@@ -34,6 +34,7 @@ stitcharray=[1,1,1,1,0,0,0,0]#repeat for the fair isle on back
 
 interlockStart=width-InterlockSegment;
 
+
 k.stitchNumber(4)
 castonbindoff.caston(k,width,[c1,c2,c3])
 
@@ -49,19 +50,20 @@ k.rollerAdvance(300)
 k.speedNumber(400)
 
 
+current=0
 for x in range(length):
 
     jersey.jerseyKnit(k,interlockStart,1,c3,'l')
 
     castonbindoff.interlockRange(k,interlockStart,width,1,c3,'l')
 
-    fairIsleStiffFxn.stiffFairIsleArray(k,stitcharray,edgeProtect,interlockStart,1,c3,c5,'r','b')
-
+    fairIsleStiffFxn.stiffFairIsleArray(k,stitcharray,edgeProtect,interlockStart,1,c3,c5,'r','b',1,current)
+    current=current+1
 
     jersey.jerseyRange(k,0,edgeProtect,2,c3,'r','b')
 
-    fairIsleStiffFxn.stiffFairIsleArray(k,stitcharray,edgeProtect,interlockStart,1,c3,c5,'l','b')
-
+    fairIsleStiffFxn.stiffFairIsleArray(k,stitcharray,edgeProtect,interlockStart,1,c3,c5,'l','b',1,current)
+    current=current+1
 
     castonbindoff.interlockRange(k,interlockStart,width,1,c3,'l')
 
@@ -81,4 +83,4 @@ k.outgripper(c3)
 
 
 
-k.write('fairIsleBend.k')
+k.write('fairIsleBendAngle.k')

@@ -24,7 +24,7 @@ k.ingripper(c3)
 
 
 width=24; #horiz width
-length=100; #vert length
+length=120; #vert length
 numberMisses=2 #number misses between knits on back
 
 #set what the left end right edges are
