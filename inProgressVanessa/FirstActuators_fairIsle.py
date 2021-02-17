@@ -22,6 +22,7 @@ c5='5'
 k.ingripper(c1)
 k.ingripper(c2)
 k.ingripper(c3)
+k.ingripper(c5)
 
 
 width=100; #horiz width
@@ -35,7 +36,7 @@ stitcharray=[1,1,1,1,0,0,0,0]#repeat for the fair isle on back
 interlockStart=width-InterlockSegment;
 
 k.stitchNumber(4)
-castonbindoff.caston(k,width,[c1,c2,c3])
+castonbindoff.caston(k,width,[c1,c2,c3,c5])
 
 k.stitchNumber(4)
 k.rollerAdvance(300)
@@ -72,6 +73,7 @@ castonbindoff.interlock(k,width,6,c3,'l')
 
 k.outgripper(c1)
 k.outgripper(c2)
+k.outgripper(c5)
 
 castonbindoff.bindoff(k,0,width,c3,'l',1)
 
