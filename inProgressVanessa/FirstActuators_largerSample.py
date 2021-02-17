@@ -75,6 +75,7 @@ k.speedNumber(400)
 for x in range(length):
 
     jersey.jerseyKnit(k,interlockStart,1,c3,'l')
+
     castonbindoff.interlockRange(k,interlockStart,width,1,c3,'l')
 
     jersey.jerseyArraySkip(k,interlockStart,2,c3,ref,'r','b')

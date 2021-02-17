@@ -72,6 +72,30 @@ def interlockRange(k,start,end,length,c,side='l'):
                 else:
                     k.knit('+',('b',s),c)
 
+def interlockRangeHalved(k,start,end,length,c,side='l'):
+
+    if side == 'l':
+        beg=0
+
+    else:
+        beg=1
+        length=length+1
+
+    for h in range(beg,length):
+        if h%2 ==1:
+            for s in range(end-1,start-1,-1):
+                if s%2 == 0:
+                    k.knit('-',('f',s),c)
+                else:
+                    k.knit('-',('b',s),c)
+        else:
+            for s in range(start,end):
+                if s%2 == 1:
+                    k.knit('+',('f',s),c)
+                else:
+                    k.knit('+',('b',s),c)
+
+
 def circular(k,width,length,c,side='l'):
     k.rack(0)
     k.rollerAdvance(300)

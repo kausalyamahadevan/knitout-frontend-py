@@ -75,7 +75,7 @@ def jerseyArraySkipTransfer(k,width,c,array,bed='f'):
                 k.xfer(('b',m),('f',m))
 
 
-def jerseyArraySkip(k,width,length,c,array,side='l',bed='f'):
+def jerseyArraySkip(k,beg,end,length,c,array,side='l',bed='f'):
 
     k.rack(0)
 
@@ -89,14 +89,14 @@ def jerseyArraySkip(k,width,length,c,array,side='l',bed='f'):
     for b in range(start,length+1):
 
         if b%2==1:
-            for w in range(width):
+            for w in range(beg,end):
                 if array[w]==1:
                     k.knit('+',(bed,w),c)
                 else:
                     k.miss('+',(bed,w),c)
 
         else:
-            for w in range(width-1,-1,-1):
+            for w in range(end-1,beg-1,-1):
                 if array[w]==1:
                     k.knit('-',(bed,w),c)
                 else:

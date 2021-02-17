@@ -5,6 +5,7 @@ from library import knitout
 from library import castonbindoff
 from library import ribbing
 from library import jersey
+from library import fairIsleStiffFxn
 
 import numpy as np
 import math
@@ -23,13 +24,14 @@ k.ingripper(c2)
 k.ingripper(c3)
 
 
-width=24; #horiz width
-length=100; #vert length
+width=100; #horiz width
+length=20; #vert length
 numberMisses=2 #number misses between knits on back
 
 #set what the left end right edges are
 edgeProtect=4; #left edge
 InterlockSegment=4; #right edge
+stitcharray=[1,1,1,1,0,0,0,0]
 
 interlockStart=width-InterlockSegment;
 
@@ -48,7 +50,6 @@ totalRepeatsHoriz=int(math.ceil(float(width)/repeatSize))
 
 ref = np.tile(repArray,totalRepeatsHoriz)
 
-# Remove the edge array cause now interlocl
 ref[0:edgeProtect]=edgeArray;
 
 
@@ -59,43 +60,46 @@ k.stitchNumber(4)
 k.rollerAdvance(300)
 k.speedNumber(400)
 
+castonbindoff.interlock(k,width,4,c3,'l')
+
+
+# k.stitchNumber(2)
+# k.rollerAdvance(0)
+# k.speedNumber(200)
+# jersey.jerseyArraySkipTransfer(k,width,c3,ref,'b')
+
+k.stitchNumber(4)
+k.rollerAdvance(300)
+k.speedNumber(400)
+print(edgeProtect)
+for x in range(length):
+
+    jersey.jerseyKnit(k,interlockStart,1,c3,'l')
+
+    castonbindoff.interlockRange(k,interlockStart,width,1,c3,'l')
+
+    fairIsleStiffFxn.stiffFairIsleArray(k,stitcharray,edgeProtect,interlockStart,1,c3,c5,'r','b')
+
+    jersey.jerseyRange(k,0,edgeProtect,2,c3,'r','b')
+
+    fairIsleStiffFxn.stiffFairIsleArray(k,stitcharray,edgeProtect,interlockStart,1,c3,c5,'l','b')
+
+    castonbindoff.interlockRange(k,interlockStart,width,1,c3,'l')
+
+    jersey.jerseyKnit(k,interlockStart,1,c3,'r')
+
+
 castonbindoff.interlock(k,width,6,c3,'l')
 
 k.outgripper(c1)
 k.outgripper(c2)
 
-# ribbing.rib2ribXfer(k,)
-#
-# rib2ribXfer(k,ribarray1,ribarray2,repeats):
+castonbindoff.bindoff(k,0,width,c3,'l',1)
 
-k.stitchNumber(2)
-k.rollerAdvance(0)
-k.speedNumber(200)
-jersey.jerseyArraySkipTransfer(k,width,c3,ref,'b')
-
-k.stitchNumber(4)
-k.rollerAdvance(300)
-k.speedNumber(400)
-
-
-for x in range(length):
-
-    castonbindoff.interlockRangeHalved(k,0,edgeProtect,1,c3,'l')
-
-    jersey.jerseyRange(k,edgeProtect,interlockStart,1,c3,'l')
-
-    castonbindoff.interlockRangeHalved(k,interlockStart,width,2,c3,'l')
-
-    jersey.jerseyArraySkip(k,edgeProtect,interlockStart,1,c3,ref,'r','b')
-
-    castonbindoff.interlockRangeHalved(k,0,edgeProtect,1,c3,'r')
-
-
-castonbindoff.circular(k,width,10,c3)
 
 
 k.outgripper(c3)
 
 
 
-k.write('vertBend.k')
+k.write('fairIsleBend.k')
