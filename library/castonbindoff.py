@@ -109,7 +109,7 @@ def circular(k,width,length,c,side='l'):
         # for s in range(width-1,-1,-1):
         #     k.knit('-',('f',s),c)
 
-    for h in range(int(length*2)):
+    for h in range(int(length)):
         if h%2 ==1:
             for s in range(width-1,-1,-1):
                 k.knit('-',('f',s),c)
