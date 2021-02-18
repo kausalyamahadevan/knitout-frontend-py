@@ -100,22 +100,18 @@ def circular(k,width,length,c,side='l'):
     k.rack(0)
     k.rollerAdvance(300)
     if side == 'r':
-        for s in range(width-1,-1,-1):
-            k.knit('-',('f',s),c)
         start = 1
         length = length+1
     else:
         start = 0
-        # for s in range(width-1,-1,-1):
-        #     k.knit('-',('f',s),c)
 
-    for h in range(int(length)):
-        if h%2 ==1:
-            for s in range(width-1,-1,-1):
-                k.knit('-',('f',s),c)
-        else:
+    for h in range(start,length):
+        if h%2 ==0:
             for s in range(width):
                 k.knit('+',('b',s),c)
+        else:
+            for s in range(width-1,-1,-1):
+                k.knit('-',('f',s),c)
 
 # cast on every needle
 def caston(k,width,carriers):
@@ -148,7 +144,7 @@ def caston(k,width,carriers):
     for s in range(width):
         k.knit('+',('f',s),carriers[2])
         k.knit('+',('b',s),carriers[2])
-    circular(k,width,2,carriers[2],'r')
+    circular(k,width,3,carriers[2],'r')
 
 
 def bindoff(k, start,width,c,side='l',onfront=1):

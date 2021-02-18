@@ -47,14 +47,14 @@ pleatsrib(kwriter,refv,1,length,main)
 # for s in range(width):
 #     kwriter.drop(('b',s))
 #
-# circular(kwriter,width,1,draw,'r')
+# ribKnit(kwriter,[0],width,1,draw)
 # kwriter.rack(0.25)
 #
 # for s in range(width):
 #     kwriter.knit('+',('f',s),main)
 #     kwriter.knit('+',('b',s),main)
 #
-# circular(kwriter,width,2,main,'r')
+# circular(kwriter,width,3,main,'r')
 #
 # kwriter.speedNumber(100)
 # kwriter.rollerAdvance(0)
@@ -65,7 +65,8 @@ pleatsrib(kwriter,refv,1,length,main)
 # pleatArray(kwriter,refd,1,1,main)
 #
 # '''--- NEXT SAMPLE ---'''
-# circular(kwriter,width,2,draw)
+# circular(kwriter,width,2,draw,'r')
+
 # interlock(kwriter,width,6,waste)
 # circular(kwriter,width,4,waste)
 # for s in range(width):
