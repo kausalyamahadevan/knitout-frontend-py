@@ -1,6 +1,9 @@
 #creates just a miss section of knit (no tube)
-import knitout
-from castonbindoff import *
+import sys
+sys.path.append('../knitout-frontend-py')
+from library import knitout
+from library import castonbindoff
+
 import numpy as np
 import math
 

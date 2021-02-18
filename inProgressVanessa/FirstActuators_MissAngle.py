@@ -22,7 +22,6 @@ c5='5'
 k.ingripper(c1)
 k.ingripper(c2)
 k.ingripper(c3)
-k.ingripper(c5)
 
 
 width=100; #horiz width
@@ -37,7 +36,7 @@ interlockStart=width-InterlockSegment;
 
 
 k.stitchNumber(4)
-castonbindoff.caston(k,width,[c1,c2,c3,c5])
+castonbindoff.caston(k,width,[c1,c2,c3])
 
 k.stitchNumber(4)
 k.rollerAdvance(300)
@@ -45,26 +44,35 @@ k.speedNumber(400)
 
 castonbindoff.interlock(k,width,4,c3,'l')
 
+k.outgripper(c1)
+k.outgripper(c2)
 
-k.stitchNumber(4)
+
+
+backstitch=8
+frontstitch=4
+
+k.stitchNumber(frontstitch)
 k.rollerAdvance(300)
 k.speedNumber(400)
 
-
-current=0
 for x in range(length):
+
 
     jersey.jerseyKnit(k,interlockStart,1,c3,'l')
 
     castonbindoff.interlockRange(k,interlockStart,width,1,c3,'l')
 
-    fairIsleStiffFxn.stiffFairIsleArray(k,stitcharray,edgeProtect,interlockStart,1,c3,c5,'r','b',1,current)
-    current=current+1
+    k.stitchNumber(backstitch)
+    jersey.jerseyRange(k,edgeProtect,interlockStart,1,c3,'r','b')
 
+    k.stitchNumber(frontstitch)
+    k.rollerAdvance(50)
     jersey.jerseyRange(k,0,edgeProtect,2,c3,'r','b')
 
-    fairIsleStiffFxn.stiffFairIsleArray(k,stitcharray,edgeProtect,interlockStart,1,c3,c5,'l','b',1,current)
-    current=current+1
+    k.stitchNumber(backstitch)
+    k.rollerAdvance(300)
+    jersey.jerseyRange(k,edgeProtect,interlockStart,1,c3,'l','b')
 
     castonbindoff.interlockRange(k,interlockStart,width,1,c3,'l')
 
@@ -73,17 +81,11 @@ for x in range(length):
 
 castonbindoff.interlock(k,width,6,c3,'l')
 
-k.outgripper(c1)
-k.outgripper(c2)
-k.outgripper(c5)
-
 castonbindoff.bindoff(k,0,width,c3,'l',1)
 
-k.ingripper(c5)
 
-castonbindoff.interlock(k,width,6,c5,'l')
 k.outgripper(c3)
-k.outgripper(c5)
 
 
-k.write('fairIsleBendAngle.k')
+
+k.write('jerseyActuator.k')

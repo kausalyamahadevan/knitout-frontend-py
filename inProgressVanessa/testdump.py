@@ -3,19 +3,9 @@ import sys
 sys.path.append('../knitout-frontend-py')
 from library import knitout
 from library import castonbindoff
-from library import sensorSamples
+from library import fairIsleStiffFxn
 
-# from crossover_full import *
-# from library.crossover_half import *
-# from library.crossover_full import *
 
-# from seedKnit import*
-from library.jersey import*
-from library.tuckstuff import*
-from library.twocolorinterlock import*
-# from library.fairIsleStiffFxn import*
-# from library.jerseyVariedStitches import*
-from library.ribbing import*
 import numpy as np
 import math
 
@@ -35,16 +25,17 @@ k.ingripper(c5)
 
 width=30
 tablength=30
+length=30
 
 k.stitchNumber(5)
 castonbindoff.caston(k,width,[c1,c2,c3,c5])
 
 castonbindoff.interlock(k,width,tablength,c2,'l')
 
-for z in range(3):
-    castonbindoff.interlock(k,width,30,c5,'l')
-    sensorSamples.maketabs(k,width,z,c2,tablength)
+for s in range(width):
+    k.drop(('b',s))
 
+fairIsleStiffFxn.missArray(k,4,1,0,width,length,c3,'l','f')
 
 for s in range(width):
     k.drop(('f',s))
