@@ -37,7 +37,7 @@ for s in range(width):
     k.drop(('b',s))
 
 fairIsleStiffFxn.missArray(k,4,1,0,width,length,c3,'l','f')
-Ottoman.ottomanStitch(k,0,width,length,c3,4,'l','f')
+Ottoman.ottomanStitch(k,0,width,length,c3,4,2,'l','f')
 
 for s in range(width):
     k.drop(('f',s))
