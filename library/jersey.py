@@ -74,6 +74,16 @@ def jerseyArraySkipTransfer(k,width,c,array,bed='f'):
             else:
                 k.xfer(('b',m),('f',m))
 
+def jerseyArraySkipTransferRange(k,start,fin,c,array,bed='f'):
+
+    #transfer stitches we kip to opposite bed
+    for m in range(start,fin):
+        if array[m]==0:
+            if bed=='f':
+                k.xfer(('f',m),('b',m))
+            else:
+                k.xfer(('b',m),('f',m))
+
 
 def jerseyArraySkip(k,beg,end,length,c,array,side='l',bed='f'):
 

@@ -22,6 +22,7 @@ c5='5'
 k.ingripper(c1)
 k.ingripper(c2)
 k.ingripper(c3)
+k.ingripper(c5)
 
 
 width=100; #horiz width
@@ -44,32 +45,38 @@ ref = np.tile(repArray,totalRepeatsHoriz)
 
 allback=np.ones(len(ref))
 
+rib=c5;
+shrink=c3;
 
 k.stitchNumber(4)
-castonbindoff.caston(k,width,[c1,c2,c3])
+castonbindoff.caston(k,width,[c1,c2,rib,shrink])
 
 k.stitchNumber(4)
 k.rollerAdvance(300)
 k.speedNumber(400)
 
-castonbindoff.interlock(k,width,4,c3,'l')
+castonbindoff.interlock(k,width,4,rib,'l')
+jersey.jerseyKnit(k,width,1,rib,'l','f')
+
+k.outgripper(c1)
+k.outgripper(c2)
 
 
 k.stitchNumber(2)
 k.rollerAdvance(0)
 k.speedNumber(200)
-jersey.jerseyArraySkipTransfer(k,width,c3,ref,'b')
+jersey.jerseyArraySkipTransferRange(k,edgeProtect,interlockStart,rib,ref,'b')
 
 k.stitchNumber(4)
 k.rollerAdvance(300)
 k.speedNumber(400)
 for x in range(length):
 
-    jersey.jerseyKnit(k,edgeProtect,1,c3,'l')
+    jersey.jerseyKnit(k,edgeProtect,1,shrink,'l')
 
-    jersey.jerseyArraySkip(k,edgeProtect,interlockStart,1,c3,ref)
+    jersey.jerseyArraySkip(k,edgeProtect,interlockStart,1,shrink,ref)
 
-    castonbindoff.interlockRangeHalved(k,interlockStart,width,1,c3,'l')
+    castonbindoff.interlockRangeHalved(k,interlockStart,width,1,shrink,'l')
 
     k.stitchNumber(2)
     k.rollerAdvance(0)
@@ -81,15 +88,15 @@ for x in range(length):
     k.rollerAdvance(300)
     k.speedNumber(400)
 
-    castonbindoff.interlockRangeHalved(k,interlockStart,width,1,c3,'r')
+    castonbindoff.interlockRangeHalved(k,interlockStart,width,1,rib,'r')
 
-    fairIsleStiffFxn.ribKnitRange(k,ref,edgeProtect,interlockStart,1,c3,'r','b')
+    fairIsleStiffFxn.ribKnitRange(k,ref,edgeProtect,interlockStart,1,rib,'r','b')
 
-    jersey.jerseyKnit(k,edgeProtect,2,c3,'r','b')
+    jersey.jerseyKnit(k,edgeProtect,2,rib,'r','b')
 
-    fairIsleStiffFxn.ribKnitRange(k,ref,edgeProtect,interlockStart,1,c3,'l','b')
+    fairIsleStiffFxn.ribKnitRange(k,ref,edgeProtect,interlockStart,1,rib,'l','b')
 
-    castonbindoff.interlockRangeHalved(k,interlockStart,width,1,c3,'l')
+    castonbindoff.interlockRangeHalved(k,interlockStart,width,1,rib,'l')
 
     k.stitchNumber(2)
     k.rollerAdvance(0)
@@ -101,23 +108,25 @@ for x in range(length):
     k.rollerAdvance(300)
     k.speedNumber(400)
 
-    castonbindoff.interlockRangeHalved(k,interlockStart,width,1,c3,'r')
+    castonbindoff.interlockRangeHalved(k,interlockStart,width,1,shrink,'r')
 
-    jersey.jerseyArraySkip(k,edgeProtect,interlockStart,1,c3,ref,'r')
+    jersey.jerseyArraySkip(k,edgeProtect,interlockStart,1,shrink,ref,'r')
 
-    jersey.jerseyKnit(k,edgeProtect,1,c3,'r')
+    jersey.jerseyKnit(k,edgeProtect,1,shrink,'r')
 
 
-castonbindoff.interlock(k,width,6,c3,'l')
+k.miss('+',('f',-10),shrink)
 
-k.outgripper(c1)
-k.outgripper(c2)
-
-castonbindoff.bindoff(k,0,width,c3,'l',1)
+castonbindoff.interlock(k,width,6,rib,'r')
 
 
 
-k.outgripper(c3)
+castonbindoff.bindoff(k,0,width,rib,'l',1)
+
+
+
+k.outgripper(shrink)
+k.outgripper(rib)
 
 
 
