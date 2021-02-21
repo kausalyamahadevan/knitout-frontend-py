@@ -4,6 +4,7 @@ sys.path.append('../knitout-frontend-py')
 from library import knitout
 from library import castonbindoff
 from library import fairIsleStiffFxn
+from library import Ottoman
 
 
 import numpy as np
@@ -36,6 +37,7 @@ for s in range(width):
     k.drop(('b',s))
 
 fairIsleStiffFxn.missArray(k,4,1,0,width,length,c3,'l','f')
+Ottoman.ottomanStitch(k,0,width,length,c3,4,'l','f')
 
 for s in range(width):
     k.drop(('f',s))

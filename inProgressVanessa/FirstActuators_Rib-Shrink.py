@@ -105,7 +105,7 @@ for x in range(length):
     fairIsleStiffFxn.rib2ribXferRange(k,ref,allback,edgeProtect,interlockStart)
 
     k.stitchNumber(4)
-    k.rollerAdvance(300)
+    k.rollerAdvance(5000)
     k.speedNumber(400)
 
     castonbindoff.interlockRangeHalved(k,interlockStart,width,1,shrink,'r')
