@@ -5,10 +5,7 @@ from library.castonbindoff import *
 from library.pleats import *
 import numpy as np
 
-refarray = muira(6)
-# print(refarray)
 
-# refarray = np.array([[0,1,0,0,-1,0],[0,-1,0,0,1,0]])
 kwriter = knitout.Writer('1 2 3 4 5 6')
 kwriter.addHeader('Machine','kniterate')
 
@@ -21,6 +18,8 @@ y6 = '6'
 allyarn = [draw,waste,y3,y5,y6]
 xrep = 1
 yrep = 1
+refarray = muira(6)
+
 width = len(refarray[0])*xrep
 
 for i,c in enumerate(allyarn):
