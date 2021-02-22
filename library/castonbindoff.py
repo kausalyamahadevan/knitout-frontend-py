@@ -292,3 +292,15 @@ def scrapoff(k,width,carriers,side = 'l'):
     for s in range(width-1,-1,-1):
         k.drop(('b',s))
     k.outgripper(carriers[1])
+
+def scrapoffmiddle(k,width,carriers,side = 'l'):
+    #carriers is a list like ['1','2','3']
+    # draw,waste,main, = carriers
+    k.speedNumber(400)
+    circular(k,width,2,carriers[0],side)
+
+    if side =='r':
+        h = 19
+    else:
+        h = 18
+    interlock(k,width,h,carriers[1],side)
