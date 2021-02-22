@@ -1,7 +1,6 @@
 # import library.knitout as knitout
 
 '''Functions to knit a section. Can be stacked.
-   Should always end with the carriage and yarn feeder on the left
    However, "side" tells us what side the carriage (and yarn feeder) is on at the beginning'''
 
 def catchyarns(k,width,carriers):
@@ -248,3 +247,34 @@ def bindoff(k, start,width,c,side='l',onfront=1):
         #drop the last stitch
         k.addRollerAdvance(200)
         k.drop(('b',s))
+
+# cast on every needle
+def castonmiddle(k,width,carriers):
+    #carriers is a list like ['1','2','3']
+    # draw,waste,main, = carriers
+    #Move draw thread to the right side.
+
+    # k.rack(0.25)
+    # for s in range(1,width+1):
+    #     k.knit('+',('f',s),waste)
+    #     k.knit('+',('b',s),waste)
+    #interlock / waste yarn
+    k.speedNumber(400)
+    interlock(k,width,36,carriers[1],'l')
+    #circular / waste Yarn
+    circular(k,width,8,carriers[1],'l')
+
+    k.speedNumber(200)
+    for s in range(width):
+        k.xfer(('b','f',s))
+
+    # for s in range(width-1,-1,-1):
+    #     k.knit('-',('f',s),carriers[0])
+    for s in range(width):
+        k.knit('+',('f',s),carriers[0])
+    #Cast on main yarn!
+    k.rack(0.25)
+    for s in range(width):
+        k.knit('+',('f',s),carriers[2])
+        k.knit('+',('b',s),carriers[2])
+    circular(k,width,3,carriers[2],'r')
