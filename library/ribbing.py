@@ -58,29 +58,29 @@ def ribKnit(k,ribarray,repeats,length,c,side='l',n0=0):
 ''' This function ribknitrange is likely a duplicate of the above
     for new scripts, use ribKnit.
     Leaving this uncommented for now, will eventually be "depreciated" (HEHE)'''
-
-def ribKnitRange(k,ribarray,start,finish,length,c,side='l',n0=0):
-    ribsize = len(ribarray)
-    w  = ribsize*repeats
-    ref = np.tile(ribarray,repeats)
-    if side == 'r':
-        start = 1
-        length = length+1
-    else:
-        start = 0
-    for h in range(start,length):
-        if h%2 ==0:
-            for s in range(w):
-                if ref[s] == 1:
-                    k.knit('+',('b',s+n0),c)
-                else:
-                    k.knit('+',('f',s+n0),c)
-        else:
-            for s in range(w-1,-1,-1):
-                if ref[s] == 1:
-                    k.knit('-',('b',s+n0),c)
-                else:
-                    k.knit('-',('f',s+n0),c)
+#
+# def ribKnitRange(k,ribarray,start,finish,length,c,side='l',n0=0):
+#     ribsize = len(ribarray)
+#     w  = ribsize*repeats
+#     ref = np.tile(ribarray,repeats)
+#     if side == 'r':
+#         start = 1
+#         length = length+1
+#     else:
+#         start = 0
+#     for h in range(start,length):
+#         if h%2 ==0:
+#             for s in range(w):
+#                 if ref[s] == 1:
+#                     k.knit('+',('b',s+n0),c)
+#                 else:
+#                     k.knit('+',('f',s+n0),c)
+#         else:
+#             for s in range(w-1,-1,-1):
+#                 if ref[s] == 1:
+#                     k.knit('-',('b',s+n0),c)
+#                 else:
+#                     k.knit('-',('f',s+n0),c)
 
 ''' must start in 1 x 1 configuration
 k: knitout writer object
