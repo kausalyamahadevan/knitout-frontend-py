@@ -260,8 +260,8 @@ def castonmiddle(k,width,carriers):
 
     k.speedNumber(200)
     for s in range(width):
-        k.xfer(('b','f',s))
-
+        k.xfer(('b',s),('f',s))
+    k.speedNumber(400)
     # for s in range(width-1,-1,-1):
     #     k.knit('-',('f',s),carriers[0])
     for s in range(width):
@@ -304,3 +304,21 @@ def scrapoffmiddle(k,width,carriers,side = 'l'):
     else:
         h = 18
     interlock(k,width,h,carriers[1],side)
+
+# cast on every needle
+def startnowaste(k,width,carriers):
+    #carriers is a list like ['1','2','3']
+    k.speedNumber(200)
+    catchyarns(k,width,carriers)
+    # draw,waste,main, = carriers
+
+    k.speedNumber(400)
+    interlock(k,width,8,carriers[1],'l')
+
+def dropeverything(k,width,carriers):
+    for i,c in enumerate(carriers):
+            k.outgripper(c)
+    for s in range(width):
+        k.drop(('f',s))
+    for s in range(width-1,-1,-1):
+        k.drop(('b',s))
