@@ -254,7 +254,7 @@ def castonmiddle(k,width,carriers):
     # draw,waste,main, = carriers
 
     k.speedNumber(400)
-    interlock(k,width,36,carriers[1],'l')
+    interlock(k,width,24,carriers[1],'l')
     #circular / waste Yarn
     circular(k,width,8,carriers[1],'l')
 
@@ -296,13 +296,16 @@ def scrapoff(k,width,carriers,side = 'l'):
 def scrapoffmiddle(k,width,carriers,side = 'l'):
     #carriers is a list like ['1','2','3']
     # draw,waste,main, = carriers
+    k.speedNumber(200)
+    for s in range(width):
+        k.xfer(('b',s),('f',s))
     k.speedNumber(400)
-    circular(k,width,2,carriers[0],side)
+    circular(k,width,1,carriers[0],'r')
 
     if side =='r':
-        h = 19
+        h = 25
     else:
-        h = 18
+        h = 24
     interlock(k,width,h,carriers[1],side)
 
 # cast on every needle
