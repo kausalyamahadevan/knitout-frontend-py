@@ -5,14 +5,18 @@ from library.castonbindoff import *
 from library.pleats import *
 import numpy as np
 # print(np.zeros((8,4)))
-a = np.vstack((np.zeros((8,4)),np.identity(4),np.zeros((4,4))))
-c = np.vstack((np.zeros((4,8)),np.rot90(np.identity(8)),np.zeros((4,8))))
-e = np.vstack((np.zeros((4,4)),np.identity(4),np.zeros((8,4))))
-b = np.vstack((np.ones((12,1)),-np.ones((4,1))))
-d = np.vstack((-np.ones((4,1)),np.ones((12,1))))
-block = np.hstack((a,b,c,d,e))
-print(block)
-refarray = np.vstack((block,-block))
+# n = 2
+#
+# a = np.vstack((np.zeros((2*n,n)),np.identity(n),np.zeros((n,n))))
+# c = np.vstack((np.zeros((n,2*n)),np.rot90(np.identity(2*n)),np.zeros((n,2*n))))
+# e = np.vstack((np.zeros((n,n)),np.identity(n),np.zeros((2*n,n))))
+# b = np.vstack((np.ones((3*n,1)),-np.ones((n,1))))
+# d = np.vstack((-np.ones((n,1)),np.ones((3*n,1))))
+# block = np.hstack((a,b,c,d,e))
+# print(block)
+refarray = muira(2)
+# print(refarray)
+
 # refarray = np.array([[0,1,0,0,-1,0],[0,-1,0,0,1,0]])
 kwriter = knitout.Writer('1 2 3 4 5 6')
 kwriter.addHeader('Machine','kniterate')

@@ -104,3 +104,14 @@ def pleatArray(k,array,xrepeats,yrepeats,c,side='l'):
                 xferpleats(k,array[j],array[j+1],xrepeats)
             else:
                 xferpleats(k,array[j],array[0],xrepeats)
+
+def muira(size):
+    n = size
+    a = np.vstack((np.zeros((2*n,n)),np.identity(n),np.zeros((n,n))))
+    c = np.vstack((np.zeros((n,2*n)),np.rot90(np.identity(2*n)),np.zeros((n,2*n))))
+    e = np.vstack((np.zeros((n,n)),np.identity(n),np.zeros((2*n,n))))
+    b = np.vstack((np.ones((3*n,1)),-np.ones((n,1))))
+    d = np.vstack((-np.ones((n,1)),np.ones((3*n,1))))
+    block = np.hstack((a,b,c,d,e))
+    # print(block)
+    return(np.vstack((block,-block)))
