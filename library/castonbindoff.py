@@ -252,13 +252,7 @@ def bindoff(k, start,width,c,side='l',onfront=1):
 def castonmiddle(k,width,carriers):
     #carriers is a list like ['1','2','3']
     # draw,waste,main, = carriers
-    #Move draw thread to the right side.
 
-    # k.rack(0.25)
-    # for s in range(1,width+1):
-    #     k.knit('+',('f',s),waste)
-    #     k.knit('+',('b',s),waste)
-    #interlock / waste yarn
     k.speedNumber(400)
     interlock(k,width,36,carriers[1],'l')
     #circular / waste Yarn
@@ -278,3 +272,23 @@ def castonmiddle(k,width,carriers):
         k.knit('+',('f',s),carriers[2])
         k.knit('+',('b',s),carriers[2])
     circular(k,width,3,carriers[2],'r')
+
+def scrapoff(k,width,carriers,side = 'l'):
+    #carriers is a list like ['1','2','3']
+    # draw,waste,main, = carriers
+    k.speedNumber(400)
+    circular(k,width,2,carriers[0],side)
+    for i,c in enumerate(carriers):
+        if i!=1:
+            k.outgripper(c)
+    if side =='r':
+        h = 37
+    else:
+        h = 36
+    interlock(k,width,h,carriers[1],side)
+    #circular / waste Yarn
+    for s in range(width):
+        k.drop(('f',s))
+    for s in range(width-1,-1,-1):
+        k.drop(('b',s))
+    k.outgripper(carriers[1])
