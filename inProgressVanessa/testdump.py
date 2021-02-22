@@ -28,6 +28,13 @@ width=30
 tablength=30
 length=30
 
+newx=np.array([[1,1,1,2,2,2,3,3,3,1,1,2,2,3,3], [1,1,2,2,2,3,3,3,1,1,2,2,3,3,1],
+    [1,2,2,2,3,3,3,1,1,2,2,3,3,1,1],[2,2,2,3,3,3,1,1,2,2,3,3,1,1,1],[2,2,3,3,3,1,1,2,2,3,3,1,1,1,2],
+    [2,3,3,3,1,1,2,2,3,3,1,1,1,2,2],[3,3,3,1,1,2,2,3,3,1,1,1,2,2,2],[3,3,1,1,2,2,3,3,1,1,1,2,2,2,3],
+    [3,1,1,2,2,3,3,1,1,1,2,2,2,3,3],[1,1,2,2,3,3,1,1,1,2,2,2,3,3,3],[1,2,2,3,3,1,1,1,2,2,2,3,3,3,1]], int)
+
+newx=newx-1;
+
 k.stitchNumber(5)
 castonbindoff.caston(k,width,[c1,c2,c3,c5])
 
@@ -38,6 +45,8 @@ for s in range(width):
 
 fairIsleStiffFxn.missArray(k,4,1,0,width,length,c3,'l','f')
 Ottoman.ottomanStitch(k,0,width,length,c3,4,2,'l','f')
+
+Ottoman.striperPattern(k,0,width,length,[c3,c2,c5],newx,'l','f')
 
 for s in range(width):
     k.drop(('f',s))
