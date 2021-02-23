@@ -48,6 +48,9 @@ Ottoman.ottomanStitch(k,0,width,length,c3,4,2,'l','f')
 
 Ottoman.striperPattern(k,0,width,length,[c3,c2,c5],newx,'l','f')
 
+
+
+
 for s in range(width):
     k.drop(('f',s))
     k.drop(('b',s))
