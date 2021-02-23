@@ -279,7 +279,6 @@ def missArray(k,misses,stitches,start,finish,length,c1,side='l',bed='f',offset=1
             for w in range(start,finish):
                 if w==start or w==finish-1:
                     k.knit('+',(bed,w),c1)
-
                 elif ref[w+counter]==1:
                     k.knit('+',(bed,w),c1)
                 else:

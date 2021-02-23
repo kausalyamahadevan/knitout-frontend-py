@@ -24,7 +24,7 @@ k.ingripper(c2)
 k.ingripper(c3)
 
 
-width=100; #horiz width
+width=120; #horiz width
 length=20; #vert length
 
 #set what the left end right edges are
@@ -63,16 +63,12 @@ for x in range(length):
 
     castonbindoff.interlockRange(k,interlockStart,width,1,c3,'l')
 
-    k.stitchNumber(backstitch)
-    jersey.jerseyRange(k,edgeProtect,interlockStart,1,c3,'r','b')
 
-    k.stitchNumber(frontstitch)
-    k.rollerAdvance(50)
+    # missArray(k,misses,stitches,start,finish,length,c1,side='l',bed='f',offset=1,current=0):
+
+    fairIsleStiffFxn.missArray(k, 3, 1, edgeProtect, interlockStart, 1, c3,'r','b',1,0)
     jersey.jerseyRange(k,0,edgeProtect,2,c3,'r','b')
-
-    k.stitchNumber(backstitch)
-    k.rollerAdvance(300)
-    jersey.jerseyRange(k,edgeProtect,interlockStart,1,c3,'l','b')
+    fairIsleStiffFxn.missArray(k, 3, 1, edgeProtect, interlockStart, 3, c3,'l','b',1,1)
 
     castonbindoff.interlockRange(k,interlockStart,width,1,c3,'l')
 
@@ -88,4 +84,4 @@ k.outgripper(c3)
 
 
 
-k.write('jerseyActuator.k')
+k.write('missAngleActuatorNew.k')
