@@ -16,9 +16,9 @@ y5 = '5'
 y6 = '6'
 
 allyarn = [draw,waste,y3,y5,y6]
-xrep = 1
+xrep = 2
 yrep = 1
-refarray = muira(6)
+refarray = muira(3)
 
 width = len(refarray[0])*xrep
 
