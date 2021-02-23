@@ -249,7 +249,7 @@ def bindoff(k, start,width,c,side='l',onfront=1):
         k.drop(('b',s))
 
 # cast on every needle
-def castonmiddle(k,width,carriers):
+def castonmiddle(k,width,carriers,knitsize = 4):
     #carriers is a list like ['1','2','3']
     # draw,waste,main, = carriers
 
@@ -268,6 +268,7 @@ def castonmiddle(k,width,carriers):
         k.knit('+',('f',s),carriers[0])
     #Cast on main yarn!
     k.rack(0.25)
+    k.stitchNumber(knitsize)
     for s in range(width):
         k.knit('+',('f',s),carriers[2])
         k.knit('+',('b',s),carriers[2])

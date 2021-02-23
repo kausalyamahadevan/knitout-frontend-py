@@ -19,7 +19,7 @@ allyarn = [draw,waste,y3,y5,y6]
 xrep = 2
 yrep = 1
 refarray = muira(3)
-
+sizes = [4,4,5]
 width = len(refarray[0])*xrep
 
 for i,c in enumerate(allyarn):
@@ -30,11 +30,12 @@ kwriter.stitchNumber(4)
 startnowaste(kwriter,width,allyarn)
 
 for i,c in enumerate([y3,y5,y6]):
-    castonmiddle(kwriter,width,[draw,waste,c])
+    castonmiddle(kwriter,width,[draw,waste,c],knitsize = sizes[i])
     kwriter.speedNumber(100)
     kwriter.rollerAdvance(0)
     beginpleats(kwriter,refarray[0],xrep)
-    pleatArray(kwriter,refarray,xrep,yrep,c)
+    pleatArray(kwriter,refarray,xrep,yrep,c,knitsize = sizes[i])
+    kwriter.stitchNumber(4)
     scrapoffmiddle(kwriter,width,[draw,waste])
     circular(kwriter,width,2,draw)
 

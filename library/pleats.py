@@ -84,13 +84,13 @@ def xferpleats(k,refarray1,refarray2,repeats):
             elif xferref[s] == 1 or xferref[s] == 2:
                 k.xfer(('b',s),('f',s))
 
-def pleatArray(k,array,xrepeats,yrepeats,c,side='l'):
+def pleatArray(k,array,xrepeats,yrepeats,c,side='l',knitsize = 4):
     m, n = array.shape
     for i in range(yrepeats):
         for j in range(m):
             k.speedNumber(450)
             k.rollerAdvance(450)
-            k.stitchNumber(4)
+            k.stitchNumber(knitsize)
             pleatsrib(k,array[j],xrepeats,2,c,side)
             # if side == 'l':
             #     side = 'r'
