@@ -157,3 +157,47 @@ def knitArray(k,array,xrepeats,yrepeats,c,side='l'):
                 rib2ribXfer(k,array[j],array[j+1],xrepeats)
             else:
                 rib2ribXfer(k,array[j],array[0],xrepeats)
+
+
+def seed(k,beg,end,length,c,side='l'):
+
+    #account for starting position and add first row of knitting
+    if side == 'l':
+        start=1
+
+    else:
+        start=2
+        length=length+1
+
+    for b in range(start, length+1):
+
+        if b%2==1:
+
+            #make sure all stitches on correct needles
+            for w in range(beg,end):
+                if w%2==1:
+                    k.xfer(('b',w),('f',w))
+                else:
+                    k.xfer(('f',w),('b',w))
+
+            #knit all stitches
+            for w in range(beg,end):
+                if w%2==1:
+                    k.knit('+',('f',w),c)
+                else:
+                    k.knit('+',('b',w),c)
+
+        else:
+            #make sure all stitches on correct needles
+            for w in range(end-1,beg-1,-1):
+                if w%2==1:
+                    k.xfer(('f',w),('b',w))
+                else:
+                    k.xfer(('b',w),('f',w))
+
+            #knit all stitches
+            for w in range(end-1,beg-1,-1):
+                if w%2==1:
+                    k.knit('-',('b',w),c)
+                else:
+                    k.knit('-',('f',w),c)
