@@ -1,4 +1,6 @@
-from library import knitout
+
+import math
+import numpy as np
 
 def jerseyKnit(k,width,length,c,side='l',bed='f'):
 
@@ -82,9 +84,15 @@ def jerseyArraySkipTransferRange(k,start,fin,c,array,bed='f'):
                 k.xfer(('b',m),('f',m))
 
 
-def jerseyArraySkip(k,beg,end,length,c,array,side='l',bed='f'):
 
+def jerseyArraySkip(k,beg,end,length,c,stitcharray,side='l',bed='f'):
+    '''makes knitout code where you miss rows of needles based upon a given array.
+    In the array 1 means knit and 0 means miss. Arrays will be tiled based on width of sample.'''
     k.rack(0)
+    repeatSize = len(stitcharray)
+    totalRepeatsHoriz=int(math.ceil(float(beg-end)/repeatSize))
+    array = np.tile(stitcharray,totalRepeatsHoriz+1)
+
 
     if side == 'l':
         start=1

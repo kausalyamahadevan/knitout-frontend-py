@@ -36,7 +36,7 @@ transferStitchSize=2
 width=40
 tablength=30
 samplelength=40
-numsamples=6
+numsamples=1
 
 k.stitchNumber(tabStitchsize)
 k.speedNumber(400)
@@ -52,6 +52,28 @@ castonbindoff.interlock(k,width,tablength,c2,'l')
 
 #set counter which tells side that feeder for
 counter=0
+
+#seed structure
+for z in range(numsamples):
+
+    k.stitchNumber(4)
+    ribbing.seed(k, 0, width, samplelength, mainSampleYarn)
+
+    k.stitchNumber(tabStitchsize)
+    sensorSamples.maketabs(k,width,counter,c2,tablength)
+
+    counter=counter+1
+
+#missing every other stitch Jersey
+for z in range(numsamples):
+
+    k.stitchNumber(4)
+    ribbing.seed(k, 0, width, samplelength, mainSampleYarn)
+
+    k.stitchNumber(tabStitchsize)
+    sensorSamples.maketabs(k,width,counter,c2,tablength)
+
+    counter=counter+1
 
 
 
@@ -181,4 +203,4 @@ k.outgripper(c2)
 k.outgripper(mainSampleYarn)
 
 
-k.write('structureSampler.k')
+k.write('structureSampler2.k')
