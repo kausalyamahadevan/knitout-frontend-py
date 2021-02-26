@@ -1,6 +1,3 @@
-#creates just a miss section of knit (no tube)
-import sys
-sys.path.append('../knitout-frontend-py')
 from library import knitout
 
 def jerseyKnit(k,width,length,c,side='l',bed='f'):

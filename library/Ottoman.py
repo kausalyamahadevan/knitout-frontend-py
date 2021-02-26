@@ -64,7 +64,7 @@ def striperPattern(k,beg,fin,length,carriers,matrix,side='l',bed1='f'):
     matrixW=np.shape(matrix)[1]
 
     numCarriers=len(carriers)
-    print(numCarriers)
+    # print(numCarriers)
 
     for h in range(length):
 
@@ -76,6 +76,31 @@ def striperPattern(k,beg,fin,length,carriers,matrix,side='l',bed1='f'):
                     k.knit('+',(bed0,s),carriers[b])
 
             else:
+                for s in range(fin-1,beg-1,-1):
+                    k.knit('-',(bed0,s),carriers[b])
+                    if matrix[h%matrixL,s%matrixW]==b:
+                        k.knit('-',(bed1,s),carriers[b])
+
+def realStriperPattern(k,beg,fin,length,carriers,matrix,bed1='f'):
+    k.rack(0.25)
+    if bed1=='f':
+        bed0='b'
+    else:
+        bed0='f'
+
+    matrixL=np.shape(matrix)[0]
+    matrixW=np.shape(matrix)[1]
+
+    numCarriers=len(carriers)
+
+    for h in range(int(length/2)):
+
+        for b in range(numCarriers):
+                for s in range(beg,fin):
+                    if matrix[h%matrixL,s%matrixW]==b:
+                        k.knit('+',(bed1,s),carriers[b])
+                    k.knit('+',(bed0,s),carriers[b])
+
                 for s in range(fin-1,beg-1,-1):
                     k.knit('-',(bed0,s),carriers[b])
                     if matrix[h%matrixL,s%matrixW]==b:
