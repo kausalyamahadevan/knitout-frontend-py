@@ -19,11 +19,14 @@ k.addHeader('Machine','kniterate')
 c1='1'
 c2='2'
 c6='6'
+c5='5'
 mainSampleYarn=c6;
+secondYarn=c5
 
 k.ingripper(c1)
 k.ingripper(c2)
 k.ingripper(mainSampleYarn)
+k.ingripper(secondYarn)
 
 
 sampleStitchsize=4
@@ -36,12 +39,14 @@ transferStitchSize=2
 width=40
 tablength=30
 samplelength=40
+
+'''important'''
 numsamples=1
 
 k.stitchNumber(tabStitchsize)
 k.speedNumber(400)
 k.rollerAdvance(300)
-castonbindoff.caston(k,width,[c1,c2,c2,mainSampleYarn])
+castonbindoff.caston(k,width,[c1,c2,c2,mainSampleYarn,secondYarn])
 
 
 k.speedNumber(400)
@@ -67,13 +72,43 @@ for z in range(numsamples):
 #missing every other stitch Jersey
 for z in range(numsamples):
 
+    k.speedNumber(100)
+    k.stitchNumber(2)
+    k.rollerAdvance(0)
+    ribbing.rib2ribXfer(k, [1], [0], width)
+
+    jersey.jerseyArraySkipTransferSide(k,width,[1,0])
+
+    k.speedNumber(400)
     k.stitchNumber(4)
-    ribbing.seed(k, 0, width, samplelength, mainSampleYarn)
+    k.rollerAdvance(400)
+    jersey.jerseyArraySkip(k,0,width-1,samplelength,mainSampleYarn,[1,0])
+
 
     k.stitchNumber(tabStitchsize)
     sensorSamples.maketabs(k,width,counter,c2,tablength)
 
     counter=counter+1
+
+for z in range(numsamples):
+
+    k.speedNumber(100)
+    k.stitchNumber(2)
+    k.rollerAdvance(0)
+    ribbing.rib2ribXfer(k, [1,1], [1,0], width)
+
+    k.speedNumber(400)
+    k.stitchNumber(4)
+    k.rollerAdvance(400)
+    ribbing.ribKnit(k, [1,0], int(width/2), 1 ,mainSampleYarn,'l')
+
+
+
+    k.stitchNumber(tabStitchsize)
+    sensorSamples.maketabs(k,width,counter,c2,tablength)
+
+    counter=counter+1
+
 
 
 

@@ -29,6 +29,10 @@ print(np.shape(newx)[1])
 print(1%3)
 print(33%15)
 
+tuckarray=np.array([])
+print(len(tuckarray))
+print(tuckarray)
+
 c1='1'
 c2='2'
 c3='3'
