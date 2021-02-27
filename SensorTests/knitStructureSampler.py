@@ -8,6 +8,7 @@ from library import jersey
 from library import ribbing
 from library import fairIsleStiffFxn
 from library import garter
+from library import inlay
 
 
 
@@ -42,7 +43,7 @@ tablength=30
 samplelength=40
 
 '''important'''
-numsamples=1
+numsamples=6
 
 k.stitchNumber(tabStitchsize)
 k.speedNumber(400)
@@ -196,10 +197,61 @@ for z in range(numsamples):
     k.stitchNumber(2)
     ribbing.xfertorib(k,[0,1],int(width/2))
 
-    jersey.inlayKnit(k,0,width,samplelength,mainSampleYarn,secondYarn)
+    inlay.inlayKnit(k,0,width,samplelength,mainSampleYarn,secondYarn)
 
     k.speedNumber(400)
     k.stitchNumber(4)
+    k.rollerAdvance(400)
+    k.stitchNumber(tabStitchsize)
+    sensorSamples.maketabs(k,width,counter,c2,tablength)
+
+    counter=counter+1
+
+inlayside='l'
+for z in range(numsamples):
+    k.speedNumber(100)
+    k.rollerAdvance(0)
+    k.stitchNumber(2)
+    ribbing.xfertorib(k,[0,1],int(width/2))
+
+    k.speedNumber(400)
+    k.stitchNumber(4)
+    k.rollerAdvance(400)
+    inlay.inlaySeed(k,0,width,samplelength,mainSampleYarn,secondYarn,inlayside)
+
+    k.speedNumber(400)
+    k.rollerAdvance(400)
+    k.stitchNumber(tabStitchsize)
+    sensorSamples.maketabs(k,width,counter,c2,tablength)
+
+    counter=counter+1
+    if inlayside=='l':
+        inlayside='r'
+    else:
+        inlayside='l'
+
+for z in range(numsamples):
+
+    k.speedNumber(400)
+    k.stitchNumber(4)
+    k.rollerAdvance(400)
+    fairIsleStiffFxn.missArray(k,3,1,0,width,int(samplelength*4),mainSampleYarn)
+
+    k.speedNumber(400)
+    k.rollerAdvance(400)
+    k.stitchNumber(tabStitchsize)
+    sensorSamples.maketabs(k,width,counter,c2,tablength)
+
+    counter=counter+1
+
+for z in range(numsamples):
+
+    k.speedNumber(400)
+    k.stitchNumber(4)
+    k.rollerAdvance(400)
+    fairIsleStiffFxn.missArray(k,4,1,0,width,int(samplelength*5),mainSampleYarn)
+
+    k.speedNumber(400)
     k.rollerAdvance(400)
     k.stitchNumber(tabStitchsize)
     sensorSamples.maketabs(k,width,counter,c2,tablength)
