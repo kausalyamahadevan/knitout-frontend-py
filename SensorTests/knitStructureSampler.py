@@ -63,12 +63,24 @@ counter=0
 #seed structure
 for z in range(numsamples):
 
+    k.speedNumber(400)
+    k.rollerAdvance(400)
     k.stitchNumber(4)
     ribbing.seed(k, 0, width, samplelength, mainSampleYarn)
 
     k.stitchNumber(tabStitchsize)
     sensorSamples.maketabs(k,width,counter,c2,tablength)
 
+    counter=counter+1
+
+for z in range(numsamples):
+    k.speedNumber(400)
+    k.rollerAdvance(400)
+    k.stitchNumber(4)
+    castonbindoff.interlockRange(k, 0, width, samplelength, mainSampleYarn)
+
+    k.stitchNumber(tabStitchsize)
+    sensorSamples.maketabs(k,width,counter,c2,tablength)
     counter=counter+1
 
 #missing every other stitch Jersey
@@ -92,7 +104,7 @@ for z in range(numsamples):
 
     counter=counter+1
 
-#
+#gerter
 for z in range(numsamples):
 
     k.speedNumber(400)
@@ -191,45 +203,8 @@ for z in range(numsamples):
     counter=counter+1
 
 
-for z in range(numsamples):
-    k.speedNumber(100)
-    k.rollerAdvance(0)
-    k.stitchNumber(2)
-    ribbing.xfertorib(k,[0,1],int(width/2))
 
-    inlay.inlayKnit(k,0,width,samplelength,mainSampleYarn,secondYarn)
-
-    k.speedNumber(400)
-    k.stitchNumber(4)
-    k.rollerAdvance(400)
-    k.stitchNumber(tabStitchsize)
-    sensorSamples.maketabs(k,width,counter,c2,tablength)
-
-    counter=counter+1
-
-inlayside='l'
-for z in range(numsamples):
-    k.speedNumber(100)
-    k.rollerAdvance(0)
-    k.stitchNumber(2)
-    ribbing.xfertorib(k,[0,1],int(width/2))
-
-    k.speedNumber(400)
-    k.stitchNumber(4)
-    k.rollerAdvance(400)
-    inlay.inlaySeed(k,0,width,samplelength,mainSampleYarn,secondYarn,inlayside)
-
-    k.speedNumber(400)
-    k.rollerAdvance(400)
-    k.stitchNumber(tabStitchsize)
-    sensorSamples.maketabs(k,width,counter,c2,tablength)
-
-    counter=counter+1
-    if inlayside=='l':
-        inlayside='r'
-    else:
-        inlayside='l'
-
+#3x1 miss array
 for z in range(numsamples):
 
     k.speedNumber(400)
@@ -244,6 +219,7 @@ for z in range(numsamples):
 
     counter=counter+1
 
+#4x1 miss array
 for z in range(numsamples):
 
     k.speedNumber(400)
@@ -258,6 +234,51 @@ for z in range(numsamples):
 
     counter=counter+1
 
+#5x1 miss array
+for z in range(numsamples):
+
+    k.speedNumber(400)
+    k.stitchNumber(4)
+    k.rollerAdvance(400)
+    fairIsleStiffFxn.missArray(k,5,1,0,width,int(samplelength*6),mainSampleYarn)
+
+    k.speedNumber(400)
+    k.rollerAdvance(400)
+    k.stitchNumber(tabStitchsize)
+    sensorSamples.maketabs(k,width,counter,c2,tablength)
+
+    counter=counter+1
+
+
+
+
+
+
+
+#not yet added
+# #inlay on seed
+# inlayside='l'
+# for z in range(numsamples):
+#     k.speedNumber(100)
+#     k.rollerAdvance(0)
+#     k.stitchNumber(2)
+#     ribbing.xfertorib(k,[0,1],int(width/2))
+#
+#     k.speedNumber(400)
+#     k.stitchNumber(4)
+#     k.rollerAdvance(400)
+#     inlay.inlaySeed(k,0,width,samplelength,mainSampleYarn,secondYarn,inlayside)
+#
+#     k.speedNumber(400)
+#     k.rollerAdvance(400)
+#     k.stitchNumber(tabStitchsize)
+#     sensorSamples.maketabs(k,width,counter,c2,tablength)
+#
+#     counter=counter+1
+#     if inlayside=='l':
+#         inlayside='r'
+#     else:
+#         inlayside='l'
 # for z in range(numsamples):
 #
 #     k.speedNumber(100)
@@ -278,34 +299,27 @@ for z in range(numsamples):
 #     counter=counter+1
 
 
-
-
-
-
-
-# #Jersey structure stitch size 6
-# for z in range(3):
+# #inlay on 1x1 rib
+# for z in range(numsamples):
+#     k.speedNumber(100)
+#     k.rollerAdvance(0)
+#     k.stitchNumber(2)
+#     ribbing.xfertorib(k,[0,1],int(width/2))
 #
-#     k.stitchNumber(6)
-#     jersey.jerseyKnit(k,width,samplelength,c3)
+#     inlay.inlayKnit(k,0,width,samplelength,mainSampleYarn,secondYarn)
 #
-#     k.stitchNumber(tabStitchsize)
-#     sensorSamples.maketabs(k,width,counter,c2,tablength)
-#
-#     counter=counter+1
-#
-# #Jersey structure stitch size 8
-# for z in range(3):
-#
-#     k.stitchNumber(8)
-#     jersey.jerseyKnit(k,width,samplelength,c3)
-#
+#     k.speedNumber(400)
+#     k.stitchNumber(4)
+#     k.rollerAdvance(400)
 #     k.stitchNumber(tabStitchsize)
 #     sensorSamples.maketabs(k,width,counter,c2,tablength)
 #
 #     counter=counter+1
 
-#
+
+
+
+'''sample 1'''
 # #structure sampler 1 code:
 # #Jersey structure stitch size 4
 # for z in range(numsamples):
@@ -395,6 +409,29 @@ for z in range(numsamples):
 #     sensorSamples.maketabs(k,width,counter,c2,tablength)
 #     counter=counter+1
 #
+
+'''#### Not yet inlcudded#####'''
+# #Jersey structure stitch size 6
+# for z in range(3):
+#
+#     k.stitchNumber(6)
+#     jersey.jerseyKnit(k,width,samplelength,c3)
+#
+#     k.stitchNumber(tabStitchsize)
+#     sensorSamples.maketabs(k,width,counter,c2,tablength)
+#
+#     counter=counter+1
+#
+# #Jersey structure stitch size 8
+# for z in range(3):
+#
+#     k.stitchNumber(8)
+#     jersey.jerseyKnit(k,width,samplelength,c3)
+#
+#     k.stitchNumber(tabStitchsize)
+#     sensorSamples.maketabs(k,width,counter,c2,tablength)
+#
+#     counter=counter+1
 
 
 for s in range(width):
