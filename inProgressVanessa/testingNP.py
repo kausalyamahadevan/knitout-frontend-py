@@ -38,3 +38,16 @@ c2='2'
 c3='3'
 carriers=[c1,c2,c3]
 len(carriers)
+
+beg=5
+end=10
+
+
+tuckarray=np.zeros(end+1,int)
+tuckarray[beg-1]=1
+tuckarray[end]=1
+
+print(tuckarray)
+
+w=5
+print(w%2)
