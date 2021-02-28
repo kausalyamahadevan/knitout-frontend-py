@@ -159,7 +159,7 @@ def knitArray(k,array,xrepeats,yrepeats,c,side='l'):
                 rib2ribXfer(k,array[j],array[0],xrepeats)
 
 
-def seed(k,beg,end,length,c,side='l'):
+def seed(k,beg,end,length,c,side='l',roller=400,stitch=4,speed=400):
 
     #account for starting position and add first row of knitting
     if side == 'l':
@@ -173,6 +173,9 @@ def seed(k,beg,end,length,c,side='l'):
 
         if b%2==1:
 
+            k.rollerAdvance(0)
+            k.stitchNumber(2)
+            k.speedNumber(300)
             #make sure all stitches on correct needles
             for w in range(beg,end):
                 if w%2==1:
@@ -180,6 +183,9 @@ def seed(k,beg,end,length,c,side='l'):
                 else:
                     k.xfer(('f',w),('b',w))
 
+            k.rollerAdvance(roller)
+            k.stitchNumber(stitch)
+            k.speedNumber(speed)
             #knit all stitches
             for w in range(beg,end):
                 if w%2==1:
@@ -188,6 +194,9 @@ def seed(k,beg,end,length,c,side='l'):
                     k.knit('+',('b',w),c)
 
         else:
+            k.rollerAdvance(0)
+            k.stitchNumber(2)
+            k.speedNumber(300)
             #make sure all stitches on correct needles
             for w in range(end-1,beg-1,-1):
                 if w%2==1:
@@ -195,9 +204,33 @@ def seed(k,beg,end,length,c,side='l'):
                 else:
                     k.xfer(('b',w),('f',w))
 
+            k.rollerAdvance(roller)
+            k.stitchNumber(stitch)
+            k.speedNumber(speed)
             #knit all stitches
             for w in range(end-1,beg-1,-1):
                 if w%2==1:
                     k.knit('-',('b',w),c)
                 else:
                     k.knit('-',('f',w),c)
+
+
+
+def rib2ribXferNoRoller(k,ribarray1,ribarray2,repeats):
+    '''
+    Given two arrays of the same size, sets up for the
+    rib pattern given in ribarray2
+    ribarray: numpy array/list of 0s and 1s to define current needle configuration
+    ribarray: numpy array/list of 0s and 1s to define future needle configuration
+    Has no roller advance built in
+    '''
+    ribsize = len(ribarray1)
+    w  = ribsize*repeats
+    ref1 = np.tile(ribarray1,repeats)
+    ref2 = np.tile(ribarray2,repeats)
+    xferref = ref1-ref2 # 0: do not transfer. 1: back to front -1: front to back
+    for s in range(w):
+        if xferref[s] == 1:
+            k.xfer(('b',s),('f',s))
+        elif xferref[s] == -1:
+            k.xfer(('f',s),('b',s))
