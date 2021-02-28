@@ -20,10 +20,13 @@ def inlayKnit(k,beg,end,length,cRib,cInlay,siderib='l',bed1='f',roller=400,stitc
 
     tuckarray=np.zeros(end,int)
 
-    for i in range(beg,end,4):
-        tuckarray[i]=1
+    for i in range(beg,end,5):
+        if i%2==0:
+            tuckarray[i]=1
+        else:
+            tuckarray[i]=-1
 
-    if (end-beg)%2==0:
+    if (end)%2==0:
         tuckarray[end-1]=-1
 
     else:
@@ -55,7 +58,7 @@ def inlayKnit(k,beg,end,length,cRib,cInlay,siderib='l',bed1='f',roller=400,stitc
             k.rollerAdvance(0)
             k.stitchNumber(2)
             k.speedNumber(speed)
-            for w in range(beg,end):
+            for w in range(end-1,beg-1,-1):
                 if tuckarray[w]==1:
                     k.drop((bed2,w))
                 elif tuckarray[w]==-1:
@@ -82,7 +85,7 @@ def inlayKnit(k,beg,end,length,cRib,cInlay,siderib='l',bed1='f',roller=400,stitc
             k.rollerAdvance(0)
             k.stitchNumber(stitch)
             k.speedNumber(speed)
-            for w in range(end-1,beg-1,-1):
+            for w in range(beg,end):
                 if tuckarray[w]==1:
                     k.drop((bed2,w))
                 elif tuckarray[w]==-1:

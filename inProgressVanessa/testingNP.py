@@ -39,16 +39,19 @@ c3='3'
 carriers=[c1,c2,c3]
 len(carriers)
 
-beg=0
+beg=7
 end=20
 
 
 tuckarray=np.zeros(end,int)
 
-for i in range(beg,end,4):
-    tuckarray[i]=1
+for i in range(beg,end,5):
+    if i%2==0:
+        tuckarray[i]=1
+    else:
+        tuckarray[i]=-1
 
-if (end-beg)%2==0:
+if (end)%2==0:
     tuckarray[end-1]=-1
 
 else:
