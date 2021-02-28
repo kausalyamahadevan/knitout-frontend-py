@@ -5,6 +5,17 @@ import numpy as np
 #has an edge protect built into the function
 def stiffFairIsle(k,stitcharray,width,length,c1,c2,side,offset=1,edgeProtect=4):
 
+    """A function to make a two color fair isle as a manner to change widthwise stiffness
+    k: Writer
+    stitcharray: array of ones and zeros that decides which carriers are knit
+    width: the width of the knitting
+    length: amount of rows (2 passes per row because two colors)
+    c1: first carrier (knits when array is 1)
+    c2: second carrier (knits when array is not 1)
+    side: side where both carriers are starting on
+    offset: how much the array changes each passes
+    edge protect: areas on the edges that 1x1 fairisle and not longer floats"""
+
     repeatSize = len(stitcharray)
     totalRepeatsHoriz=int(math.ceil(float(width)/repeatSize))
 
