@@ -123,6 +123,18 @@ def stiffFairIsle(k,stitcharray,width,length,c1,c2,side,offset=1,edgeProtect=4):
 
 def stiffFairIsleArray(k,stitcharray,start,finish,length,c1,c2,side='l',bed='f',offset=1,current=0):
 
+        """A function to make a two color fair isle as a manner to change widthwise stiffness
+        k: Writer
+        stitcharray: array of ones and zeros that decides which carriers are knit
+        start: the first needle to be knit
+        finish: the needle after the last needle to be knit
+        length: amount of rows (2 passes per row because two colors)
+        c1: first carrier (knits when array is 1)
+        c2: second carrier (knits when array is not 1)
+        side: side where both carriers are starting on ('l' is default)
+        bed: what bed the knitting will be on ('f' is default)
+        offset: how much the array changes each passes (1 is default)
+        current: current offset when beginning using the function (used when called multiple times) (0 is default)"""
     #tells how much the checkerboard fair isle
     #to protect edge should be
 
