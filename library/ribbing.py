@@ -4,13 +4,14 @@ FOR ALL ARRAYS: 1 : knit on BACK bed
                 0 : knit on FRONT bed
 '''
 
-'''
-Transfers stitches from cast on configuration (on all needles f and b) to ribbing
-k: knitout writer object
-ribarray: numpy array/list of 0s and 1s to define rib pattern
-repeats: integer, defines width of sample as a multiple of the ribarray length
-'''
+
 def xfertorib(k,ribarray,repeats):
+    '''
+    Transfers stitches from cast on configuration (on all needles f and b) to ribbing
+    k: knitout writer object
+    ribarray: numpy array/list of 0s and 1s to define rib pattern
+    repeats: integer, defines width of sample as a multiple of the ribarray length
+    '''
     ribsize = len(ribarray)
     w  = ribsize*repeats
     ref = np.tile(ribarray,repeats)
@@ -20,18 +21,19 @@ def xfertorib(k,ribarray,repeats):
         else:
             k.xfer(('b',s),('f',s))
 
-'''
-knits as many rows as you like of a given rib knit pattern.
-Stitches must already be configured on the correct needles
-k: knitout writer object
-ribarray: numpy array/list of 0s and 1s to define rib pattern
-repeats: integer, defines width of sample as a multiple of the ribarray length
-length: number of rows knit
-c: string defining yarn carrier
-side: string defining which side the carrier starts on
-n0: integer defining '0' needle. Defaults to 0
-'''
+
 def ribKnit(k,ribarray,repeats,length,c,side='l',n0=0):
+    '''
+    knits as many rows as you like of a given rib knit pattern.
+    Stitches must already be configured on the correct needles
+    k: knitout writer object
+    ribarray: numpy array/list of 0s and 1s to define rib pattern
+    repeats: integer, defines width of sample as a multiple of the ribarray length
+    length: number of rows knit
+    c: string defining yarn carrier
+    side: string defining which side the carrier starts on
+    n0: integer defining '0' needle. Defaults to 0
+    '''
     ribsize = len(ribarray)
     w  = ribsize*repeats
     ref = np.tile(ribarray,repeats)
@@ -82,15 +84,16 @@ def ribKnit(k,ribarray,repeats,length,c,side='l',n0=0):
 #                 else:
 #                     k.knit('-',('f',s+n0),c)
 
-''' must start in 1 x 1 configuration
-k: knitout writer object
-width: integer, sample width
-length: number of rows knit
-c: string defining yarn carrier
-side: string defining which side the carrier starts on
-n0: integer defining '0' needle. Defaults to 0
-'''
+
 def fishermansrib(k,width,length,c,side='l',n0=0):
+    ''' must start in 1 x 1 configuration
+    k: knitout writer object
+    width: integer, sample width
+    length: number of rows knit
+    c: string defining yarn carrier
+    side: string defining which side the carrier starts on
+    n0: integer defining '0' needle. Defaults to 0
+    '''
     if side == 'r':
         start = 1
         length = length+1
@@ -109,14 +112,17 @@ def fishermansrib(k,width,length,c,side='l',n0=0):
                     k.tuck('-',('b',s+n0),c)
                 else:
                     k.knit('-',('f',s+n0),c)
-'''
-Given two arrays of the same size, sets up for the
-rib pattern given in ribarray2
-ribarray: numpy array/list of 0s and 1s to define current needle configuration
-ribarray: numpy array/list of 0s and 1s to define future needle configuration
-'''
+
 
 def rib2ribXfer(k,ribarray1,ribarray2,repeats):
+    '''
+    Given two arrays of the same size, sets up for the
+    rib pattern given in ribarray2
+    ribarray: numpy array/list of 0s and 1s to define current needle configuration
+    ribarray: numpy array/list of 0s and 1s to define future needle configuration
+
+    FOR ALL ARRAYS: 1 : knit on BACK bed
+                    0 : knit on FRONT bed'''
     ribsize = len(ribarray1)
     w  = ribsize*repeats
     ref1 = np.tile(ribarray1,repeats)
@@ -132,15 +138,16 @@ def rib2ribXfer(k,ribarray1,ribarray2,repeats):
     k.addRollerAdvance(300)
     k.rollerAdvance(400)
 
-''' Given an array and repeats, knits and purls
-k: knitout writer object
-array: numpy array of 0s and 1s to define rib pattern
-xrepeats: integer, defines width of sample as a multiple of the ribarray dimension
-xrepeats: integer, defines height of sample as a multiple of the ribarray dimension
-c: string defining yarn carrier
-side: string defining which side the carrier starts on'''
+
 
 def knitArray(k,array,xrepeats,yrepeats,c,side='l'):
+    ''' Given an array and repeats, knits and purls
+    k: knitout writer object
+    array: numpy array of 0s and 1s to define rib pattern
+    xrepeats: integer, defines width of sample as a multiple of the ribarray dimension
+    xrepeats: integer, defines height of sample as a multiple of the ribarray dimension
+    c: string defining yarn carrier
+    side: string defining which side the carrier starts on'''
     m, n = array.shape
     for i in range(yrepeats):
         for j in range(m):
@@ -160,6 +167,16 @@ def knitArray(k,array,xrepeats,yrepeats,c,side='l'):
 
 
 def seed(k,beg,end,length,c,side='l',roller=400,stitch=4,speed=400):
+
+    '''A function to make a seed stitch in a given width and amount of rows
+    beg: the initial needle to start knitting on
+    end: the needle after the last needle to be knit
+    c: carrier
+    length: rows of knitting
+    side: side the carrier is currently on ('l' is default)
+    roller: the amount the roller advances when knitting (400 default)
+    stitch: stich size (4 is default)
+    Speed: speed during knitting (400 default)'''
 
     #account for starting position and add first row of knitting
     if side == 'l':
@@ -222,7 +239,11 @@ def rib2ribXferNoRoller(k,ribarray1,ribarray2,repeats):
     rib pattern given in ribarray2
     ribarray: numpy array/list of 0s and 1s to define current needle configuration
     ribarray: numpy array/list of 0s and 1s to define future needle configuration
-    Has no roller advance built in
+
+    ****Has no roller advance built
+
+    FOR ALL ARRAYS: 1 : knit on BACK bed
+                    0 : knit on FRONT bed
     '''
     ribsize = len(ribarray1)
     w  = ribsize*repeats
