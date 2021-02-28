@@ -135,7 +135,7 @@ for z in range(numsamples):
     k.speedNumber(100)
     k.rollerAdvance(0)
     k.stitchNumber(2)
-    ribbing.rib2ribXfer(k, [1], [0], width)
+    ribbing.rib2ribXferNoRoller(k, [1], [0], width)
 
 
     k.speedNumber(400)
@@ -156,7 +156,7 @@ for z in range(numsamples):
     k.speedNumber(100)
     k.rollerAdvance(0)
     k.stitchNumber(2)
-    ribbing.rib2ribXfer(k, [1], [0], width)
+    ribbing.rib2ribXferNoRoller(k, [1], [0], width)
 
 
     k.speedNumber(400)
@@ -177,7 +177,7 @@ for z in range(numsamples):
     k.speedNumber(100)
     k.rollerAdvance(0)
     k.stitchNumber(2)
-    ribbing.rib2ribXfer(k, [1], [0], width)
+    ribbing.rib2ribXferNoRoller(k, [1], [0], width)
 
 
     k.speedNumber(400)
@@ -192,6 +192,27 @@ for z in range(numsamples):
 
     counter=counter+1
 
+
+#missing every other stitch Jersey
+for z in range(numsamples):
+
+    k.speedNumber(100)
+    k.stitchNumber(2)
+    k.rollerAdvance(0)
+    ribbing.rib2ribXferNoRoller(k, [1], [0], width)
+
+    jersey.jerseyArraySkipTransferSide(k,width,[1,0])
+
+    k.speedNumber(400)
+    k.stitchNumber(4)
+    k.rollerAdvance(400)
+    jersey.jerseyArraySkip(k,0,width-1,samplelength,mainSampleYarn,[1,0])
+
+
+    k.stitchNumber(tabStitchsize)
+    sensorSamples.maketabs(k,width,counter,c2,tablength)
+
+    counter=counter+1
 
 
 
@@ -385,7 +406,7 @@ for z in range(numsamples):
 #
 #     counter=counter+1
 
-#not yet added
+
 # #inlay on seed
 # inlayside='l'
 # for z in range(numsamples):
