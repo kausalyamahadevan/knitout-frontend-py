@@ -194,7 +194,7 @@ for z in range(numsamples):
     counter=counter+1
 
 
-#missing every other stitch Jersey
+#missing every other stitch Jersey fixed the stuff
 for z in range(numsamples):
 
     k.speedNumber(100)
