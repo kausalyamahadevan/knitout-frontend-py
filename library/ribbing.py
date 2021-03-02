@@ -84,17 +84,6 @@ def ribKnit(k,ribarray,repeats,length,c,side='l',n0=0):
 #                 else:
 #                     k.knit('-',('f',s+n0),c)
 
-<<<<<<< HEAD
-''' must start in 1 x 1 configuration
-k: knitout writer object
-width: integer, sample width
-length: number of rows knit
-c: string defining yarn carrier
-side: string defining which side the carrier starts on
-n0: integer defining '0' needle. Defaults to 0
-'''
-def fishermansrib(k,w,length,c,side='l',n0=0):
-=======
 
 def fishermansrib(k,width,length,c,side='l',n0=0):
     ''' must start in 1 x 1 configuration
@@ -105,7 +94,6 @@ def fishermansrib(k,width,length,c,side='l',n0=0):
     side: string defining which side the carrier starts on
     n0: integer defining '0' needle. Defaults to 0
     '''
->>>>>>> f77f17c93f329898f37246de8fae6d84153ee0b2
     if side == 'r':
         start = 1
         length = length+1
@@ -113,13 +101,13 @@ def fishermansrib(k,width,length,c,side='l',n0=0):
         start = 0
     for h in range(start,length):
         if h%2 ==0:
-            for s in range(w):
+            for s in range(width):
                 if s%2 == 1:
                     k.knit('+',('b',s+n0),c)
                 else:
                     k.tuck('+',('f',s+n0),c)
         else:
-            for s in range(w-1,-1,-1):
+            for s in range(width-1,-1,-1):
                 if s%2 == 1:
                     k.tuck('-',('b',s+n0),c)
                 else:
@@ -141,13 +129,13 @@ def rib2ribXfer(k,ribarray1,ribarray2,repeats):
     ref2 = np.tile(ribarray2,repeats)
     xferref = ref1-ref2 # 0: do not transfer. 1: back to front -1: front to back
     k.rollerAdvance(0)
-    k.addRollerAdvance(-300)
+    # k.addRollerAdvance(-300)
     for s in range(w):
         if xferref[s] == 1:
             k.xfer(('b',s),('f',s))
         elif xferref[s] == -1:
             k.xfer(('f',s),('b',s))
-    k.addRollerAdvance(300)
+    # k.addRollerAdvance(300)
     k.rollerAdvance(400)
 
 
