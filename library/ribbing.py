@@ -90,7 +90,7 @@ c: string defining yarn carrier
 side: string defining which side the carrier starts on
 n0: integer defining '0' needle. Defaults to 0
 '''
-def fishermansrib(k,width,length,c,side='l',n0=0):
+def fishermansrib(k,w,length,c,side='l',n0=0):
     if side == 'r':
         start = 1
         length = length+1
@@ -99,13 +99,13 @@ def fishermansrib(k,width,length,c,side='l',n0=0):
     for h in range(start,length):
         if h%2 ==0:
             for s in range(w):
-                if ref[s] == 1:
+                if s%2 == 1:
                     k.knit('+',('b',s+n0),c)
                 else:
                     k.tuck('+',('f',s+n0),c)
         else:
             for s in range(w-1,-1,-1):
-                if ref[s] == 1:
+                if s%2 == 1:
                     k.tuck('-',('b',s+n0),c)
                 else:
                     k.knit('-',('f',s+n0),c)
