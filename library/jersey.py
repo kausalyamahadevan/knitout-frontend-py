@@ -1,7 +1,6 @@
-#creates just a miss section of knit (no tube)
-import sys
-sys.path.append('../knitout-frontend-py')
-from library import knitout
+
+import math
+import numpy as np
 
 def jerseyKnit(k,width,length,c,side='l',bed='f'):
 
@@ -64,20 +63,36 @@ def jerseySkip(k,width,length,c,skip=2,side='l',bed='f'):
                 k.knit('-',(bed,w),c)
 
 
-def jerseyArraySkipTransfer(k,width,c,array,bed='f'):
+#only works for front right now
+def jerseyArraySkipTransferSide(k,width,stitcharray,bed='f'):
+
+    repeatSize = len(stitcharray)
+    totalRepeatsHoriz=int(math.ceil(float(width)/repeatSize))
+
+    array = np.tile(stitcharray,totalRepeatsHoriz+2)
 
     #transfer stitches we kip to opposite bed
     for m in range(width):
         if array[m]==0:
-            if bed=='f':
-                k.xfer(('f',m),('b',m))
-            else:
-                k.xfer(('b',m),('f',m))
+            k.xfer(('f',m),('b',m))
+    k.rack(1)
+    for m in range(width-1):
+        if array[m]==0:
+            k.xfer(('b',m),('f',m+1))
+    k.rack(-1)
+    if array[m+1]==0:
+        k.xfer(('b',m+1),('f',m))
 
-def jerseyArraySkipTransferRange(k,start,fin,c,array,bed='f'):
+
+def jerseyArraySkipTransferRange(k,beg,end,c,stitcharray,bed='f'):
+
+    repeatSize = len(stitcharray)
+    totalRepeatsHoriz=int(math.ceil(float(end-beg)/repeatSize))
+    array = np.tile(stitcharray,totalRepeatsHoriz+2)
+
 
     #transfer stitches we kip to opposite bed
-    for m in range(start,fin):
+    for m in range(beg,end):
         if array[m]==0:
             if bed=='f':
                 k.xfer(('f',m),('b',m))
@@ -85,9 +100,16 @@ def jerseyArraySkipTransferRange(k,start,fin,c,array,bed='f'):
                 k.xfer(('b',m),('f',m))
 
 
-def jerseyArraySkip(k,beg,end,length,c,array,side='l',bed='f'):
 
+def jerseyArraySkip(k,beg,end,length,c,stitcharray,side='l',bed='f'):
+    '''makes knitout code where you miss rows of needles based upon a given array.
+    In the array 1 means knit and 0 means miss. Arrays will be tiled based on width of sample.'''
     k.rack(0)
+
+    repeatSize = len(stitcharray)
+    totalRepeatsHoriz=int(math.ceil(float(end-beg)/repeatSize))
+    array = np.tile(stitcharray,totalRepeatsHoriz+2)
+
 
     if side == 'l':
         start=1

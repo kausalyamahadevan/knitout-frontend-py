@@ -13,9 +13,12 @@ def maketabs(k,width,counter,c,tablength=30,draw='1',side='l'):
     if counter%2!=1:
         for s in range(width):
             k.knit('+',('f',s),draw)
+        k.miss('+',('f',s+5),draw) #move draw thread outta the way
+
     else:
         for s in range(width-1,-1,-1):
             k.knit('-',('f',s),draw)
+        k.miss('-',('f',s-5),draw) #move draw thread outta the way
 
     #Cast on main yarn!
     k.rack(0.25)

@@ -29,8 +29,33 @@ print(np.shape(newx)[1])
 print(1%3)
 print(33%15)
 
+tuckarray=np.array([])
+print(len(tuckarray))
+print(tuckarray)
+
 c1='1'
 c2='2'
 c3='3'
 carriers=[c1,c2,c3]
 len(carriers)
+
+beg=7
+end=20
+
+
+tuckarray=np.zeros(end,int)
+
+for i in range(beg,end,5):
+    if i%2==0:
+        tuckarray[i]=1
+    else:
+        tuckarray[i]=-1
+
+if (end)%2==0:
+    tuckarray[end-1]=-1
+
+else:
+    tuckarray[end-1]=1
+
+
+print(tuckarray)
