@@ -97,7 +97,7 @@ def interlockRangeHalved(k,start,end,length,c,side='l'):
 
 def circular(k,width,length,c,side='l'):
     k.rack(0)
-    k.rollerAdvance(450)
+    k.rollerAdvance(500)
     if side == 'r':
         start = 1
         length = length+1

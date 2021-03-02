@@ -153,13 +153,15 @@ def knitArray(k,array,xrepeats,yrepeats,c,side='l'):
         for j in range(m):
             k.speedNumber(400)
             k.rollerAdvance(400)
+            k.stitchNumber(4)
             ribKnit(k,array[j],xrepeats,1,c,side)
             if side == 'l':
                 side = 'r'
             else:
                 side = 'l'
             k.speedNumber(100)
-            k.rollerAdvance(100)
+            k.stitchNumber(2)
+            # k.rollerAdvance(100)
             if j !=m-1:
                 rib2ribXfer(k,array[j],array[j+1],xrepeats)
             else:
