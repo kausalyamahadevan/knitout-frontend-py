@@ -211,14 +211,17 @@ class Writer:
         version = ';!knitout-2\n'
         content = version + '\n'.join(self.headers) + '\n' +  '\n'.join(self.operations)
         try:
+            with open(filename, "w") as out:
+                print(content, file=out)
+                print('wrote file ' + filename)
             # with open(filename, "w") as out:
             #     sys.stdout = out
             #     print(content)
-            out = open(filename,'w')
-            sys.stdout = out
-            print(content)
-            out.close()
-            # print('wrote file ' + filename)
+            ''' ----- '''
+            # out = open(filename,'w')
+            # sys.stdout = out
+            # print(content)
+            # out.close()
         except IOError as error:
             print('Could not write to file ' + filename)
 
