@@ -30,11 +30,12 @@ knitroller = 450
 draw = '1'
 waste = '2'
 main = '3'
+knitnumber = 3
 
 kwriter.ingripper(waste)
 kwriter.ingripper(draw)
 kwriter.ingripper(main)
-kwriter.stitchNumber(4)
+kwriter.stitchNumber(knitnumber)
 
 caston(kwriter,width,[draw,waste,main])
 #TRANSFERS
@@ -46,54 +47,13 @@ xfertorib(kwriter,block[0],totrepeats)
 
 # kwriter.stitchNumber(6)
 ''' --------- '''
-knitArray(kwriter,block,totrepeats,yrepeats,main)
+knitArray(kwriter,block,totrepeats,yrepeats,main,side = 'l',size = knitnumber)
 kwriter.speedNumber(knitspeed)
 kwriter.rollerAdvance(knitroller)
-kwriter.stitchNumber(4)
+kwriter.stitchNumber(knitnumber)
 ribKnit(kwriter,block[0],totrepeats,10,main)
 ribKnit(kwriter,block[0],totrepeats,1,draw)
 ribKnit(kwriter,block[0],totrepeats,36,waste)
-# for i in range(yrepeats):
-#     kwriter.speedNumber(knitspeed)
-#     kwriter.rollerAdvance(knitroller)
-
-    # ribKnit(kwriter,rib1,totrepeats,ribheight,main)
-    # ''' ------------- '''
-    # kwriter.speedNumber(xferspeed)
-    # kwriter.rollerAdvance(xferroller)
-    #
-    # rib2ribXfer(kwriter,rib1,knitpart,totrepeats)
-    #
-    # kwriter.speedNumber(knitspeed)
-    # kwriter.rollerAdvance(knitroller)
-    #
-    # ribKnit(kwriter,knitpart,totrepeats,knitheight,main)
-    # ''' ------------- '''
-    # kwriter.speedNumber(xferspeed)
-    # kwriter.rollerAdvance(xferroller)
-    #
-    # rib2ribXfer(kwriter,knitpart,rib2,totrepeats)
-    #
-    # kwriter.speedNumber(knitspeed)
-    # kwriter.rollerAdvance(knitroller)
-    #
-    # ribKnit(kwriter,rib2,totrepeats,ribheight,main)
-    # ''' ------------- '''
-    # kwriter.speedNumber(xferspeed)
-    # kwriter.rollerAdvance(xferroller)
-    #
-    # rib2ribXfer(kwriter,rib2,purlpart,totrepeats)
-    #
-    # kwriter.speedNumber(knitspeed)
-    # kwriter.rollerAdvance(knitroller)
-    #
-    # ribKnit(kwriter,purlpart,totrepeats,knitheight,main)
-    # ''' ----------------- '''
-    # kwriter.speedNumber(xferspeed)
-    # kwriter.rollerAdvance(xferroller)
-    #
-    # rib2ribXfer(kwriter,purlpart,rib1,totrepeats)
-
 
 for s in range(width):
     kwriter.drop(('f',s))
