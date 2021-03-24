@@ -136,7 +136,7 @@ def rib2ribXfer(k,ribarray1,ribarray2,repeats):
         elif xferref[s] == -1:
             k.xfer(('f',s),('b',s))
     # k.addRollerAdvance(300)
-    k.rollerAdvance(400)
+    # k.rollerAdvance(400)
 
 
 
@@ -233,7 +233,42 @@ def seed(k,beg,end,length,c,side='l',roller=400,stitch=4,speed=400):
                 else:
                     k.knit('-',('f',w),c)
 
+def garter(k,pheight,w,length,c,n0=0,side = 'l'):
+    if side == 'r':
+        start = 1
+        length = length+1
+    else:
+        start = 0
+    bed = 'b'
+    for h in range(start,length):
+        if h%pheight == 0 and bed == 'b':
+            k.rollerAdvance(0)
+            k.stitchNumber(2)
+            k.speedNumber(150)
+            for s in range(w):
+                k.xfer(('b',s+n0),('f',s+n0))
+            k.rollerAdvance(400)
+            k.stitchNumber(4)
+            k.speedNumber(450)
+            bed = 'f'
+        elif h%pheight == 0 and bed == 'f':
+            k.rollerAdvance(0)
+            k.stitchNumber(2)
+            k.speedNumber(150)
+            for s in range(w):
+                k.xfer(('f',s+n0),('b',s+n0))
+            k.rollerAdvance(400)
+            k.stitchNumber(4)
+            k.speedNumber(450)
+            bed = 'b'
 
+        if h%2 ==0:
+            for s in range(w):
+                k.knit('+',(bed,s+n0),c)
+
+        else:
+            for s in range(w-1,-1,-1):
+                k.knit('-',(bed,s+n0),c)
 
 def rib2ribXferNoRoller(k,ribarray1,ribarray2,repeats):
     '''
