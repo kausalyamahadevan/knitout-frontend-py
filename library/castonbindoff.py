@@ -96,6 +96,14 @@ def interlockRangeHalved(k,start,end,length,c,side='l'):
 
 
 def circular(k,width,length,c,side='l'):
+    '''Knits an every needle circular tube starting on designated side.
+    In this function length is the number of total passes knit so if you want a tube that
+    is 20 courses long on each side set length to 40.
+    k is knitout Writer
+    width is width of tube (same on both sides)
+    length is total passes knit
+    c is carrier
+    side is starting position of carraige'''
     k.rack(0)
     k.rollerAdvance(500)
     if side == 'r':

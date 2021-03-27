@@ -107,7 +107,7 @@ def jerseyArraySkip(k,beg,end,length,c,stitcharray,side='l',bed='f'):
     k.rack(0)
 
     repeatSize = len(stitcharray)
-    totalRepeatsHoriz=int(math.ceil(float(end-beg)/repeatSize))
+    totalRepeatsHoriz=int(math.ceil(float(end)/repeatSize))
     array = np.tile(stitcharray,totalRepeatsHoriz+2)
 
 
@@ -158,3 +158,22 @@ def jerseyArrayTuck(k,width,length,c,array,side='l',bed='f'):
                     k.knit('-',(bed,w),c)
                 else:
                     k.tuck('-',(bed,w),c)
+
+def jerseyKnitTwisted(k,width,length,c,side='l',bed='f'):
+
+    #account for starting position and add first row of knitting
+    if side == 'l':
+        start=1
+
+    else:
+        start=2
+        length=length+1
+
+    for b in range(start,length+1):
+
+        if b%2==1:
+            for w in range(0, width):
+                k.knit('-',(bed,w),c)
+        else:
+            for w in range(width-1,-1,-1):
+                k.knit('+',(bed,w),c)
