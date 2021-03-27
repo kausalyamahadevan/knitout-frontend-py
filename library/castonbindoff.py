@@ -144,6 +144,37 @@ def circular(k,width,length,c,side='l'):
             for s in range(width-1,-1,-1):
                 k.knit('-',('f',s),c)
 
+def circularEON(k,width,length,c,side='l'):
+    '''Knits an every needle circular tube starting on designated side.
+    In this function length is the number of total passes knit so if you want a tube that
+    is 20 courses long on each side set length to 40.
+    k is knitout Writer
+    width is width of tube (same on both sides)
+    length is total passes knit
+    c is carrier
+    side is starting position of carraige'''
+    k.rack(0)
+    k.rollerAdvance(500)
+    if side == 'r':
+        start = 1
+        length = length+1
+    else:
+        start = 0
+
+    for h in range(start,length):
+        if h%2 ==0:
+            for s in range(width):
+                if s%2==0:
+                    k.knit('+',('b',s),c)
+                else:
+                    k.miss('+',('b',s),c)
+        else:
+            for s in range(width-1,-1,-1):
+                if s%2==0:
+                    k.miss('-',('f',s),c)
+                else:
+                    k.knit('-',('f',s),c)
+
 # cast on every needle
 def caston(k,width,carriers):
     #carriers is a list like ['1','2','3']
