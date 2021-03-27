@@ -25,6 +25,14 @@ def catchyarns(k,width,carriers):
             k.miss('-',('f',0),c) #moves carriers to the edge, maybe not necessary?
 
 def interlock(k,width,length,c,side='l'):
+    '''Knits an every needle interlock designated side.
+    In this function length is the number of total courses knit so if you want an interlock segment
+    is 20 courses long on each side set length to 20.
+    k is knitout Writer
+    width is width of tube (same on both sides)
+    length is total courses knit
+    c is carrier
+    side is starting position of carraige'''
     k.rack(0)
     k.rollerAdvance(300)
     if side == 'r':
@@ -49,7 +57,15 @@ def interlock(k,width,length,c,side='l'):
                     k.knit('+',('b',s),c)
 
 def interlockRange(k,start,end,length,c,side='l'):
-
+    '''Knits an every needle interlock designated side at designated needle range.
+    In this function length is the number of total passes knit so if you want an interlock segment
+    is 20 courses long on each side set length to 40. Useful if you want to have odd amounts of interlock.
+    k is knitout Writer
+    start is the starting needle to knit on
+    end is the needle after the last needle to knit on
+    length is total passes knit
+    c is carrier
+    side is starting position of carraige'''
     if side == 'l':
         beg=0
 
@@ -72,6 +88,14 @@ def interlockRange(k,start,end,length,c,side='l'):
                     k.knit('+',('b',s),c)
 
 def interlockRangeHalved(k,start,end,length,c,side='l'):
+    '''Knits an every needle interlock designated side.
+    In this function length is the number of total passes knit so if you want an interlock segment
+    is 20 courses long on each side set length to 40. Useful if you want to have odd amounts of interlock.
+    k is knitout Writer
+    width is width of tube (same on both sides)
+    length is total passes knit
+    c is carrier
+    side is starting position of carraige'''
 
     if side == 'l':
         beg=0
