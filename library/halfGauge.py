@@ -261,32 +261,43 @@ def seed(k,beg,end,length,c,side1='l',gauge=1, gstart=0):
     if length%2==1:
         ribKnit(k,[0,1],beg,fin,length,c,side1,'f',gauge, gstart)
 
-def gaugexfer(k,beg,end,bed='f',gauge=1,gstart=0,choice='l'):
 
+def xferhelper(beg,end,gauge,have,receive):
+    for s in range(beg,end,gauge):
+        k.xfer((have,s),(receive,s))
+
+
+
+#not anywhere near done...needz halp
+def gaugexfer(k,beg,end,bed='f',gauge=1,gstart=0):
+
+    beg=beg+start
 
     #first get every stitch onto side where we will not knit, aka "obed"
     if bed=='f':
         rib2ribXfer(k,[1],[0],beg,end,1,0)
         obed='b'
+        modify=-1;
+
 
     else:
         rib2ribXfer(k,[0],[1],beg,end,1,0)
         obed='f'
+        modify=1;
 
     #next transfer every knit stitch back to the bed we will knit on
-    for s in range(beg,end,gauge):
-        k.xfer((obed,s),(bed,s))
+    xferhelper(beg,end,gauge,obed,bed)
 
 
     for m in range(gauge):
 
-        if choice=='l' and m%2==0:
-            k.rack()
+        if m%2==0:
+            k.rack((m+1)*modify)
+            xferhelper(beg+m+1,end,gauge,obed,bed)
 
-
-        elif choice=='l' and m%2==1:
-
-
+        else:
+            k.rack(m*-1*modify)
+            xferhelper(beg+m,end,gauge,obed,bed)
 
 
 
