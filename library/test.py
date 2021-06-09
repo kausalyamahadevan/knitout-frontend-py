@@ -1,6 +1,6 @@
 import knitout
 
-import halfGauge
+# import halfGauge
 
 k = knitout.Writer('1 2 3 4 5 6')
 
@@ -20,6 +20,5 @@ k.write('out.k')
 
 import gabrielle
 
-gabrielle.generatePieceMap(k, 'cactus2.png')
-# gabrielle.generatePieceMap(k, '1', ['2', '3', '4', '5', '6'], 2, 'cactus2.png')
+gabrielle.generatePieceMap(k, 'graphics/cactus.png')
 

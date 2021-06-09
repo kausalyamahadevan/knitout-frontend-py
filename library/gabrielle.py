@@ -1,6 +1,7 @@
 import numpy as np
 
-from numpy.lib.type_check import imag
+from skimage import io
+# from skimage import data
 
 def catchyarns(k, leftN, rightN, carriers, gauge=1):
 	for i,c in enumerate(carriers):
@@ -167,8 +168,6 @@ def tubeCaston(k, startN, endN, c, gauge=1):
 
 
 #--- image processing ---
-from skimage import io
-# from skimage import data
 
 rows = []
 # class Section: #remove
@@ -184,7 +183,7 @@ class SectionInfo:
 		self.leftN = None
 		self.rightN = None
 
-def generatePieceMap(k, imagePath='knitMap.png'):
+def generatePieceMap(k, imagePath='graphics/knitMap.png'):
 	'''
 	- k is knitout Writer
 	- imagePath is the path to the image that contains the piece data
@@ -197,8 +196,7 @@ def generatePieceMap(k, imagePath='knitMap.png'):
 
 	Finally, outputs a 'visualization' (just for, ya know, visualization purposes) with 0 being white space, and knitted mass indicated by carrier number
 
-	TODO: whenever possible, should have new carriers on edges and main carrier in middle, so don't have to worry about float from bringing new carrier in (currently, just has main carrier stay on left which is annoying)
-		ISSUE: would need to alter previous row so that middle carrier only goes as far as endNeedleForLeftSection+1, since we're knitting circularly meaning carrier always ends up on left side after row (assuming start on left in the first place)
+	TODO: keep in mind when converting to knitout: shortrow carrier on right side should have opposite directional pattern and end on right side during waste yarn / initialization (in other words, should go neg pos rather than pos neg for passes in a row)
 	'''
 
 	imageData = io.imread(imagePath)
@@ -207,7 +205,7 @@ def generatePieceMap(k, imagePath='knitMap.png'):
 	width = len(imageData[0])
 	carrierCount = 1
 
-	# print(imageData) #remove
+	print(imageData) #remove
 
 	for r in range(0, len(imageData)):
 		row = []
@@ -240,64 +238,95 @@ def generatePieceMap(k, imagePath='knitMap.png'):
 						rows.append(row)
 						break #go to next row
 	
-
+	carrierOrder = []
 	for cs in range(0, carrierCount):
 		sections.append(SectionInfo(cs + 1))
+		carrierOrder.append(cs+1)
 
 	pieceMap = []
 
-	shortrowing = False
+	# shortrowing = False
+
+	# matches = [x for x in rows if len(x) > 2]
+	# shortrowLeft = [idx for idx, element in enumerate(rows) if len(element) > 2][0]
+	srLneedleR = None
+	shortrowLeft = [idx for idx, element in enumerate(rows) if len(element) > 2]
+
+	if len(shortrowLeft) > 0:
+		shortrowLeft = shortrowLeft[0]
+		srLneedleR = rows[shortrowLeft][0][len(rows[shortrowLeft][0])-1]
+	else: shortrowLeft = False
 
 	for r in range (0, len(rows)):
 		rowMap = {}
 
-		shortrowNext = (r < len(rows) - 1 and len(rows[r+1]) > len(rows[r]))
-
-		# if shortrowNext:
-		# 	x
+		# shortrowLeft = (r < len(rows) - 1 and len(rows[r+1]) > 2 and len(rows[r+1]) > len(rows[r]))
 		
-		if not shortrowing and len(rows[r]) == 1:
-			sections[0].leftN = rows[r][0][0]
-			sections[0].rightN = rows[r][0][len(rows[r][0]) - 1]
-			pieceMap.append([tuple([1, rows[r][0]])])
-		else:
-			shortrowing = True
-			taken = []
-			for i in range (0, len(rows[r])):
-				leftN = rows[r][i][0]
-				rightN = rows[r][i][len(rows[r][i]) - 1]
+		# if not shortrowing and len(rows[r]) == 1:
+		# 	sections[0].leftN = rows[r][0][0]
+		# 	sections[0].rightN = rows[r][0][len(rows[r][0]) - 1]
+		# 	pieceMap.append([tuple([1, rows[r][0]])])
+		# else:
+		# 	shortrowing = True
+		taken = []
+		for i in range (0, len(rows[r])):
+			leftN = rows[r][i][0]
+			rightN = rows[r][i][len(rows[r][i]) - 1]
 
-				match = False
-				unusedC = None
-				for s in range(0, carrierCount):
-					if s in taken: continue
-					if sections[s].leftN is None:
-						if unusedC is None: unusedC = s
-						continue
+			match = False
+			unusedC = None
+			for s in range(0, carrierCount):
+				if s in taken: continue
+				if sections[s].leftN is None:
+					if unusedC is None: unusedC = s
+					continue
 
-					if (leftN < sections[s].leftN and rightN < sections[s].leftN) or (leftN > sections[s].rightN and rightN > sections[s].rightN):
-						continue #shortrow, different section
+				if (leftN < sections[s].leftN and rightN < sections[s].leftN) or (leftN > sections[s].rightN and rightN > sections[s].rightN):
+					continue #shortrow, different section
+				else:
+					if i == 0 and shortrowLeft and leftN <= srLneedleR:
+						section1 = []
+						section2 = []
+						for n in range(leftN, rightN+1):
+							if n <= srLneedleR: section1.append(n)
+							else: section2.append(n)
+
+						unusedC = carrierOrder[carrierCount-1]
+
+						rowMap[unusedC] = section1
+						sections[carrierCount-1].leftN = leftN
+						sections[carrierCount-1].rightN = srLneedleR
+						taken.append(unusedC)
+
+						rowMap[carrierOrder[s]] = section2
+						sections[s].leftN = srLneedleR+1
+						sections[s].rightN = rightN
+
+						if r == shortrowLeft-1:
+							carrierOrder.insert(0, carrierOrder.pop(carrierCount-1)) #move left carrier to front
+							sections.insert(0, sections.pop(carrierCount-1)) #move section to correct location too
+							shortrowLeft = False
+
+
 					else:
 						sections[s].leftN = leftN
 						sections[s].rightN = rightN
-						rowMap[s+1] = rows[r][i] #new
-						taken.append(s)
-						match = True
-						break
-				
-				if not match:
-					taken.append(unusedC)
-					sections[unusedC].leftN = leftN
-					sections[unusedC].rightN = rightN
-					rowMap[unusedC+1] = rows[r][i] #new
+						rowMap[carrierOrder[s]] = rows[r][i] #new
+					taken.append(s)
+					match = True
+					break
+			
+			if not match:
+				taken.append(unusedC)
+				sections[unusedC].leftN = leftN
+				sections[unusedC].rightN = rightN
+				rowMap[carrierOrder[unusedC]] = rows[r][i]
 
-				
-			pieceMap.append(sorted(rowMap.items(), key=lambda x: x[1])) #new
+			
+		pieceMap.append(sorted(rowMap.items(), key=lambda x: x[1])) #new
 
-	print(pieceMap)
+	print(pieceMap) #remove
 
-	print('0:', pieceMap[0])
-	print('15:', pieceMap[15])
 
 	visualization = []
 
