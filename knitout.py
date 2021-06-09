@@ -110,9 +110,7 @@ class Writer:
         argl = list(args)
         self.operations.append('outhook ' + shiftCarrierSet(argl, self.carriers))
 
-    def outcarrier(self, *args):
-        argl = list(args)
-        self.operations.append('out ' + shiftCarrierSet(argl, self.carriers))
+
 
     def releasehook(self, *args):
         argl = list(args)

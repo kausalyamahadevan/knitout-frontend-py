@@ -3,11 +3,13 @@
 '''Functions to knit a section. Can be stacked.
    However, "side" tells us what side the carriage (and yarn feeder) is on at the beginning'''
 
+# def catchyarns(k,width,carriers):
 def catchyarns(k,width,carriers):
     k.rack(0)
     for i,c in enumerate(carriers):
+        k.incarrier(c) #new
         for h in range(1,5):
-            if h%2 ==1:
+            if h%2 == 1:
                 # k.knit('+',('f',i),c)
                 for s in range(width-i):
                     if s%10 == 0:
@@ -21,7 +23,7 @@ def catchyarns(k,width,carriers):
                     elif s%10 == 5:
                         k.knit('-',('f',s+i),c)
                 # k.knit('-',('b',i+1),c)
-        if i !=0:
+        if i != 0:
             k.miss('-',('f',0),c) #moves carriers to the edge, maybe not necessary?
 
 def interlock(k,width,length,c,side='l'):
@@ -32,7 +34,7 @@ def interlock(k,width,length,c,side='l'):
     width is width of tube (same on both sides)
     length is total courses knit
     c is carrier
-    side is starting position of carraige'''
+    side is starting position of carriage'''
     k.rack(0)
     k.rollerAdvance(300)
     if side == 'r':
@@ -137,14 +139,15 @@ def circular(k,width,length,c,side='l'):
         start = 0
 
     for h in range(start,length):
-        if h%2 ==0:
+        if h%2==0:
             for s in range(width):
                 k.knit('+',('b',s),c)
         else:
             for s in range(width-1,-1,-1):
                 k.knit('-',('f',s),c)
 
-def circularEON(k,width,length,c,side='l'):
+
+def circularEON(k,width,length,c,side='l'): #TODO: make it possible to set beg
     '''Knits an every needle circular tube starting on designated side.
     In this function length is the number of total passes knit so if you want a tube that
     is 20 courses long on each side set length to 40.
@@ -162,26 +165,36 @@ def circularEON(k,width,length,c,side='l'):
         start = 0
 
     for h in range(start,length):
-        if h%2 ==0:
+        if h%2==0:
             for s in range(width):
                 if s%2==0:
                     k.knit('+',('b',s),c)
-                else:
-                    k.miss('+',('b',s),c)
+                elif s==width-1: k.miss('+',('b',s),c)
+                '''else: #don't need this, unless doesn't include end needle
+                    k.miss('+',('b',s),c)''' 
         else:
             for s in range(width-1,-1,-1):
-                if s%2==0:
+                if s%2!=0:
+                    k.knit('-',('f',s),c)
+                elif s==0: k.miss('-',('f',s),c)
+                '''if s%2==0:
                     k.miss('-',('f',s),c)
                 else:
-                    k.knit('-',('f',s),c)
+                    k.knit('-',('f',s),c)'''
 
 # cast on every needle
 def caston(k,width,carriers):
-    #carriers is a list like ['1','2','3']
+    '''sheet caston
+    carriers is a list like ['1','2','3']
+        [0] == draw, [1] == waste, [3] == main
+    '''
+    # width += 1 #so value entered for parameter makes more sense //new //remove
+
     k.speedNumber(200)
     catchyarns(k,width,carriers)
     # draw,waste,main, = carriers
     #Move draw thread to the right side.
+    k.comment('draw thread')
     for s in range(width):
         k.knit('+',('f',s),carriers[0])
 
@@ -202,11 +215,13 @@ def caston(k,width,carriers):
         k.knit('-',('f',s),carriers[0])
 
     #Cast on main yarn!
+    k.comment('cast-on')
     k.rack(0.25)
     for s in range(width):
         k.knit('+',('f',s),carriers[2])
         k.knit('+',('b',s),carriers[2])
     circular(k,width,3,carriers[2],'r')
+    k.comment('begin main piece')
 
 
 def bindoff(k, start,width,c,side='l',onfront=1):

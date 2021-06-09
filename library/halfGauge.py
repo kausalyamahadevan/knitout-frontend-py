@@ -33,16 +33,24 @@ def xferSettingsArray(k,specs=[2,0,100]):
 
 def jersey(k,beg,end,length,c,side='l',bed='f',gauge=1, gstart=0):
     '''Jersey function to account for different gauge knititng
-    k is knitout writer. b is beginning needle, end is 1 after the final needl
-    lenght is the number of courses knit. c is the carrier,
+    k is knitout writer. b is beginning needle, end is 1 after the final needle
+    length is the number of courses knit. c is the carrier,
     side is the position of the carraige in the first row
     bed is the bed that we knit on
     gauge is the gauge, 1 is full needle, 2 is half gauge, 3 is 1/3 gauge and so on
     g start is the offse for the first needle of knitting going from left to right if you want to start after the first needle for some reason'''
 
+    #adjust end here so that it value passed as argument more sense #new
+    if end > beg:
+        end += 1
+    else:
+        end -= 1
+
+    #TODO: maybe remove 'side' parameter and just determined based on whether end > beg ?
     #figure out how to count back
     beg=beg+gstart;
-    tot=end-beg
+    # tot=end-beg
+    tot=end-beg + 1 #new
     r=tot%gauge;
 
     new_end=end-r;
@@ -71,14 +79,15 @@ def jersey(k,beg,end,length,c,side='l',bed='f',gauge=1, gstart=0):
 
 
 
-def ribKnit(k,ribarray,beg,fin,length,c,side='l',bed1='f',gauge=1, gstart=0):
+def ribKnit(k,ribarray,beg,end,length,c,side='l',bed1='f',gauge=1, gstart=0):
 
     #figure out how to count back
     beg=beg+gstart;
-    tot=fin-beg
+    # tot=fin-beg
+    tot=end-beg + 1 #new +1
     r=tot%gauge;
 
-    new_end=fin-r;
+    new_end=end-r;
 
     if r==0:
         new_end=new_end-gauge;
@@ -90,7 +99,7 @@ def ribKnit(k,ribarray,beg,fin,length,c,side='l',bed1='f',gauge=1, gstart=0):
         bed0='f'
 
     repeatSize = len(ribarray)
-    totalRepeatsHoriz=int(math.ceil(float(fin-beg)/repeatSize))
+    totalRepeatsHoriz=int(math.ceil(float(end-beg)/repeatSize))
 
     ref = np.tile(ribarray,totalRepeatsHoriz+2)
 
@@ -103,7 +112,7 @@ def ribKnit(k,ribarray,beg,fin,length,c,side='l',bed1='f',gauge=1, gstart=0):
 
     for h in range(start,length):
         if h%2 ==0:
-            for s in range(beg,fin,gauge):
+            for s in range(beg,end,gauge):
                 if ref[int(s/gauge)] == 1:
                     k.knit('+',(bed1,s),c)
                 else:
@@ -115,7 +124,7 @@ def ribKnit(k,ribarray,beg,fin,length,c,side='l',bed1='f',gauge=1, gstart=0):
                 else:
                     k.knit('-',(bed0,s),c)
 
-def rib2ribXfer(k,ribarray1,ribarray2,start,finish,gauge=1,gstart=0):
+def rib2ribXfer(k,ribarray1,ribarray2,start,finish,gauge=1,gstart=0): #TODO: change 'start' to 'beg' and 'finish' to 'end' to be consistent 
     '''Transfer function for half gauge ribs etc to half or third gauge ribs
     of the same  gauge. Will ignore transferring all non-active needles.'''
 
@@ -259,10 +268,10 @@ def seed(k,beg,end,length,c,side1='l',gauge=1, gstart=0):
         rib2ribXfer(k,[1,0],[0,1],beg,end,gauge,gstart)
 
     if length%2==1:
-        ribKnit(k,[0,1],beg,fin,length,c,side1,'f',gauge, gstart)
+        ribKnit(k,[0,1],beg,end,length,c,side1,'f',gauge, gstart) #TODO: maybe change all 'fin' / 'finish' to 'end' so parameter names are consistent; and 'beginning' to 'beg'
 
 
-def xferhelper(beg,end,gauge,have,receive):
+def xferhelper(k,beg,end,gauge,have,receive):
     for s in range(beg,end,gauge):
         k.xfer((have,s),(receive,s))
 
@@ -271,7 +280,7 @@ def xferhelper(beg,end,gauge,have,receive):
 #not anywhere near done...needz halp
 def gaugexfer(k,beg,end,bed='f',gauge=1,gstart=0):
 
-    beg=beg+start
+    beg=beg+gstart
 
     #first get every stitch onto side where we will not knit, aka "obed"
     if bed=='f':
@@ -286,18 +295,18 @@ def gaugexfer(k,beg,end,bed='f',gauge=1,gstart=0):
         modify=1;
 
     #next transfer every knit stitch back to the bed we will knit on
-    xferhelper(beg,end,gauge,obed,bed)
+    xferhelper(k,beg,end,gauge,obed,bed)
 
 
     for m in range(gauge):
 
         if m%2==0:
             k.rack((m+1)*modify)
-            xferhelper(beg+m+1,end,gauge,obed,bed)
+            xferhelper(k,beg+m+1,end,gauge,obed,bed)
 
         else:
             k.rack(m*-1*modify)
-            xferhelper(beg+m,end,gauge,obed,bed)
+            xferhelper(k,beg+m,end,gauge,obed,bed)
 
 
 
