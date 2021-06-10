@@ -201,10 +201,34 @@ class Writer:
     def addRollerAdvance(self,val):
         self.operations.append('x-add-roller-advance ' + str(val))
 
+    def stoppingDistance(self,val):
+        self.operations.append('x-carrier-stopping-distance ' + str(val))
+
     def fabricPresser(self, mode):
         if not (mode == 'auto' or mode == 'on' or mode == 'off'):
             raise ValueError("Mode must be one of 'auto','on','off' : "+ str(mode))
         self.operations.append('x-presser-mode ' + mode)
+
+    #function for going back to make a twisted stitch
+    def twist(self, bn):
+        '''
+        def twist(self, *args):
+        argl = list(args)
+        bn = argl[0]
+        extensions = []
+        if len(argl) > 1: extensions = argl[1]
+        '''
+        for o in range (len(self.operations)-1, 0, -1):
+            if 'knit' in self.operations[o] and bn in self.operations[o]:
+                line = self.operations[o]
+                twistDir = '-'
+                originalDir = line.split()[1]
+                if originalDir == '-': twistDir = '+'
+                missLine = line.replace('knit', 'miss')
+                twistLine = line.replace(originalDir, twistDir)
+                # extensions.append(missLine, twistLine)
+                self.operations[o:o+1] = missLine, twistLine
+                break
 
     def clear(self):
         #clear buffers
