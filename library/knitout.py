@@ -174,8 +174,8 @@ class Writer:
         bn = shiftBedNeedle(argl)
         self.operations.append('amiss ' + bn)
 
-    def pause(self):
-        self.operations.append('pause')
+    def pause(self, message=''):
+        self.operations.append(f'pause {message}')
 
     def comment(self, commentString):
         if type(commentString) != str:
@@ -227,7 +227,7 @@ class Writer:
                 missLine = line.replace('knit', 'miss')
                 twistLine = line.replace(originalDir, twistDir)
                 # extensions.append(missLine, twistLine)
-                self.operations[o:o+1] = missLine, twistLine
+                self.operations[o:o+1] = ';twisted stitch', missLine, twistLine
                 break
 
     def clear(self):

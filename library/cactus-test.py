@@ -21,4 +21,8 @@ k.write('out.k')
 import gabrielle
 
 gabrielle.generatePieceMap(k, 'graphics/cactus.png')
+# gabrielle.generatePieceMap(k, 'graphics/cactus-waste-test.png')
 
+k.write('cactus-test.k')
+# k.write('cactus-waste-test.k')
+# k.write('test.k')
