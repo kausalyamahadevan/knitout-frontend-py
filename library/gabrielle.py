@@ -1,9 +1,47 @@
 import numpy as np
+import warnings
 
 from skimage import io
 # from skimage import data
 
 #NOTE: for gauge > 1: decided baseBed should consistently be front so as to make things less complicated (because doesn't really matter) --- so translation would be fn -> f(gauge*n) bn -> b((gauge*n)+1)
+
+#---------------------------------------------
+#--- CUSTOMIZABLE VARIABLES FOR EXTENSIONS ---
+#---------------------------------------------
+#for waste section
+wasteSpeedNumber = 400
+
+#for main section
+speedNumber = 300
+stitchNumber = 5
+rollerAdvance = 400
+
+#for xfers
+xferSpeedNumber = 100
+xferStitchNumber = 3
+xferRollerAdvance = 100
+
+def xferSettings(k):
+	k.speedNumber(xferSpeedNumber)
+	k.stitchNumber(xferStitchNumber)
+	k.rollerAdvance(xferRollerAdvance)
+
+def resetSettings(k):
+	k.speedNumber(speedNumber)
+	k.stitchNumber(stitchNumber)
+	k.rollerAdvance(rollerAdvance)
+
+#----------------------
+#--- MISC FUNCTIONS ---
+#----------------------
+def availableCarrierCheck(usedCarriers, reusableCarriers=[]):
+	if len(usedCarriers) == 6: raise ValueError('Not enough available carriers.')
+	elif len(usedCarriers) + len(reusableCarriers) == 6:
+		warnings.warn('Reusing carrier.')
+		return usedCarriers[0] #check
+	else: return None
+
 
 #-------------------------------------------------------------------------------
 #--- FUNCTION FOR KNITTING ON ALT NEEDLES, PARITY SWITCHING FOR FRONT & BACK ---
@@ -121,6 +159,8 @@ def catchyarns(k, leftN, rightN, carriers, gauge=1, endOnRight=[], missNeedles={
 #--- FUNCTION FOR DOING ALL THINGS BEFORE CAST-ON (catch/initialize yarns, waste yarn, draw thread) ---
 def wasteSection(k, leftN, rightN, wasteC='1', drawC='2', otherCs = [], gauge=1, endOnRight=[], firstNeedles={}):
 
+	k.stitchNumber(stitchNumber)
+	k.rollerAdvance(rollerAdvance)
 	# width = rightN - leftN + 1
 
 	carriers = [wasteC, drawC]
@@ -151,7 +191,7 @@ def wasteSection(k, leftN, rightN, wasteC='1', drawC='2', otherCs = [], gauge=1,
 	catchyarns(k, leftN, rightN, carriers, gauge, catchEndOnRight, missOtherCs)
 
 	k.comment('waste section')
-	k.speedNumber(400)
+	k.speedNumber(wasteSpeedNumber)
 
 	if wasteC in endOnRight:
 		interlockRange(k, rightN, leftN, 36, wasteC, gauge)
@@ -176,14 +216,23 @@ def wasteSection(k, leftN, rightN, wasteC='1', drawC='2', otherCs = [], gauge=1,
 		if missDraw is not None: k.miss('-', f'f{missDraw}', drawC) #check
 	
 
-#--------------------------
-#--- CASTONS / BINDOFFS ---
-#--------------------------
+#--------------------------------------
+#--- CASTONS / BINDOFFS / PLACEMENT ---
+#--------------------------------------
+
+def tempMissOut(k, width, direction, c):
+	if direction == '+':
+		missN = 0 - np.floor((252-width)/2)
+		k.miss('-', f'f{missN}', c)
+	else:
+		missN = (width-1) + np.floor((252-width)/2)
+		k.miss('+', f'f{missN}', c)
+	
 
 #--- FUNCTION FOR CASTING ON OPEN TUBES ---
 def tubeCaston(k, startN, endN, c, gauge=1):
 	k.comment('tube cast-on')
-	k.rollerAdvance(500)
+	k.speedNumber(speedNumber)
 
 	if endN > startN: #first pass is pos
 		dir1 = '+'
@@ -295,10 +344,12 @@ def bindoff(k, count, xferNeedle, c, side='l', doubleBed=True, asDecMethod=False
 		k.addRollerAdvance(200)
 		k.drop(f'b{lastNeedle}')
 
+	#-------------
 	if side == 'l':
 		if not asDecMethod:
 			posLoop('knit', 'f')
 			if doubleBed: negLoop('knit', 'b')
+			xferSettings(k)
 		posLoop('xfer', 'f')
 		k.rollerAdvance(50)
 		k.addRollerAdvance(-50)
@@ -313,6 +364,7 @@ def bindoff(k, count, xferNeedle, c, side='l', doubleBed=True, asDecMethod=False
 		if not asDecMethod:
 			negLoop('knit', 'f')
 			if doubleBed: posLoop('knit', 'b')
+			xferSettings(k)
 		negLoop('xfer', 'f')
 		k.rollerAdvance(50)
 		k.addRollerAdvance(-50)
@@ -374,6 +426,7 @@ def decDoubleBed(k, count, decNeedle, c=None, side='l', emptyNeedles=[]):
 		k.comment(f'dec {count} on right')
 		newEdgeNeedle -= count
 
+	xferSettings(k)
 	if count == 1:
 		if len(emptyNeedles): k.stoppingDistance(3.5)
 		if side == 'l': #left side
@@ -455,6 +508,7 @@ def decDoubleBed(k, count, decNeedle, c=None, side='l', emptyNeedles=[]):
 	else: #dec by more than 2
 		bindoff(k, count, decNeedle, c, side, True, True)
 	
+	resetSettings(k)
 	return newEdgeNeedle
 
 
@@ -485,6 +539,8 @@ def incDoubleBed(k, count, edgeNeedle, c, side='l', emptyNeedles=[], incMethod='
 
 	twistedStitches = []
 	if incMethod == 'xfer':
+		xferSettings(k)
+
 		shift = 1
 		if side == 'r': shift = -1
 		if f'b{edgeNeedle}' not in emptyNeedles: twistedStitches.append(f'b{edgeNeedle-(shift*count)+shift}')
@@ -542,6 +598,7 @@ def incDoubleBed(k, count, edgeNeedle, c, side='l', emptyNeedles=[], incMethod='
 				k.xfer(f'f{edgeNeedle-1}', f'b{edgeNeedle}')
 				k.xfer(f'f{edgeNeedle+1}', f'b{edgeNeedle+2}')
 		k.rack(0)
+		resetSettings(k)
 	elif incMethod == 'zig-zag':
 		k.rack(0.25) #half-rack for knitout (note: could do true half rack for kniterate - 0.5 - but then wouldn't look right in visualizer)
 		if side == 'l':
@@ -655,6 +712,19 @@ def generatePieceMap(k, imagePath='graphics/knitMap.png', gauge=1):
 				if n == len(imageData[r]) - 1:
 					row.append(section)
 					if len(row) > carrierCount: carrierCount = len(row)
+
+					if r > 0 and r < (len(imageData)-1) and len(rows[len(rows)-1]) < len(rows[len(rows)-2]) and carrierCount >= len(rows[len(rows)-2]): #if necessary, split prev row [-1] into multiple sections (based on number of sections in prev row to that [-2]) if current carrierCount >= # of sections in [-2]
+						minus1Needles = rows[len(rows)-1]
+						minus2Needles = rows[len(rows)-2]
+						startPt = 1
+						for n2 in range(startPt, len(minus2Needles)):
+							for n1 in range(0, len(minus1Needles)):
+								for i in range(1, len(minus1Needles[n1])):
+									if minus2Needles[n2][0] == minus1Needles[n1][i]:
+										minus1Needles[n1:n1+1] = minus1Needles[n1][:i], minus1Needles[n1][i:]
+										startPt += 1
+										break
+					
 					rows.append(row)
 			else:
 				if len(section) == 0: continue
@@ -668,11 +738,25 @@ def generatePieceMap(k, imagePath='graphics/knitMap.png', gauge=1):
 							newSection = True
 							break
 							
-					if not newSection:
+					if not newSection: #still adding on needles to section (no whitespace yet)
 						if r == 0:
 							castonLeftN = row[0][0]
 							castonRightN = row[0][len(row[0])-1]
 						if len(row) > carrierCount: carrierCount = len(row)
+							
+						if r > 0 and r < (len(imageData)-1) and len(rows[len(rows)-1]) < len(rows[len(rows)-2]) and carrierCount >= len(rows[len(rows)-2]): #if necessary, split prev row [-1] into multiple sections (based on number of sections in prev row to that [-2]) if current carrierCount >= # of sections in [-2]
+							startPt = 1
+							minus1Needles = rows[len(rows)-1]
+							minus2Needles = rows[len(rows)-2]
+							for n2 in range(startPt, len(minus2Needles)):
+								for n1 in range(0, len(minus1Needles)):
+									# for i in range(0, len(minus1Needles[n1])): #remove
+									for i in range(1, len(minus1Needles[n1])):
+										if minus2Needles[n2][0] == minus1Needles[n1][i]:
+											minus1Needles[n1:n1+1] = minus1Needles[n1][:i], minus1Needles[n1][i:]
+											startPt += 1
+											break
+
 						rows.append(row)
 						break #go to next row
 		
@@ -689,11 +773,11 @@ def generatePieceMap(k, imagePath='graphics/knitMap.png', gauge=1):
 		availableCarriers.append(str(cs))
 	
 	wasteWeightCarriers = []
+
+	print('OG availableCarriers:', availableCarriers) #remove
 	
-	
-	shortrowLeftPrep = [idx for idx, element in enumerate(rows) if len(element) > 1] #check if the piece contains > 2 sections in any given row and then, if so, assigns index of that row #TODO: make this possible for multiple left sections
-	# shortrowLeftPrep = [idx for idx, element in enumerate(rows) if len(element) > 2] #check if the piece contains > 2 sections in any given row and then, if so, assigns index of that row #TODO: make this possible for multiple left sections
-	srLneedleR = None #used for if there are > 2 sections so can make sure carrier that will eventually do shortrowing on the left knits up to (inclusive) the right-most needle in the first shortrowing row prior to that row
+	shortrowLeftPrep = [idx for idx, element in enumerate(rows) if len(element) > 1] #here we check if the piece contains > 2 sections in any given row and then, if so, assigns index of that row #TODO: make this possible for multiple left sections
+	srLneedleR = None #used for if there are > 2 sections so can make sure carrier that will eventually do shortrowing on the left knits up to (inclusive) the right-most needle in the first shortrowing row prior to that row #remove #?
 
 	if len(shortrowLeftPrep) > 0:
 		if len(shortrowLeftPrep) > 1 and len(rows[shortrowLeftPrep[0]]) < 3:
@@ -712,8 +796,10 @@ def generatePieceMap(k, imagePath='graphics/knitMap.png', gauge=1):
 		else: shortrowLeftPrep = shortrowLeftPrep[0]
 
 		# shortrowLeftPrep = shortrowLeftPrep[0] #just flattening it
-		srLneedleR = rows[shortrowLeftPrep][0][len(rows[shortrowLeftPrep][0])-1] #detect what the right-most needle is in first left-most shortrow section (referenced as 'shortrowLeft' in future comments)
+		srLneedleR = rows[shortrowLeftPrep][0][len(rows[shortrowLeftPrep][0])-1] #detect what the right-most needle is in first left-most shortrow section (referenced as 'shortrowLeft' in future comments) #remove #?
 	else: shortrowLeftPrep = False #if the piece doesn't contain > 2 sections in any row
+
+	print('shortrowLeftPrep:', shortrowLeftPrep) #remove
 
 	pieceMap = [] #list for storing overarching carrier/needles data for rows/sections
 	#now finally going through rows
@@ -745,17 +831,22 @@ def generatePieceMap(k, imagePath='graphics/knitMap.png', gauge=1):
 					if unusedC is None: unusedC = s #index of unused carrier, if needed
 					continue
 
-				if (leftN < sections[s].leftN and rightN < sections[s].leftN) or (leftN > sections[s].rightN and rightN > sections[s].rightN):
+				if r != shortrowLeftPrep and (leftN < sections[s].leftN and rightN < sections[s].leftN) or (leftN > sections[s].rightN and rightN > sections[s].rightN):
 					continue #prev leftN & rightN for this carrier doesn't align with leftN & rightN of current section, so continue searching
-				else: #it's a match!
+				else: #it's a match! (or time for shortrowLeftPrep)
 					if i == 0 and r == shortrowLeftPrep: #if it's the row before the 1st actual shortrow for shortrowLeft, update carrierOrder so this for loop checks that carrier first & it remains on the left
-						prevSectionStart = sections[s].leftN #new #check #come back!
+						prevSectionStart = sections[s].leftN
 						if prevSectionStart - leftN > 2:
 							if not r in wasteWeights: wasteWeights[r] = dict()
-							wasteWeightCarrier = availableCarriers.pop()
-							wasteWeightCarriers.append(wasteWeightCarrier)
-							wasteWeights[r][wasteWeightCarrier] = {'left': [leftN, prevSectionStart-1]} #TODO: maybe add back to available carriers once start knitting (or move this assignment down so can keep track better)
-							# wasteWeights[r][carrierOrder[s]] = {'left': [leftN, prevSectionStart-1]}
+							wasteWeightCarrier = None
+							wasteWeightLeftCs = [idx for idx, wasteCarrier in enumerate(wasteWeightCarriers) if wasteCarrier not in rightCarriers]
+							if len(wasteWeightLeftCs): wasteWeightCarrier = wasteWeightCarriers[wasteWeightLeftCs[0]]
+							else:
+								wasteWeightCarrier = availableCarrierCheck(carrierOrder, wasteWeightCarriers)
+								if wasteWeightCarrier is None:
+									wasteWeightCarrier = availableCarriers.pop()
+									wasteWeightCarriers.append(wasteWeightCarrier)
+							wasteWeights[r][wasteWeightCarrier] = {'left': [leftN, prevSectionStart-1]}
 
 						carrierOrder.insert(0, carrierOrder.pop(carrierCount-1)) #move shortrowLeft carrier to front of carrierOrder list
 						sections.insert(0, sections.pop(carrierCount-1)) #move section to correct location too so can be referenced by index (s) correctly
@@ -766,21 +857,29 @@ def generatePieceMap(k, imagePath='graphics/knitMap.png', gauge=1):
 								break
 					else:
 						if sections[s].leftN - leftN > 2: #TODO: test which number should be for >
-							wasteWeightCarrier = availableCarriers.pop()
-							wasteWeightCarriers.append(wasteWeightCarrier)
 							if not r in wasteWeights: wasteWeights[r] = dict()
-							# wasteWeights[r][carrierOrder[s]] = {'left': [leftN, sections[s].leftN-1]}
+							wasteWeightCarrier = None
+							wasteWeightLeftCs = [idx for idx, wasteCarrier in enumerate(wasteWeightCarriers) if wasteCarrier not in rightCarriers]
+							if len(wasteWeightLeftCs): wasteWeightCarrier = wasteWeightCarriers[wasteWeightLeftCs[0]]
+							else:
+								wasteWeightCarrier = availableCarrierCheck(carrierOrder, wasteWeightCarriers)
+								if wasteWeightCarrier is None:
+									wasteWeightCarrier = availableCarriers.pop()
+									wasteWeightCarriers.append(wasteWeightCarrier)
 							wasteWeights[r][wasteWeightCarrier] = {'left': [leftN, sections[s].leftN-1]}
 						if rightN - sections[s].rightN > 2:
 							if not r in wasteWeights: wasteWeights[r] = dict()
-							wasteWeightCarrier = availableCarriers.pop()
-							wasteWeightCarriers.append(wasteWeightCarrier)
-							rightCarriers.append(wasteWeightCarrier)
+							wasteWeightCarrier = None
+							wasteWeightRightCs = [idx for idx, wasteCarrier in enumerate(wasteWeightCarriers) if wasteCarrier in rightCarriers]
+							if len(wasteWeightRightCs):
+								wasteWeightCarrier = wasteWeightCarriers[wasteWeightRightCs[0]]
+							else:
+								wasteWeightCarrier = availableCarrierCheck(carrierOrder, wasteWeightCarriers)
+								if wasteWeightCarrier is None:
+									wasteWeightCarrier = availableCarriers.pop()
+									wasteWeightCarriers.append(wasteWeightCarrier)
+									rightCarriers.append(wasteWeightCarrier) #check (added an indent)
 							wasteWeights[r][wasteWeightCarrier]= {'right': [rightN, sections[s].rightN+1]}
-							# if wasteWeightCarrier is None:
-							# 	wasteWeightCarrier = availableCarriers.pop()
-							# 	wasteWeights[r][wasteWeightCarrier] = {'right': [rightN, sections[s].rightN+1]}
-							# else: wasteWeights[r][wasteWeightCarrier]['right'] = [rightN, sections[s].rightN+1]
 
 					sections[s].leftN = leftN
 					sections[s].rightN = rightN
@@ -789,19 +888,27 @@ def generatePieceMap(k, imagePath='graphics/knitMap.png', gauge=1):
 					match = True
 					break
 			
-			if not match: #need to used unusedC and add new carrier for shortrowing
+			if not match: #need to use unusedC and add new carrier for shortrowing
 				if carrierOrder[unusedC] != '1':
 					firstNeedles[carrierOrder[unusedC]] = [leftN, rightN]
 					if leftN > sections[mainCSection].rightN: rightCarriers.append(carrierOrder[unusedC])
 
-					rowMapKeys = list(rowMap.keys()) #new #check #come back!
-					prevSectionEnd = pieceMap[r-1][carrierOrder[carrierOrder.index(rowMapKeys[len(rowMapKeys)-1])]]
+					lastRowMapKeys = list(pieceMap[r-1].keys())
+					prevSectionEnd = pieceMap[r-1][lastRowMapKeys[len(lastRowMapKeys)-1]] #last needle of last section
 					prevSectionEnd = prevSectionEnd[len(prevSectionEnd)-1]
+
 					if rightN - prevSectionEnd > 2:
 						if not r in wasteWeights: wasteWeights[r] = dict()
-						wasteWeightCarrier = availableCarriers.pop()
-						wasteWeightCarriers.append(wasteWeightCarrier)
-						rightCarriers.append(wasteWeightCarrier)
+						wasteWeightCarrier = None
+						wasteWeightRightCs = [idx for idx, wasteCarrier in enumerate(wasteWeightCarriers) if wasteCarrier in rightCarriers]
+						if len(wasteWeightRightCs):
+							wasteWeightCarrier = wasteWeightCarriers[wasteWeightRightCs[0]]
+						else:
+							wasteWeightCarrier = availableCarrierCheck(carrierOrder, wasteWeightCarriers)
+							if wasteWeightCarrier is None:
+								wasteWeightCarrier = availableCarriers.pop()
+								wasteWeightCarriers.append(wasteWeightCarrier)
+								rightCarriers.append(wasteWeightCarrier) #check (added an indent)
 						wasteWeights[r][wasteWeightCarrier] = {'right': [rightN, prevSectionEnd+1]}
 
 				taken.append(unusedC)
@@ -809,7 +916,7 @@ def generatePieceMap(k, imagePath='graphics/knitMap.png', gauge=1):
 				sections[unusedC].rightN = rightN
 				rowMap[carrierOrder[unusedC]] = rows[r][i]
 
-		pieceMap.append(rowMap) #new
+		pieceMap.append(rowMap)
 
 	print('\npieceMap:') #remove
 	print(pieceMap) #remove
@@ -820,12 +927,19 @@ def generatePieceMap(k, imagePath='graphics/knitMap.png', gauge=1):
 
 	print('wasteWeights:', wasteWeights) #remove
 
+	print('availableCarriers leftover:', availableCarriers) #remove
+	
 	#5. Add waste section and cast-on
+	wasteWeightsDraw = None
+	if len(availableCarriers):
+		wasteWeightsDraw = availableCarriers.pop()
+		wasteWeightCarriers.append(wasteWeightsDraw)
+	
 	otherCs = []
 	if carrierCount > 2:
 		for c in range(3, carrierCount+1):
 			otherCs.append(f'{c}')
-	otherCs.extend(wasteWeightCarriers) #check
+	otherCs.extend(wasteWeightCarriers)
 
 	wasteSection(k=k, leftN=castonLeftN, rightN=castonRightN, otherCs=otherCs, gauge=gauge, endOnRight=rightCarriers, firstNeedles=firstNeedles)
 
@@ -836,10 +950,8 @@ def generatePieceMap(k, imagePath='graphics/knitMap.png', gauge=1):
 
 	#TODO: make it so it does ~4 rows per section before switching to new section (more efficient) #TODO: check what max short row count is that the kniterate can handle
 
-	takeOutAtEnd = []
-	wasteWeightsDraw = availableCarriers.pop() #TODO: should pause to have this guy on the correc side each time #TODO: throw error if not enough carriers (i.e. don't add wasteWeights sections)
+	# takeOutAtEnd = [] #remove
 	for r in range(0, len(pieceMap)):
-		# if (r==0 and any(k < 10 for k in wasteWeights.keys())) or r+10 in wasteWeights:
 		wasteMatches = [k for k in wasteWeights if k-r <= 10 and k-r >= 0] #TODO: ensure 10 rows is enough for rollers to catch
 		if len(wasteMatches):
 			takenNeedles = []
@@ -854,90 +966,103 @@ def generatePieceMap(k, imagePath='graphics/knitMap.png', gauge=1):
 				for wc in wasteWeights[wr]:
 					waste = wasteWeights[wr][wc]
 					if 'left' in waste:
-						needles = waste['left'] #TODO: limit by whether needles are taken by other sections
+						needles = waste['left']
+
 						if addCaston:
+							k.pause(f'C{wc} L of N{needles[0]}?') #TODO: make sure this message isn't too long
 							k.rack(0.25)
 							for n in range(needles[0], needles[1]+1):
 								if n not in takenNeedles:
 									k.knit('+', f'f{n}', wc)
 									k.knit('+', f'b{n}', wc)
 							k.rack(0)
-
-						if not addCaston:
+						else: #not addCaston
 							for n in range(needles[0], needles[1]+1):
 								if n not in takenNeedles: k.knit('+', f'f{n}', wc)
+
 						for n in range(needles[1], needles[0]-1, -1):
 							if n not in takenNeedles: k.knit('-', f'b{n}', wc)
 						
 						if addDraw:
-							k.outcarrier(wc) #check
+							wcDraw = wasteWeightsDraw
+							if wcDraw is not None: tempMissOut(k, width, '-', wc)
+							else:
+								wcDraw = wc
+								k.pause(f'use C{wcDraw} as draw')
 							for n in range(needles[0], needles[1]+1): #pos so carriage isn't in the way of placing draw carrier
 								k.drop(f'b{n}')
-							k.pause(f'C{wasteWeightsDraw} on L?')
+							k.pause(f'C{wcDraw} on L?')
 							for n in range(needles[0], needles[1]+1):
-								k.knit('+', f'f{n}', wasteWeightsDraw) #TODO: ensure not taken ....
-							k.pause(f'move C{wasteWeightsDraw} out')
+								k.knit('+', f'f{n}', wcDraw) #TODO: ensure not taken ....
+							k.pause(f'move C{wcDraw} out')
 					if 'right' in waste:
-						needles = waste['right'] #TODO: limit by whether needles are taken by other sections
+						needles = waste['right']
+
 						if addCaston:
+							k.pause(f'C{wc} R of N{needles[0]}?') #TODO: make sure this message isn't too long
 							k.rack(0.25)
 							for n in range(needles[0], needles[1]-1, -1):
 								if n not in takenNeedles:
 									k.knit('-', f'b{n}', wc)
 									k.knit('-', f'f{n}', wc)
 							k.rack(0)
-
-						if not addCaston:	
+						else:	#not addCaston
 							for n in range(needles[0], needles[1]-1, -1):
 								if n not in takenNeedles: k.knit('-', f'b{n}', wc)
+
 						for n in range(needles[1], needles[0]+1):
 							if n not in takenNeedles: k.knit('+', f'f{n}', wc)
 						
 						if addDraw:
-							k.miss('+', 'f252', wc)
-							takeOutAtEnd.append(wc)
+							wcDraw = wasteWeightsDraw
+							if wcDraw is not None: tempMissOut(k, width, '+', wc)
+							else:
+								wcDraw = wc
+								k.pause(f'use C{wcDraw} as draw')
 							for n in range(needles[0], needles[1]-1, -1): #neg so carriage isn't in the way of placing draw carrier
 								k.drop(f'b{n}')
-							k.pause(f'C{wasteWeightsDraw} on R?')
+							k.pause(f'C{wcDraw} on R?')
 							for n in range(needles[0], needles[1]-1, -1):
-								k.knit('-', f'f{n}', wasteWeightsDraw)
-							k.pause(f'move C{wasteWeightsDraw} out')
+								k.knit('-', f'f{n}', wcDraw)
+							k.pause(f'move C{wcDraw} out')
 
 		row = []
-		n0 = 0
+		n0 = 0 #for whitespace (just for visualization, not knitout)
 
 		for s in pieceMap[r]:
-			carrier = s
-			needles = pieceMap[r][s]
-
-			# wasteNeedles = []
-			# if len(wasteMatches):
-			# 	for wr in wasteMatches:
-			# 		if carrier in wasteWeights[wr]: wasteNeedles = wasteWeights[wr][carrier]
+			carrier = s #carrier is key
+			needles = pieceMap[r][s] #needles are value
 		
-			dir1 = '+'
-			if carrier in rightCarriers: dir1 = '-'
+			dir1 = '+' #left side
+			if carrier in rightCarriers: dir1 = '-' #right side
 
 			prevLeftN = None
 			prevRightN = None
 			xferL = 0
 			xferR = 0
 
-			twistedStitches = []
+			twistedStitches = [] #might use later on if increasing
 			
-			n1 = needles[0]
-			n2 = needles[len(needles) - 1]
+			n1 = needles[0] #left-most needle
+			n2 = needles[len(needles) - 1] #right-most needle
 
-			sectionCount = len(pieceMap[r])
-			mapKeys = list(pieceMap[r].keys())
-			sectionIdx = mapKeys.index(s)
+			sectionCount = len(pieceMap[r]) #number of sections in this row
+			mapKeys = list(pieceMap[r].keys()) #carriers used in this row
+			sectionIdx = mapKeys.index(s) #index of current carrier in loop
 
 			placementPass = []
 
 			sectionFinished = False
 			if r == len(pieceMap)-1 or (r < len(pieceMap)-1 and s not in pieceMap[r+1]): sectionFinished = True
 
-			if r > 0 and s not in pieceMap[r-1]: #might need to cast some needles on #TODO: maybe remove this, it might never be needed
+			if r > 0 and s not in pieceMap[r-1]: #means this is a new section #might need to cast some needles on 
+				if sectionIdx != 0 and sectionIdx != len(mapKeys)-1: #means that it is a new shortrow section that is not on the edge, so need to place carrier in correct spot
+					if dir1 == '+': k.miss('+', f'f{n1}', carrier)
+					else: k.miss('-', f'f{n2}', carrier)
+					k.pause('cut strand') #check
+
+		
+				#TODO: maybe remove this, it might never be needed (doesn't look like there is need for caston)
 				prevRowNeedles = []
 				for p in pieceMap[r-1]:
 					prevRowNeedles.extend(pieceMap[r-1][p])
@@ -962,8 +1087,7 @@ def generatePieceMap(k, imagePath='graphics/knitMap.png', gauge=1):
 
 			if r < len(pieceMap)-1 and len(pieceMap[r+1]) > sectionCount and s in pieceMap[r+1]:
 				futureMapKeys = list(pieceMap[r+1].keys())
-				# futureNeedles = pieceMap[r+1][s] #remove
-				if sectionIdx == 0 and futureMapKeys.index(s) != 0: #new left shortrow section coming
+				if sectionIdx == 0 and futureMapKeys.index(s) != 0: #means new left shortrow section coming
 					futureNewSectionNeedles = pieceMap[r+1][futureMapKeys[0]]
 					futureNewSectionRightN = futureNewSectionNeedles[len(futureNewSectionNeedles)-1]
 					placementPass = [n1, futureNewSectionRightN] #knit up until futureLeftN on back bed #TODO: make sure it misses an extra needle here so not in the way #TODO: maybe plan ahead for future part to make up for extra pass on back bed in left shortrow section?
@@ -973,13 +1097,13 @@ def generatePieceMap(k, imagePath='graphics/knitMap.png', gauge=1):
 				prevLeftN = prevNeedles[0]
 				prevRightN = prevNeedles[len(prevNeedles)-1]
 
-				if sectionCount > len(pieceMap[r-1]): #new section here
+				if sectionCount > len(pieceMap[r-1]): #means new section here
 					prevMapKeys = list(pieceMap[r-1].keys())
 
-					if sectionIdx > 0 and mapKeys[sectionIdx-1] not in prevMapKeys: #new left section
+					if sectionIdx > 0 and mapKeys[sectionIdx-1] not in prevMapKeys: #means new left section was added before this section
 						prevSectionEnd = pieceMap[r][mapKeys[sectionIdx-1]][len(pieceMap[r][mapKeys[sectionIdx-1]])-1]
 						if prevLeftN < prevSectionEnd: prevLeftN = prevSectionEnd+1
-					if sectionIdx < len(mapKeys)-1 and mapKeys[sectionIdx+1] not in prevMapKeys: #new right section
+					if sectionIdx < len(mapKeys)-1 and mapKeys[sectionIdx+1] not in prevMapKeys: #means new right section will be added after this section
 						nextSectionStart = pieceMap[r][mapKeys[sectionIdx+1]][0]
 						if prevRightN > nextSectionStart: prevRightN = nextSectionStart-1
 
@@ -1020,7 +1144,7 @@ def generatePieceMap(k, imagePath='graphics/knitMap.png', gauge=1):
 				row.append(int(carrier))
 				if xferR <= 0 or n < prevRightN+1: k.knit('+', f'f{n}', carrier) #don't add the knits if increasing, since they will be added anyway thru increasing #TODO: make sure twisted stitches are all actually happening with this alteration (pretty sure it's working for everything except for when dir1 == '-', but actually might be working? since rightShaping is before knitting)
 			
-			if dir1 == '+' and (xferR < -2): #so no ladder (carrier is in right spot to dec or inc with yarn) #check
+			if dir1 == '+' and (xferR < -2): #so no ladder (carrier is in correct spot to dec or inc with yarn) #check
 				for n in range(n2+1, prevRightN+1):
 					k.knit('+', f'f{n}', carrier)
 
@@ -1033,7 +1157,7 @@ def generatePieceMap(k, imagePath='graphics/knitMap.png', gauge=1):
 				k.miss('+', f'b{placementPass[1]+1}', carrier)
 
 			for bn in twistedStitches:
-				k.twist(bn)
+				k.twist(bn, -rollerAdvance)
 
 			n0 = n2 + 1
 
@@ -1043,7 +1167,8 @@ def generatePieceMap(k, imagePath='graphics/knitMap.png', gauge=1):
 				if r == len(pieceMap)-1:
 					rollOut = True
 					outCarriers = carrierOrder.copy()
-					outCarriers.extend(takeOutAtEnd)
+					outCarriers.extend(wasteWeightCarriers)
+					# outCarriers.extend(takeOutAtEnd) #remove
 				dropFinish(k, [n1, n2], [n1, n2], outCarriers, rollOut)
 
 		#-------------------------
@@ -1052,8 +1177,6 @@ def generatePieceMap(k, imagePath='graphics/knitMap.png', gauge=1):
 		
 		visualization.append(row)
 		
-	print('\nvisualization:') #remove
-	for v in visualization: #remove
+	print('\nvisualization:')
+	for v in visualization:
 		print(v)
-	
-

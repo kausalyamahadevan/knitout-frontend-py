@@ -20,9 +20,14 @@ k.write('out.k')
 
 import gabrielle
 
-gabrielle.generatePieceMap(k, 'graphics/cactus.png')
-# gabrielle.generatePieceMap(k, 'graphics/cactus-waste-test.png')
+# gabrielle.generatePieceMap(k, 'graphics/cactus.png')
+# k.write('cactus-test.k')
 
-k.write('cactus-test.k')
+# gabrielle.generatePieceMap(k, 'graphics/cactus-waste-test.png')
 # k.write('cactus-waste-test.k')
-# k.write('test.k')
+
+# gabrielle.generatePieceMap(k, 'graphics/cactus-4sections.png')
+# k.write('cactus-4sections.k')
+
+gabrielle.generatePieceMap(k, 'graphics/cactus-5sections.png')
+k.write('cactus-5sections.k')

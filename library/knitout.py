@@ -210,14 +210,13 @@ class Writer:
         self.operations.append('x-presser-mode ' + mode)
 
     #function for going back to make a twisted stitch
-    def twist(self, bn):
-        '''
-        def twist(self, *args):
+    # def twist(self, bn):
+    def twist(self, *args):
         argl = list(args)
         bn = argl[0]
-        extensions = []
-        if len(argl) > 1: extensions = argl[1]
-        '''
+        rollerAdvanceOffset = ''
+        if len(argl) > 1: rollerAdvanceOffset = f'x-add-roller-advance {argl[1]}'
+        
         for o in range (len(self.operations)-1, 0, -1):
             if 'knit' in self.operations[o] and bn in self.operations[o]:
                 line = self.operations[o]
@@ -227,7 +226,8 @@ class Writer:
                 missLine = line.replace('knit', 'miss')
                 twistLine = line.replace(originalDir, twistDir)
                 # extensions.append(missLine, twistLine)
-                self.operations[o:o+1] = ';twisted stitch', missLine, twistLine
+                if rollerAdvanceOffset: self.operations[o:o+1] = ';twisted stitch', rollerAdvanceOffset, missLine, rollerAdvanceOffset, twistLine
+                else: self.operations[o:o+1] = ';twisted stitch', missLine, twistLine
                 break
 
     def clear(self):
