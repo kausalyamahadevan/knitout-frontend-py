@@ -140,7 +140,7 @@ def rib2ribXfer(k,ribarray1,ribarray2,repeats):
 
 
 
-def knitArray(k,array,xrepeats,yrepeats,c,side='l',size = 4):
+def knitArray(k,array,xrepeats,yrepeats,c,side='l',size = 4, speed= 400):
     ''' Given an array and repeats, knits and purls
     k: knitout writer object
     array: numpy array of 0s and 1s to define rib pattern
@@ -151,7 +151,7 @@ def knitArray(k,array,xrepeats,yrepeats,c,side='l',size = 4):
     m, n = array.shape
     for i in range(yrepeats):
         for j in range(m):
-            k.speedNumber(400)
+            k.speedNumber(speed)
             k.rollerAdvance(400)
             k.stitchNumber(size)
             ribKnit(k,array[j],xrepeats,1,c,side)

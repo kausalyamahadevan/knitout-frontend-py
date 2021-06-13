@@ -7,7 +7,7 @@
 def catchyarns(k,width,carriers):
     k.rack(0)
     for i,c in enumerate(carriers):
-        k.incarrier(c) #new
+        # k.incarrier(c) #new
         for h in range(1,5):
             if h%2 == 1:
                 # k.knit('+',('f',i),c)
@@ -171,7 +171,7 @@ def circularEON(k,width,length,c,side='l'): #TODO: make it possible to set beg
                     k.knit('+',('b',s),c)
                 elif s==width-1: k.miss('+',('b',s),c)
                 '''else: #don't need this, unless doesn't include end needle
-                    k.miss('+',('b',s),c)''' 
+                    k.miss('+',('b',s),c)'''
         else:
             for s in range(width-1,-1,-1):
                 if s%2!=0:
