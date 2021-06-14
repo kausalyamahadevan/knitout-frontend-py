@@ -2,10 +2,12 @@ import numpy as np
 import warnings
 
 from skimage import io
+from skimage.transform import resize
 # from skimage import data
 
 #NOTE: for gauge > 1: decided baseBed should consistently be front so as to make things less complicated (because doesn't really matter) --- so translation would be fn -> f(gauge*n) bn -> b((gauge*n)+1)
 
+#TODO: miss carriers so out of way if waste weight section
 #---------------------------------------------
 #--- CUSTOMIZABLE VARIABLES FOR EXTENSIONS ---
 #---------------------------------------------
@@ -42,6 +44,17 @@ def availableCarrierCheck(usedCarriers, reusableCarriers=[]):
 		return usedCarriers[0] #check
 	else: return None
 
+
+def convertGauge(gauge, leftN=None, rightN=None): #maybe move outside of this?
+	newLeftN = leftN
+	newRightN = rightN
+	if gauge > 1:
+		if leftN is not None: newLeftN *= gauge
+		if rightN is not None: newRightN = (rightN*gauge)+1
+
+	if leftN is None: return newRightN
+	elif rightN is None: return newLeftN
+	else: return newLeftN, newRightN
 
 #-------------------------------------------------------------------------------
 #--- FUNCTION FOR KNITTING ON ALT NEEDLES, PARITY SWITCHING FOR FRONT & BACK ---
@@ -125,7 +138,7 @@ def circular(k, startN, endN, length, c, gauge=1):
 #--------------------------
 
 #--- FUNCTION FOR BRINGING IN CARRIERS ---
-def catchyarns(k, leftN, rightN, carriers, gauge=1, endOnRight=[], missNeedles={}):
+def catchyarns(k, leftN, rightN, carriers, gauge=1, endOnRight=[], missNeedles={}, catchMaxNeedles=False): #TODO: add option to knit on all needles in pattern (e.g. when gauge means offset causes some carriers to not even knit on any needles)
 	for i,c in enumerate(carriers):
 		k.incarrier(c)
 
@@ -144,11 +157,12 @@ def catchyarns(k, leftN, rightN, carriers, gauge=1, endOnRight=[], missNeedles={
 				direction = '-'
 			
 			for s in needleRange:
-					if s % gauge == 0 and (((s/gauge) % len(carriers)) == i):
+					if s % gauge == 0 and (catchMaxNeedles or (((s/gauge) % len(carriers)) == i)):
 						if toggleF: k.knit(direction, ('f', s), c)
 						elif (direction == '+' and s == rightN) or (direction == '-' and s == leftN): k.miss(direction, ('f', s), c) #check
 						toggleF = not toggleF
-					elif s % gauge != 0 and ((((s-1)/gauge) % len(carriers)) == i):
+					elif (s-1) % gauge == 0 and (catchMaxNeedles or ((((s-1)/gauge) % len(carriers)) == i)):
+					# elif s % gauge != 0 and ((((s-1)/gauge) % len(carriers)) == i):
 						if toggleB: k.knit(direction, ('b', s), c)
 						elif (direction == '+' and s == rightN) or (direction == '-' and s == leftN): k.miss(direction, ('f', s), c) #check
 						toggleB = not toggleB
@@ -157,7 +171,7 @@ def catchyarns(k, leftN, rightN, carriers, gauge=1, endOnRight=[], missNeedles={
 
 
 #--- FUNCTION FOR DOING ALL THINGS BEFORE CAST-ON (catch/initialize yarns, waste yarn, draw thread) ---
-def wasteSection(k, leftN, rightN, wasteC='1', drawC='2', otherCs = [], gauge=1, endOnRight=[], firstNeedles={}):
+def wasteSection(k, leftN, rightN, wasteC='1', drawC='2', otherCs = [], gauge=1, endOnRight=[], firstNeedles={}, catchMaxNeedles=False):
 
 	k.stitchNumber(stitchNumber)
 	k.rollerAdvance(rollerAdvance)
@@ -188,7 +202,7 @@ def wasteSection(k, leftN, rightN, wasteC='1', drawC='2', otherCs = [], gauge=1,
 		if drawC in endOnRight: catchEndOnRight.remove(drawC)
 		else: catchEndOnRight.append(drawC)
 
-	catchyarns(k, leftN, rightN, carriers, gauge, catchEndOnRight, missOtherCs)
+	catchyarns(k, leftN, rightN, carriers, gauge, catchEndOnRight, missOtherCs, catchMaxNeedles)
 
 	k.comment('waste section')
 	k.speedNumber(wasteSpeedNumber)
@@ -221,7 +235,7 @@ def wasteSection(k, leftN, rightN, wasteC='1', drawC='2', otherCs = [], gauge=1,
 #--------------------------------------
 
 def tempMissOut(k, width, direction, c):
-	if direction == '+':
+	if direction == '-':
 		missN = 0 - np.floor((252-width)/2)
 		k.miss('-', f'f{missN}', c)
 	else:
@@ -275,18 +289,18 @@ def tubeCaston(k, startN, endN, c, gauge=1):
 
 
 #--- SECURE BINDOFF FUNCTION (can also be used for decreasing large number of stitches) ---
-def bindoff(k, count, xferNeedle, c, side='l', doubleBed=True, asDecMethod=False):
+def bindoff(k, count, xferNeedle, c, side='l', doubleBed=True, asDecMethod=False, emptyNeedles=[]):
 	def posLoop(op=None, bed=None):
 		for x in range(xferNeedle, xferNeedle+count):
-			if op == 'knit': k.knit('+', f'{bed}{x}', c)
+			if op == 'knit' and f'{bed}{x}' not in emptyNeedles: k.knit('+', f'{bed}{x}', c) #*
 			elif op == 'xfer':
 				receive = 'b'
 				if bed == 'b': receive = 'f'
-				k.xfer(f'{bed}{x}', f'{receive}{x}')
+				if f'{bed}{x}' not in emptyNeedles: k.xfer(f'{bed}{x}', f'{receive}{x}') #*
 			else:
 				if x == xferNeedle + count - 1 and not asDecMethod: break
 
-				k.xfer(f'b{x}', f'f{x}')
+				k.xfer(f'b{x}', f'f{x}') #don't have to worry about empty needles here because binding these off
 				k.rack(-1)
 				k.xfer(f'f{x}', f'b{x+1}')
 				k.rack(0)
@@ -295,16 +309,32 @@ def bindoff(k, count, xferNeedle, c, side='l', doubleBed=True, asDecMethod=False
 					k.drop(f'b{x-1}')
 				k.knit('+', f'b{x+1}', c)
 
+				if asDecMethod and len(emptyNeedles) and x == xferNeedle+count-1 and f'b{x+1}' in emptyNeedles: #transfer this to a non-empty needle if at end and applicable
+					if f'f{x+1}' not in emptyNeedles: k.xfer(f'b{x+1}', f'f{x+1}')
+					else:
+						for z in range(x+2, x+7): #TODO: check what gauge should be
+							if f'f{z}' not in emptyNeedles:
+								k.rack(z-(x+1))
+								k.xfer(f'b{x+1}', f'f{z}') #check
+								k.rack(0)
+								break
+							elif f'b{z}' not in emptyNeedles:
+								k.xfer(f'b{x+1}', f'f{x+1}')
+								k.rack((x+1)-z)
+								k.xfer(f'f{x+1}', f'b{z}') #check
+								k.rack(0)
+								break
+
 				if x < xferNeedle+count-2: k.tuck('-', f'b{x}', c)
 				if not asDecMethod and x == xferNeedle+3: k.drop(f'b{xferNeedle-1}')
 
 	def negLoop(op=None, bed=None):
 		for x in range(xferNeedle+count-1, xferNeedle-1, -1):
-			if op == 'knit': k.knit('-', f'{bed}{x}', c)
+			if op == 'knit' and f'{bed}{x}' not in emptyNeedles: k.knit('-', f'{bed}{x}', c) #*
 			elif op == 'xfer':
 				receive = 'b'
 				if bed == 'b': receive = 'f'
-				k.xfer(f'{bed}{x}', f'{receive}{x}')
+				if f'{bed}{x}' not in emptyNeedles: k.xfer(f'{bed}{x}', f'{receive}{x}') #*
 			else:
 				if x == xferNeedle and not asDecMethod: break
 
@@ -316,6 +346,22 @@ def bindoff(k, count, xferNeedle, c, side='l', doubleBed=True, asDecMethod=False
 					if x < xferNeedle+count-4: k.addRollerAdvance(-50)
 					k.drop(f'b{x+1}')
 				k.knit('-', f'b{x-1}', c)
+
+				if asDecMethod and len(emptyNeedles) and x == xferNeedle-2 and f'b{x-1}' in emptyNeedles: #transfer this to a non-empty needle if at end and applicable
+					if f'f{x-1}' not in emptyNeedles: k.xfer(f'b{x-1}', f'f{x-1}')
+					else:
+						for z in range(x-2, x-7, -1): #TODO: check what gauge should be
+							if f'f{z}' not in emptyNeedles:
+								k.rack(z-(x+1)) #check
+								k.xfer(f'b{x-1}', f'f{z}') #check
+								k.rack(0)
+								break
+							elif f'b{z}' not in emptyNeedles:
+								k.xfer(f'b{x-1}', f'f{x-1}')
+								k.rack((x+1)-z) #check
+								k.xfer(f'f{x-1}', f'b{z}') #check
+								k.rack(0)
+								break
 				
 				if x > xferNeedle+1: k.tuck('+', f'b{x}', c)
 				if not asDecMethod and x == xferNeedle+count-4: k.drop(f'b{xferNeedle+count}')
@@ -405,137 +451,293 @@ def dropFinish(k, frontNeedleRanges=[], backNeedleRanges=[], carriers=[], rollOu
 #----------------------------------
 #--- SHAPING (INC/DEC) & BINDOFF---
 #----------------------------------
+def notEnoughNeedlesDecCheck(k, decNeedle, otherEdgeNeedle, c, gauge=1): #check if enough needles to dec (for when dec == 2)
+	'''
+	*decNeedle and otherEdgeNeedle reference front bed for gauge > 1
+	'''
+	if gauge > 1:
+		if decNeedle % 2 != 0: decNeedle -= 1
+		if otherEdgeNeedle % 2 != 0: otherEdgeNeedle -= 1
+	
+	width = abs(decNeedle-otherEdgeNeedle)
 
-def decDoubleBed(k, count, decNeedle, c=None, side='l', emptyNeedles=[]):
+	if width < (3*gauge): #not enough needles
+		# k.comment(f'not enough needles, shifting loop on f{} to f{} dec: {decNeedle} other:{otherEdgeNeedle}')
+		bAdjust = 0
+		if gauge > 1: bAdjust = 1
+
+		if decNeedle-otherEdgeNeedle > 0: #right side
+			originalFN = f'f{decNeedle-(3*gauge)}'
+			originalBN = f'b{decNeedle-(3*gauge)+bAdjust}'
+			newFNLoc = f'b{decNeedle-(3*gauge)+1}'
+			newBNLoc = f'f{decNeedle-(3*gauge)+1+bAdjust}'
+
+			k.comment(f'not enough needles, shifting loop on {originalFN} to {newFNLoc} and {originalBN} to {newBNLoc}')
+
+			k.knit('-', originalFN, c) #TODO: adjust for gauge
+			dir2 = '-'
+			if gauge == 1: dir2 = '+' #since no adjust
+			k.knit(dir2, originalBN, c)
+			k.rack(-1)
+			k.xfer(originalFN, newFNLoc)
+			k.rack(1)
+			k.xfer(originalBN, newBNLoc)
+			k.rack(0)
+		else: #left side
+			originalFN = f'f{decNeedle+(3*gauge)}'
+			originalBN = f'b{decNeedle+(3*gauge)-bAdjust}'
+			newFNLoc = f'b{decNeedle+(3*gauge)-1}'
+			newBNLoc = f'f{decNeedle+(3*gauge)-1-bAdjust}'
+
+			k.comment(f'not enough needles, shifting loop on {originalFN} to {newFNLoc} and {originalBN} to {newBNLoc}')
+
+			k.knit('+', originalFN, c) #TODO: adjust for gauge
+			dir2 = '+'
+			if gauge == 1: dir2 = '-' #since no adjust
+			k.knit(dir2, originalBN, c) #check
+			k.rack(1)
+			k.xfer(originalFN, newFNLoc)
+			k.rack(-1)
+			k.xfer(originalBN, newBNLoc) #check
+			k.rack(0)
+
+
+def shapeXferDoubleBedHalfGauge(k, type, count, edgeNeedleF, side='l'):
+	'''
+	*k in knitout Writer
+	*count is number of needles to dec (**note: based on gauge 1, so enter count assuming will convert according to gauge in this function**)
+	*edgeNeedleF is edge-most needle being xferred on front bed (so if fn = f2, bn = fn+1 = b3)
+	*side is side to xfer on
+
+	note: only for dec/xfer inc method, <= 2
+	'''
+	edgeNeedleB = edgeNeedleF+1
+	if count == 1:
+		if (type == 'inc' and side == 'l') or (type == 'dec' and side == 'r'): #left side inc or right side dec
+			k.rack(1)
+			k.xfer(f'f{edgeNeedleF}', f'b{edgeNeedleB-2}')
+			k.rack(-1)
+			k.xfer(f'b{edgeNeedleB-2}', f'f{edgeNeedleF-2}')
+			k.xfer(f'b{edgeNeedleB}', f'f{edgeNeedleF}')
+			k.rack(1)
+			k.xfer(f'f{edgeNeedleF}', f'b{edgeNeedleB-2}')
+		else: #right side inc or left side dec
+			k.rack(1)
+			k.xfer(f'b{edgeNeedleB}', f'f{edgeNeedleF+2}')
+			k.rack(-1)
+			k.xfer(f'f{edgeNeedleF+2}', f'b{edgeNeedleB+2}')
+			k.xfer(f'f{edgeNeedleF}', f'b{edgeNeedleB}')
+			k.rack(1)
+			k.xfer(f'b{edgeNeedleB}', f'f{edgeNeedleF+2}')
+	else: #count == 2
+		if type == 'inc': #inc
+			if side == 'l': #left side inc
+				k.rack(2)
+				k.xfer(f'f{edgeNeedleF}', f'b{edgeNeedleB-3}')
+				k.rack(-2)
+				k.xfer(f'b{edgeNeedleB-3}', f'f{edgeNeedleF-4}')
+				k.xfer(f'b{edgeNeedleB}', f'f{edgeNeedleF-1}')
+				k.rack(2)
+				k.xfer(f'f{edgeNeedleF-1}', f'b{edgeNeedleB-4}')
+			else: #right side inc
+				k.rack(-2)
+				k.xfer(f'f{edgeNeedleF}', f'b{edgeNeedleB+1}')
+				k.rack(2)
+				k.xfer(f'b{edgeNeedleB+1}', f'f{edgeNeedleF+4}')
+				k.xfer(f'b{edgeNeedleB}', f'f{edgeNeedleF+3}')
+				k.rack(-2)
+				k.xfer(f'f{edgeNeedleF+3}', f'b{edgeNeedleB+4}')
+		else: #dec #check two below
+			if side == 'l': #left side dec #check
+				k.rack(2)
+				k.xfer(f'b{edgeNeedleB}', f'f{edgeNeedleF+3}')
+				k.xfer(f'b{edgeNeedleB+2}', f'f{edgeNeedleF+5}')
+				k.xfer(f'f{edgeNeedleF+6}', f'b{edgeNeedleB+3}')
+				k.rack(-2)
+				k.xfer(f'f{edgeNeedleF}', f'b{edgeNeedleB+1}')
+				k.xfer(f'f{edgeNeedleF+2}', f'b{edgeNeedleB+3}')
+				k.xfer(f'f{edgeNeedleF+5}', f'b{edgeNeedleB+6}')
+				k.xfer(f'f{edgeNeedleF+3}', f'b{edgeNeedleB+4}')
+				k.rack(2)
+				k.xfer(f'b{edgeNeedleB+1}', f'f{edgeNeedleF+4}')
+				k.xfer(f'b{edgeNeedleB+3}', f'f{edgeNeedleF+6}')
+			else: #right side dec #check
+				k.rack(-2)
+				k.xfer(f'b{edgeNeedleB}', f'f{edgeNeedleF-1}') #f +3 => -1
+				k.xfer(f'b{edgeNeedleB-2}', f'f{edgeNeedleF-3}') #b +2 => -2 #f +5 => -3
+				# k.xfer(f'f{edgeNeedleF+6}', f'b{edgeNeedleB+3}') #?
+				k.rack(2)
+				k.xfer(f'f{edgeNeedleF}', f'b{edgeNeedleB-3}') #b +1 => -3
+				k.xfer(f'f{edgeNeedleF-1}', f'b{edgeNeedleB-4}')
+				k.xfer(f'f{edgeNeedleF-2}', f'b{edgeNeedleB-5}')
+				k.xfer(f'f{edgeNeedleF-3}', f'b{edgeNeedleB-6}')
+				k.rack(-2)
+				k.xfer(f'b{edgeNeedleB-3}', f'f{edgeNeedleF-4}')
+				k.xfer(f'b{edgeNeedleB-5}', f'f{edgeNeedleF-6}')
+	k.rack(0)
+
+
+def decDoubleBed(k, count, decNeedle, c=None, side='l', gauge=1, emptyNeedles=[]):
 	'''
 	*k in knitout Writer
 	*count is number of needles to dec
-	*decNeedle is edge-most needle being decreased
+	*decNeedle is edge-most needle being decreased (so reference point for increasing; **note: if gauge > 1, use front bed needle for this parameter [but if you use back bed by accident, the function will fix that by subtracting one; detected by if edgeNeedle is an odd number]**)
 	*c is carrier (optional, but necessary if dec > 2, so worth including anyway)
 	*side is side to dec on
 	*emptyNeedles is an optional list of needles that are not currently holding loops (e.g. if using stitch pattern), so don't waste time xferring them
 
 	returns new edge-needle on given side based on decrease count, so should be called as so (e.g.):
 	leftneedle = decDoubleBed(...)
+
+	**note that, if gauge > 1, newEdgeNeedle will be the edge-most needle when comparing those on front and back bed (so if on left side, think about how fn < bn so newEdgeNeedle will reference front bed; if on right side, think about how bn > fn so newEdgeNeedle will reference back bed [use 'emptyNeedles' list to ensure empty edge-most needle reference on other bed is not knitted on])**
 	'''
+	decMethod = 'xfer'
+	if count > 2: decMethod = 'bindoff'
+
+	# count *= gauge
+
+	if gauge > 1 and decNeedle % 2 != 0: decNeedle -= 1 #*
+
 	newEdgeNeedle = decNeedle
 	if side == 'l':
 		k.comment(f'dec {count} on left')
+		count *= gauge
 		newEdgeNeedle += count
 	else:
 		k.comment(f'dec {count} on right')
+		count *= gauge
 		newEdgeNeedle -= count
+		if gauge > 1: newEdgeNeedle += 1 #since bn > fn
 
 	xferSettings(k)
-	if count == 1:
-		if len(emptyNeedles): k.stoppingDistance(3.5)
-		if side == 'l': #left side
-			k.rack(1)
-			if f'b{decNeedle}' not in emptyNeedles:
-				k.addRollerAdvance(150)
-				k.xfer(f'b{decNeedle}', f'f{decNeedle+1}')
-			if f'b{decNeedle+1}' not in emptyNeedles:
-				k.xfer(f'b{decNeedle+1}', f'f{decNeedle+2}')
-			if f'f{decNeedle}' not in emptyNeedles:
-				k.rack(-1)
-				k.addRollerAdvance(100)
-				k.xfer(f'f{decNeedle}', f'b{decNeedle+1}')
-		else: #right side
-			k.rack(-1)
-			if f'b{decNeedle}' not in emptyNeedles:
-				k.addRollerAdvance(150)
-				k.xfer(f'b{decNeedle}', f'f{decNeedle-1}')
-			if f'b{decNeedle-1}' not in emptyNeedles:
-				k.xfer(f'b{decNeedle-1}', f'f{decNeedle-2}')
-			if f'f{decNeedle}' not in emptyNeedles:
-				k.rack(1)
-				k.addRollerAdvance(100)
-				k.xfer(f'f{decNeedle}', f'b{decNeedle-1}')
-		k.rack(0)
-		if len(emptyNeedles): k.stoppingDistance(2.5)
-	elif count == 2:
-		if len(emptyNeedles): k.stoppingDistance(3.5)
-		if side == 'l':
-			if f'b{decNeedle + 2}' not in emptyNeedles:
-				k.addRollerAdvance(100)
-				k.xfer(f'b{decNeedle+2}', f'f{decNeedle+2}')
-			if f'b{decNeedle + 3}' not in emptyNeedles:
-				k.xfer(f'b{decNeedle+3}', f'f{decNeedle+3}')
-			k.rack(-1)
-			if f'f{decNeedle}' not in emptyNeedles:
-				k.addRollerAdvance(150)
-				k.xfer(f'f{decNeedle}', f'b{decNeedle+1}')
-			if f'f{decNeedle + 1}' not in emptyNeedles:
-				k.xfer(f'f{decNeedle+1}', f'b{decNeedle+2}')
-			if f'f{decNeedle + 2}' not in emptyNeedles or f'b{decNeedle + 2}' not in emptyNeedles: #note: it is *not* an accident that these needles don't match those referenced below 
-				k.xfer(f'f{decNeedle+2}', f'b{decNeedle+3}')
-			k.rack(1)
-			if f'b{decNeedle}' not in emptyNeedles:
-				k.addRollerAdvance(100)
-				k.xfer(f'b{decNeedle}', f'f{decNeedle+1}')
-			if f'b{decNeedle+1}' not in emptyNeedles or f'f{decNeedle}' not in emptyNeedles: #note: it is *not* an accident that these needles don't match those referenced below 
-				k.xfer(f'b{decNeedle+1}', f'f{decNeedle+2}')
-			k.rack(-1)
-			if f'b{decNeedle}' not in emptyNeedles: #note: it is *not* an accident that this needle doesn't match those referenced below 
-				k.addRollerAdvance(50)
-				k.xfer(f'f{decNeedle+1}', f'b{decNeedle+2}')
+	if decMethod == 'xfer':
+		if gauge == 1:
+			if count == 1:
+				if len(emptyNeedles): k.stoppingDistance(3.5)
+				if side == 'l': #left side
+					k.rack(1)
+					if f'b{decNeedle}' not in emptyNeedles:
+						k.addRollerAdvance(150)
+						k.xfer(f'b{decNeedle}', f'f{decNeedle+1}')
+					if f'b{decNeedle+1}' not in emptyNeedles:
+						k.xfer(f'b{decNeedle+1}', f'f{decNeedle+2}')
+					if f'f{decNeedle}' not in emptyNeedles:
+						k.rack(-1)
+						k.addRollerAdvance(100)
+						k.xfer(f'f{decNeedle}', f'b{decNeedle+1}')
+				else: #right side
+					k.rack(-1)
+					if f'b{decNeedle}' not in emptyNeedles:
+						k.addRollerAdvance(150)
+						k.xfer(f'b{decNeedle}', f'f{decNeedle-1}')
+					if f'b{decNeedle-1}' not in emptyNeedles:
+						k.xfer(f'b{decNeedle-1}', f'f{decNeedle-2}')
+					if f'f{decNeedle}' not in emptyNeedles:
+						k.rack(1)
+						k.addRollerAdvance(100)
+						k.xfer(f'f{decNeedle}', f'b{decNeedle-1}')
+				k.rack(0)
+				if len(emptyNeedles): k.stoppingDistance(2.5)
+			elif count == 2:
+				if len(emptyNeedles): k.stoppingDistance(3.5)
+				if side == 'l':
+					if f'b{decNeedle + 2}' not in emptyNeedles:
+						k.addRollerAdvance(100)
+						k.xfer(f'b{decNeedle+2}', f'f{decNeedle+2}')
+					if f'b{decNeedle + 3}' not in emptyNeedles:
+						k.xfer(f'b{decNeedle+3}', f'f{decNeedle+3}')
+					k.rack(-1)
+					if f'f{decNeedle}' not in emptyNeedles:
+						k.addRollerAdvance(150)
+						k.xfer(f'f{decNeedle}', f'b{decNeedle+1}')
+					if f'f{decNeedle + 1}' not in emptyNeedles:
+						k.xfer(f'f{decNeedle+1}', f'b{decNeedle+2}')
+					if f'f{decNeedle + 2}' not in emptyNeedles or f'b{decNeedle + 2}' not in emptyNeedles: #note: it is *not* an accident that these needles don't match those referenced below 
+						k.xfer(f'f{decNeedle+2}', f'b{decNeedle+3}')
+					k.rack(1)
+					if f'b{decNeedle}' not in emptyNeedles:
+						k.addRollerAdvance(100)
+						k.xfer(f'b{decNeedle}', f'f{decNeedle+1}')
+					if f'b{decNeedle+1}' not in emptyNeedles or f'f{decNeedle}' not in emptyNeedles: #note: it is *not* an accident that these needles don't match those referenced below 
+						k.xfer(f'b{decNeedle+1}', f'f{decNeedle+2}')
+					k.rack(-1)
+					if f'b{decNeedle}' not in emptyNeedles: #note: it is *not* an accident that this needle doesn't match those referenced below 
+						k.addRollerAdvance(50)
+						k.xfer(f'f{decNeedle+1}', f'b{decNeedle+2}')
+				else:
+					if f'b{decNeedle-2}' not in emptyNeedles:
+						k.addRollerAdvance(100)
+						k.xfer(f'b{decNeedle-2}', f'f{decNeedle-2}')
+					if f'b{decNeedle - 3}' not in emptyNeedles:
+						k.xfer(f'b{decNeedle-3}', f'f{decNeedle-3}')
+					k.rack(1)
+					if f'f{decNeedle}' not in emptyNeedles:
+						k.addRollerAdvance(150)
+						k.xfer(f'f{decNeedle}', f'b{decNeedle-1}')
+					if f'f{decNeedle - 1}' not in emptyNeedles:
+						k.xfer(f'f{decNeedle-1}', f'b{decNeedle-2}')
+					if f'f{decNeedle - 2}' not in emptyNeedles or f'b{decNeedle - 2}' not in emptyNeedles: #note: it is *not* an accident that these needles don't match those referenced below 
+						k.xfer(f'f{decNeedle-2}', f'b{decNeedle-3}')
+					k.rack(-1)
+					if f'b{decNeedle}' not in emptyNeedles:
+						k.addRollerAdvance(100)
+						k.xfer(f'b{decNeedle}', f'f{decNeedle-1}')
+					if f'b{decNeedle-1}' not in emptyNeedles or f'f{decNeedle}' not in emptyNeedles: #note: it is *not* an accident that these needles don't match those referenced below 
+						k.xfer(f'b{decNeedle-1}', f'f{decNeedle-2}')
+					k.rack(1)
+					if f'b{decNeedle}' not in emptyNeedles: #note: it is *not* an accident that this needle doesn't match those referenced below 
+						k.addRollerAdvance(50)
+						k.xfer(f'f{decNeedle-1}', f'b{decNeedle-2}')
+				k.rack(0)
+				if len(emptyNeedles): k.stoppingDistance(2.5)
 		else:
-			if f'b{decNeedle-2}' not in emptyNeedles:
-				k.addRollerAdvance(100)
-				k.xfer(f'b{decNeedle-2}', f'f{decNeedle-2}')
-			if f'b{decNeedle - 3}' not in emptyNeedles:
-				k.xfer(f'b{decNeedle-3}', f'f{decNeedle-3}')
-			k.rack(1)
-			if f'f{decNeedle}' not in emptyNeedles:
-				k.addRollerAdvance(150)
-				k.xfer(f'f{decNeedle}', f'b{decNeedle-1}')
-			if f'f{decNeedle - 1}' not in emptyNeedles:
-				k.xfer(f'f{decNeedle-1}', f'b{decNeedle-2}')
-			if f'f{decNeedle - 2}' not in emptyNeedles or f'b{decNeedle - 2}' not in emptyNeedles: #note: it is *not* an accident that these needles don't match those referenced below 
-				k.xfer(f'f{decNeedle-2}', f'b{decNeedle-3}')
-			k.rack(-1)
-			if f'b{decNeedle}' not in emptyNeedles:
-				k.addRollerAdvance(100)
-				k.xfer(f'b{decNeedle}', f'f{decNeedle-1}')
-			if f'b{decNeedle-1}' not in emptyNeedles or f'f{decNeedle}' not in emptyNeedles: #note: it is *not* an accident that these needles don't match those referenced below 
-				k.xfer(f'b{decNeedle-1}', f'f{decNeedle-2}')
-			k.rack(1)
-			if f'b{decNeedle}' not in emptyNeedles: #note: it is *not* an accident that this needle doesn't match those referenced below 
-				k.addRollerAdvance(50)
-				k.xfer(f'f{decNeedle-1}', f'b{decNeedle-2}')
-		k.rack(0)
-		if len(emptyNeedles): k.stoppingDistance(2.5)
-	else: #dec by more than 2
-		bindoff(k, count, decNeedle, c, side, True, True)
-	
+			if gauge == 2: shapeXferDoubleBedHalfGauge(k, 'dec', (count/gauge), decNeedle, side)
+			else: print('#TODO') #TODO: add for other gauges
+	else: #dec by more than 2, bindoff method
+		bindNeedle = decNeedle
+
+		if gauge > 1: #check
+			# count += 1 #since bn is shifted by 1
+			if side == 'r': bindNeedle += 1 #since want to start from bn since bn > fn #check
+		
+		bindoff(k, count, bindNeedle, c, side, True, True, emptyNeedles)
+
 	resetSettings(k)
 	return newEdgeNeedle
 
 
-def incDoubleBed(k, count, edgeNeedle, c, side='l', emptyNeedles=[], incMethod='xfer'):
+def incDoubleBed(k, count, edgeNeedle, c, side='l', gauge=1, emptyNeedles=[], incMethod='xfer'):
 	'''
 	*k in knitout Writer
 	*count is number of needles to inc
-	*edgeNeedle is *current* edge-most needle before inc occurs (so reference point for increasing)
+	*edgeNeedle is *current* edge-most needle before inc occurs (so reference point for increasing; **note: if gauge > 1, use front bed needle for this parameter [but if you use back bed by accident, the function will fix that by subtracting one; detected by if edgeNeedle is an odd number]**)
 	*c is carrier
 	*side is side to inc on
+	*gauge is gauge
 	*emptyNeedles is an optional list of needles that are not currently holding loops (e.g. if using stitch pattern), so don't place loops on those
 	*incMethod is the chosen method for increasing, options are: 'xfer', 'zig-zag', and 'twist'
 
 	returns 1) new edge-needle on given side based on inc count and 2) list of now-empty needles to perform twisted stitches on, so should be called as so (e.g.):
 	leftneedle, twistedStitches = incDoubleBed(...)
+
+	**note that, if gauge > 1, newEdgeNeedle will be the edge-most needle when comparing those on front and back bed (so if on left side, think about how fn < bn so newEdgeNeedle will reference front bed; if on right side, think about how bn > fn so newEdgeNeedle will reference back bed [use 'emptyNeedles' list to ensure empty edge-most needle reference on other bed is not knitted on])**
 	'''
+	if count > 2: incMethod='zig-zag' #default since no code for inc > 2 by xfer
+
+	# count *= gauge
+
+	if gauge > 1 and edgeNeedle % 2 != 0: edgeNeedle -= 1 #*
+
 	newEdgeNeedle = edgeNeedle
-	if side == 'l':
-		k.comment(f'inc {count} on left')
+	if side == 'l': #left side
+		k.comment(f'inc {count} on left by {incMethod}')
+		count *= gauge
 		newEdgeNeedle -= count
-	else:
-		k.comment(f'inc {count} on right')
+	else: #right side
+		k.comment(f'inc {count} on right by {incMethod}')
+		count *= gauge
 		newEdgeNeedle += count
-
-	if len(emptyNeedles): incMethod='twist' #TODO: make sure increasing doesn't occur on empty needles for incMethod='xfer' ... for now, makes it so incMethod='twist' so don't have to worry about issue (but should have it be possible to use xfer method for e.g. half-gauge)
-
-	if count > 2: incMethod='zig-zag'
+		if gauge > 1: newEdgeNeedle += 1 #since bn > fn
 
 	twistedStitches = []
 	if incMethod == 'xfer':
@@ -543,82 +745,98 @@ def incDoubleBed(k, count, edgeNeedle, c, side='l', emptyNeedles=[], incMethod='
 
 		shift = 1
 		if side == 'r': shift = -1
-		if f'b{edgeNeedle}' not in emptyNeedles: twistedStitches.append(f'b{edgeNeedle-(shift*count)+shift}')
-		if f'f{edgeNeedle}' not in emptyNeedles: twistedStitches.append(f'f{edgeNeedle-(shift*count)+shift}')
-		if count == 1:
-			if side == 'l': #left side #TODO: make sure correct empty needle
-				k.rack(-1)
-				k.xfer(f'b{edgeNeedle}', f'f{edgeNeedle-1}')
-				k.rack(0)
-				k.addRollerAdvance(-100)
-				k.miss('+', f'f{edgeNeedle}', c) #ensures order of xfers that is least likely to drop stitches (edge-most needle first)
-				k.xfer(f'f{edgeNeedle}', f'b{edgeNeedle}')
-				k.xfer(f'f{edgeNeedle-1}', f'b{edgeNeedle-1}')
-				k.rack(-1)
-				k.xfer(f'b{edgeNeedle}', f'f{edgeNeedle-1}')
-			else: #right side
-				k.rack(1)
-				k.xfer(f'b{edgeNeedle}', f'f{edgeNeedle+1}')
-				k.rack(0)
-				k.addRollerAdvance(-100)
-				k.miss('+', f'f{edgeNeedle}', c)
-				k.xfer(f'f{edgeNeedle}', f'b{edgeNeedle}')
-				k.xfer(f'f{edgeNeedle-1}', f'b{edgeNeedle-1}')
-				k.rack(-1)
-				k.xfer(f'b{edgeNeedle}', f'f{edgeNeedle-1}')
-		elif count == 2:
-			if side == 'l': #left side
-				k.rack(-1)
-				k.xfer(f'b{edgeNeedle}', f'f{edgeNeedle-1}')
-				k.rack(1)
-				k.xfer(f'f{edgeNeedle-1}', f'b{edgeNeedle-2}')
-				k.xfer(f'f{edgeNeedle+1}', f'b{edgeNeedle}')
-				k.rack(0)
-				k.xfer(f'b{edgeNeedle-2}', f'f{edgeNeedle-2}')
-				k.rack(-1)
-				k.xfer(f'b{edgeNeedle}', f'f{edgeNeedle-1}')
-				k.rack(0)
-				k.xfer(f'b{edgeNeedle+1}', f'f{edgeNeedle+1}')
-				k.rack(1)
-				k.xfer(f'f{edgeNeedle-1}', f'b{edgeNeedle-2}')
-				k.xfer(f'f{edgeNeedle+1}', f'b{edgeNeedle}')
-			else: #right side
-				k.rack(1)
-				k.xfer(f'b{edgeNeedle}', f'f{edgeNeedle+1}')
-				k.rack(-1)
-				k.xfer(f'f{edgeNeedle+1}', f'b{edgeNeedle+2}') #TODO: determine which order is better
-				k.xfer(f'f{edgeNeedle-1}', f'b{edgeNeedle}')
-				k.rack(0)
-				k.xfer(f'b{edgeNeedle+2}', f'f{edgeNeedle+2}')
-				k.rack(1)
-				k.xfer(f'b{edgeNeedle}', f'f{edgeNeedle+1}')
-				k.rack(0)
-				k.xfer(f'b{edgeNeedle-1}', f'f{edgeNeedle-1}')
-				k.rack(-1)
-				k.xfer(f'f{edgeNeedle-1}', f'b{edgeNeedle}')
-				k.xfer(f'f{edgeNeedle+1}', f'b{edgeNeedle+2}')
-		k.rack(0)
+
+		bAdjust = 0
+		if gauge != 1: bAdjust = 1
+
+		if count > 2: #applicable for when count is adjusted based on gauge #TODO: adjust this once have xfer methods for inc with gauge > 2
+			if f'b{edgeNeedle+bAdjust}' not in emptyNeedles: twistedStitches.append(f'b{edgeNeedle+bAdjust}')
+			if f'f{edgeNeedle}' not in emptyNeedles: twistedStitches.append(f'f{edgeNeedle}')
+
+
+		if f'b{(edgeNeedle+bAdjust)-(shift*count)+(shift*gauge)}' not in emptyNeedles: twistedStitches.append(f'b{(edgeNeedle+bAdjust)-(shift*count)+(shift*gauge)}') #*
+		if f'f{edgeNeedle-(shift*count)+(shift*gauge)}' not in emptyNeedles: twistedStitches.append(f'f{edgeNeedle-(shift*count)+(shift*gauge)}') #*
+
+		if gauge == 1:
+			if count == 1:
+				if side == 'l': #left side #TODO: make sure correct empty needle
+					k.rack(-1)
+					if f'b{edgeNeedle}' not in emptyNeedles: k.xfer(f'b{edgeNeedle}', f'f{edgeNeedle-1}') #*
+					k.rack(0)
+					k.addRollerAdvance(-100)
+					k.miss('+', f'f{edgeNeedle}', c) #ensures order of xfers that is least likely to drop stitches (edge-most needle first)
+					k.xfer(f'f{edgeNeedle}', f'b{edgeNeedle}')
+					k.xfer(f'f{edgeNeedle-1}', f'b{edgeNeedle-1}')
+					k.rack(-1)
+					k.xfer(f'b{edgeNeedle}', f'f{edgeNeedle-1}')
+				else: #right side
+					k.rack(1)
+					k.xfer(f'b{edgeNeedle}', f'f{edgeNeedle+1}')
+					k.rack(0)
+					k.addRollerAdvance(-100)
+					k.miss('+', f'f{edgeNeedle}', c)
+					k.xfer(f'f{edgeNeedle}', f'b{edgeNeedle}')
+					k.xfer(f'f{edgeNeedle-1}', f'b{edgeNeedle-1}')
+					k.rack(-1)
+					k.xfer(f'b{edgeNeedle}', f'f{edgeNeedle-1}')
+			elif count == 2:
+				if side == 'l': #left side
+					k.rack(-1)
+					k.xfer(f'b{edgeNeedle}', f'f{edgeNeedle-1}')
+					k.rack(1)
+					k.xfer(f'f{edgeNeedle-1}', f'b{edgeNeedle-2}')
+					k.xfer(f'f{edgeNeedle+1}', f'b{edgeNeedle}')
+					k.rack(0)
+					k.xfer(f'b{edgeNeedle-2}', f'f{edgeNeedle-2}')
+					k.rack(-1)
+					k.xfer(f'b{edgeNeedle}', f'f{edgeNeedle-1}')
+					k.rack(0)
+					k.xfer(f'b{edgeNeedle+1}', f'f{edgeNeedle+1}')
+					k.rack(1)
+					k.xfer(f'f{edgeNeedle-1}', f'b{edgeNeedle-2}')
+					k.xfer(f'f{edgeNeedle+1}', f'b{edgeNeedle}')
+				else: #right side
+					k.rack(1)
+					k.xfer(f'b{edgeNeedle}', f'f{edgeNeedle+1}')
+					k.rack(-1)
+					k.xfer(f'f{edgeNeedle+1}', f'b{edgeNeedle+2}') #TODO: determine which order is better
+					k.xfer(f'f{edgeNeedle-1}', f'b{edgeNeedle}')
+					k.rack(0)
+					k.xfer(f'b{edgeNeedle+2}', f'f{edgeNeedle+2}')
+					k.rack(1)
+					k.xfer(f'b{edgeNeedle}', f'f{edgeNeedle+1}')
+					k.rack(0)
+					k.xfer(f'b{edgeNeedle-1}', f'f{edgeNeedle-1}')
+					k.rack(-1)
+					k.xfer(f'f{edgeNeedle-1}', f'b{edgeNeedle}')
+					k.xfer(f'f{edgeNeedle+1}', f'b{edgeNeedle+2}')
+			k.rack(0)
+		else:
+			if gauge == 2: shapeXferDoubleBedHalfGauge(k, 'inc', (count/gauge), edgeNeedle, side)
+			#TODO: add for other gauges
 		resetSettings(k)
 	elif incMethod == 'zig-zag':
 		k.rack(0.25) #half-rack for knitout (note: could do true half rack for kniterate - 0.5 - but then wouldn't look right in visualizer)
 		if side == 'l':
 			for x in range(edgeNeedle-1, edgeNeedle-count-1, -1): #check
-				k.knit('-', f'b{x}', c)
-				k.knit('-', f'f{x}', c)
+				if f'b{x}' not in emptyNeedles: k.knit('-', f'b{x}', c) #*
+				if f'f{x}' not in emptyNeedles: k.knit('-', f'f{x}', c) #*
 		else:
 			for x in range(edgeNeedle+1, edgeNeedle+count+1):
-				k.knit('+', f'f{x}', c)
-				k.knit('+', f'b{x}', c)
+				if f'f{x}' not in emptyNeedles: k.knit('+', f'f{x}', c) #*
+				if f'b{x}' not in emptyNeedles: k.knit('+', f'b{x}', c) #*
 		k.rack(0)
 	else:
+		bAdjust = 0
+		if gauge > 1: bAdjust = 1
 		if side == 'l': #left side
 			for n in range(edgeNeedle-1, edgeNeedle-count-1, -1):
-				if f'f{n}' not in emptyNeedles: twistedStitches.append(f'f{n}')
-				if f'b{n}' not in emptyNeedles: twistedStitches.append(f'b{n}')
+				if f'f{n}' not in emptyNeedles: twistedStitches.append(f'f{n}') #*
+				if f'b{n+bAdjust}' not in emptyNeedles: twistedStitches.append(f'b{n+bAdjust}') #* #check
 		else: #right side
 			for n in range(edgeNeedle+1, edgeNeedle+count+1):
-				if f'f{n}' not in emptyNeedles: twistedStitches.append(f'f{n}')
-				if f'b{n}' not in emptyNeedles: twistedStitches.append(f'b{n}')
+				if f'f{n}' not in emptyNeedles: twistedStitches.append(f'f{n}') #*
+				if f'b{n+bAdjust}' not in emptyNeedles: twistedStitches.append(f'b{n+bAdjust}') #* #check
 	
 	return newEdgeNeedle, twistedStitches
 
@@ -626,32 +844,6 @@ def incDoubleBed(k, count, edgeNeedle, c, side='l', emptyNeedles=[], incMethod='
 #------------------------------------------------------------------------
 #--- IMAGE PROCESSING / KNITTING WITH KNITOUT FOR CACTUS-ESQUE THINGS ---
 #------------------------------------------------------------------------
-
-def wasteYarnWeights(k, leftN, rightN, c, side='l', gauge=1, drawC=None):
-	'''
-	*k is knitout Writer
-	*leftN is left-most needle
-	*rightN is right-most needle
-	*c is carrier
-	*side is the side that the carrier should start and end on
-	*gauge is gauge
-	*drawC is the carrier that would be used for the draw thread if it's time to do that
-
-	- adds waste yarn as 'weights' prior to new sections / large increases to make sure the stitches are stable
-	'''
-	#TODO: #come back!
-	if drawC is not None:
-		k.comment('draw thread')
-		if side == 'l':
-			for s in range(leftN, rightN+1):
-				if s % gauge == 0: k.knit('+',('f',s),drawC)
-			# if missDraw is not None: k.miss('+', f'f{missDraw}', drawC) #check
-		else:
-			for s in range(rightN, leftN-1, -1):
-				if s % gauge == 0: k.knit('-',('f',s),drawC)
-			# if missDraw is not None: k.miss('-', f'f{missDraw}', drawC) #check
-
-
 
 #--- FUNCTION TO PROCESS/ANALYZE IMAGE AND OUTPUT KNITOUT ---
 def generatePieceMap(k, imagePath='graphics/knitMap.png', gauge=1):
@@ -668,15 +860,18 @@ def generatePieceMap(k, imagePath='graphics/knitMap.png', gauge=1):
 	TODO: keep in mind when converting to knitout: shortrow carrier on right side should have opposite directional pattern and end on right side during waste yarn / initialization (in other words, should go neg pos rather than pos neg for passes in a row)
 	'''
 
-	#1. Read image data from input path
+	#1. Read image data from input path; resize based on gauge
 	imageData = io.imread(imagePath)
+	if gauge > 1: imageData = resize(imageData, (imageData.shape[0]*gauge, imageData.shape[1]), anti_aliasing=True) #scale gauge vertically to elongate image, if gauge > 1 
 	imageData = np.flipud(imageData) #so going from bottom to top
 
 	width = len(imageData[0])
 	carrierCount = 1
 	emptyNeedles = [] #push to this if gauge > 1 #TODO: add awareness of this for knitting
 
-	if gauge > 1:
+	if gauge > 1: #*
+		width = (width*gauge)+1 #*
+		# for n in range(0, (width*gauge)+1):
 		for n in range(0, width):
 			if n % gauge == 0: emptyNeedles.append(f'b{n}')
 			elif (n-1) % gauge == 0: emptyNeedles.append(f'f{n}')
@@ -695,11 +890,14 @@ def generatePieceMap(k, imagePath='graphics/knitMap.png', gauge=1):
 
 	#2. Go through ndarray data and separate it into sections represented by lists containing respective needles (i.e. multiple sections if shortrowing)
 	rows = [] #list for storing row-wise section data
+	rowsEdgeNeedles = []
 
 	castonLeftN = None
 	castonRightN = None
 
 	for r in range(0, len(imageData)):
+		leftmostN = None #new
+
 		row = []
 
 		row = []
@@ -707,6 +905,8 @@ def generatePieceMap(k, imagePath='graphics/knitMap.png', gauge=1):
 
 		for n in range(0, len(imageData[r])):
 			if imageData[r][n] == 0:
+				if leftmostN is None: leftmostN = n #new #check
+
 				section.append(n)
 
 				if n == len(imageData[r]) - 1:
@@ -725,10 +925,14 @@ def generatePieceMap(k, imagePath='graphics/knitMap.png', gauge=1):
 										startPt += 1
 										break
 					
+					rowsEdgeNeedles.append([leftmostN, n])
+
 					rows.append(row)
 			else:
 				if len(section) == 0: continue
 				else:
+					rowsEdgeNeedles.append([leftmostN, section[len(section)-1]]) #new #check 
+
 					row.append(section)
 					section = []
 					newSection = False
@@ -738,10 +942,9 @@ def generatePieceMap(k, imagePath='graphics/knitMap.png', gauge=1):
 							newSection = True
 							break
 							
-					if not newSection: #still adding on needles to section (no whitespace yet)
-						if r == 0:
-							castonLeftN = row[0][0]
-							castonRightN = row[0][len(row[0])-1]
+					if not newSection: #very last section
+						if r == 0: castonLeftN, castonRightN = convertGauge(gauge, row[0][0], row[0][len(row[0])-1]) #*
+
 						if len(row) > carrierCount: carrierCount = len(row)
 							
 						if r > 0 and r < (len(imageData)-1) and len(rows[len(rows)-1]) < len(rows[len(rows)-2]) and carrierCount >= len(rows[len(rows)-2]): #if necessary, split prev row [-1] into multiple sections (based on number of sections in prev row to that [-2]) if current carrierCount >= # of sections in [-2]
@@ -846,11 +1049,12 @@ def generatePieceMap(k, imagePath='graphics/knitMap.png', gauge=1):
 								if wasteWeightCarrier is None:
 									wasteWeightCarrier = availableCarriers.pop()
 									wasteWeightCarriers.append(wasteWeightCarrier)
-							wasteWeights[r][wasteWeightCarrier] = {'left': [leftN, prevSectionStart-1]}
+							wasteWeights[r][wasteWeightCarrier] = {'left': list(convertGauge(gauge, leftN, prevSectionStart-1))} #*
 
 						carrierOrder.insert(0, carrierOrder.pop(carrierCount-1)) #move shortrowLeft carrier to front of carrierOrder list
 						sections.insert(0, sections.pop(carrierCount-1)) #move section to correct location too so can be referenced by index (s) correctly
-						firstNeedles[carrierOrder[0]] = [leftN, rightN]
+						firstNeedles[carrierOrder[0]] = list(convertGauge(gauge, rowsEdgeNeedles[r][0], rowsEdgeNeedles[r][1])) #*
+						# firstNeedles[carrierOrder[0]] = list(convertGauge(gauge, leftN, rightN)) #* #remove
 						for o in range(0, len(carrierOrder)):
 							if carrierOrder[o] == '1':
 								mainCSection = o
@@ -866,7 +1070,7 @@ def generatePieceMap(k, imagePath='graphics/knitMap.png', gauge=1):
 								if wasteWeightCarrier is None:
 									wasteWeightCarrier = availableCarriers.pop()
 									wasteWeightCarriers.append(wasteWeightCarrier)
-							wasteWeights[r][wasteWeightCarrier] = {'left': [leftN, sections[s].leftN-1]}
+							wasteWeights[r][wasteWeightCarrier] = {'left': list(convertGauge(gauge, leftN, sections[s].leftN-1))} #*
 						if rightN - sections[s].rightN > 2:
 							if not r in wasteWeights: wasteWeights[r] = dict()
 							wasteWeightCarrier = None
@@ -879,7 +1083,7 @@ def generatePieceMap(k, imagePath='graphics/knitMap.png', gauge=1):
 									wasteWeightCarrier = availableCarriers.pop()
 									wasteWeightCarriers.append(wasteWeightCarrier)
 									rightCarriers.append(wasteWeightCarrier) #check (added an indent)
-							wasteWeights[r][wasteWeightCarrier]= {'right': [rightN, sections[s].rightN+1]}
+							wasteWeights[r][wasteWeightCarrier] = {'right': list(convertGauge(gauge, sections[s].rightN+1, rightN))} #*
 
 					sections[s].leftN = leftN
 					sections[s].rightN = rightN
@@ -890,7 +1094,8 @@ def generatePieceMap(k, imagePath='graphics/knitMap.png', gauge=1):
 			
 			if not match: #need to use unusedC and add new carrier for shortrowing
 				if carrierOrder[unusedC] != '1':
-					firstNeedles[carrierOrder[unusedC]] = [leftN, rightN]
+					firstNeedles[carrierOrder[unusedC]] = list(convertGauge(gauge, rowsEdgeNeedles[r][0], rowsEdgeNeedles[r][1])) #*
+					# firstNeedles[carrierOrder[unusedC]] = list(convertGauge(gauge, leftN, rightN)) #* #remove
 					if leftN > sections[mainCSection].rightN: rightCarriers.append(carrierOrder[unusedC])
 
 					lastRowMapKeys = list(pieceMap[r-1].keys())
@@ -909,7 +1114,7 @@ def generatePieceMap(k, imagePath='graphics/knitMap.png', gauge=1):
 								wasteWeightCarrier = availableCarriers.pop()
 								wasteWeightCarriers.append(wasteWeightCarrier)
 								rightCarriers.append(wasteWeightCarrier) #check (added an indent)
-						wasteWeights[r][wasteWeightCarrier] = {'right': [rightN, prevSectionEnd+1]}
+						wasteWeights[r][wasteWeightCarrier] = {'right': list(convertGauge(gauge, prevSectionEnd+1, rightN))} #*
 
 				taken.append(unusedC)
 				sections[unusedC].leftN = leftN
@@ -941,7 +1146,10 @@ def generatePieceMap(k, imagePath='graphics/knitMap.png', gauge=1):
 			otherCs.append(f'{c}')
 	otherCs.extend(wasteWeightCarriers)
 
-	wasteSection(k=k, leftN=castonLeftN, rightN=castonRightN, otherCs=otherCs, gauge=gauge, endOnRight=rightCarriers, firstNeedles=firstNeedles)
+	catchMaxNeedles = False
+	if (castonRightN-castonLeftN < 20): catchMaxNeedles = True
+
+	wasteSection(k=k, leftN=castonLeftN, rightN=castonRightN, otherCs=otherCs, gauge=gauge, endOnRight=rightCarriers, firstNeedles=firstNeedles, catchMaxNeedles=catchMaxNeedles)
 
 	tubeCaston(k, castonLeftN, castonRightN, '1', gauge)
 
@@ -956,9 +1164,10 @@ def generatePieceMap(k, imagePath='graphics/knitMap.png', gauge=1):
 		if len(wasteMatches):
 			takenNeedles = []
 			for s in pieceMap[r]:
-				takenNeedles.extend(pieceMap[r][s])
+				for n in pieceMap[r][s]:
+					takenNeedles.append(n*gauge)
 			
-			for wr in wasteMatches:
+			for wr in wasteMatches: #TODO: add check for if a needle isn't taken now but it increased to eventually #maybe search through all rows in range where would be knitting waste yarn and have taken needles be based on that
 				addCaston = False
 				addDraw = False
 				if wr-r == 10 or r == 0: addCaston = True
@@ -967,21 +1176,26 @@ def generatePieceMap(k, imagePath='graphics/knitMap.png', gauge=1):
 					waste = wasteWeights[wr][wc]
 					if 'left' in waste:
 						needles = waste['left']
-
+			
 						if addCaston:
-							k.pause(f'C{wc} L of N{needles[0]}?') #TODO: make sure this message isn't too long
+							k.miss('+', f'f{needles[0]-1}', wc)
+							k.pause(f'C{wc} L of N{needles[0]}?') #TODO: make sure this message isn't too long / change to 'cut'
 							k.rack(0.25)
 							for n in range(needles[0], needles[1]+1):
 								if n not in takenNeedles:
 									k.knit('+', f'f{n}', wc)
-									k.knit('+', f'b{n}', wc)
+									k.knit('+', f'b{n}', wc) #check about -
+									# if f'f{n}' not in emptyNeedles: k.knit('+', f'f{n}', wc) #*
+									# if f'b{n}' not in emptyNeedles: k.knit('+', f'b{n}', wc) #*
 							k.rack(0)
 						else: #not addCaston
 							for n in range(needles[0], needles[1]+1):
 								if n not in takenNeedles: k.knit('+', f'f{n}', wc)
+								# if n not in takenNeedles and f'f{n}' not in emptyNeedles: k.knit('+', f'f{n}', wc) #*
 
 						for n in range(needles[1], needles[0]-1, -1):
 							if n not in takenNeedles: k.knit('-', f'b{n}', wc)
+							# if n not in takenNeedles and f'b{n}' not in emptyNeedles: k.knit('-', f'b{n}', wc) #*
 						
 						if addDraw:
 							wcDraw = wasteWeightsDraw
@@ -989,29 +1203,37 @@ def generatePieceMap(k, imagePath='graphics/knitMap.png', gauge=1):
 							else:
 								wcDraw = wc
 								k.pause(f'use C{wcDraw} as draw')
+							k.rack(0.25) #so can drop on front & back bed at same time #*
 							for n in range(needles[0], needles[1]+1): #pos so carriage isn't in the way of placing draw carrier
 								k.drop(f'b{n}')
-							k.pause(f'C{wcDraw} on L?')
+								if f'f{n}' in emptyNeedles: k.drop(f'f{n}') #*
+							k.rack(0) #*
+							k.miss('+', f'f{needles[0]-1}', wcDraw) #check #check
+							k.pause(f'cut C{wcDraw}')
 							for n in range(needles[0], needles[1]+1):
-								k.knit('+', f'f{n}', wcDraw) #TODO: ensure not taken ....
-							k.pause(f'move C{wcDraw} out')
-					if 'right' in waste:
+								if f'f{n}' not in emptyNeedles: k.knit('+', f'f{n}', wcDraw) #TODO: ensure not taken .... #*
+							tempMissOut(k, width, '-', wcDraw) #new
+							k.pause(f'cut C{wcDraw}')
+					if 'right' in waste: #right side
 						needles = waste['right']
 
 						if addCaston:
-							k.pause(f'C{wc} R of N{needles[0]}?') #TODO: make sure this message isn't too long
+							k.miss('+', f'f{needles[1]+1}', wc)
+							k.pause(f'C{wc} R of N{needles[1]}?') #TODO: make sure this message isn't too long / change to 'cut'
 							k.rack(0.25)
-							for n in range(needles[0], needles[1]-1, -1):
+							for n in range(needles[1], needles[0]-1, -1):
 								if n not in takenNeedles:
 									k.knit('-', f'b{n}', wc)
 									k.knit('-', f'f{n}', wc)
+									# if f'b{n}' not in emptyNeedles: k.knit('-', f'b{n}', wc) #*
+									# if f'f{n}' not in emptyNeedles: k.knit('-', f'f{n}', wc) #*
 							k.rack(0)
 						else:	#not addCaston
-							for n in range(needles[0], needles[1]-1, -1):
-								if n not in takenNeedles: k.knit('-', f'b{n}', wc)
+							for n in range(needles[1], needles[0]-1, -1):
+								if n not in takenNeedles: k.knit('-', f'b{n}', wc) #*
 
-						for n in range(needles[1], needles[0]+1):
-							if n not in takenNeedles: k.knit('+', f'f{n}', wc)
+						for n in range(needles[0], needles[1]+1):
+							if n not in takenNeedles: k.knit('+', f'f{n}', wc) #*
 						
 						if addDraw:
 							wcDraw = wasteWeightsDraw
@@ -1019,15 +1241,21 @@ def generatePieceMap(k, imagePath='graphics/knitMap.png', gauge=1):
 							else:
 								wcDraw = wc
 								k.pause(f'use C{wcDraw} as draw')
-							for n in range(needles[0], needles[1]-1, -1): #neg so carriage isn't in the way of placing draw carrier
+							k.rack(0.25) #so can drop on front & back bed at same time #*
+							for n in range(needles[1], needles[0]-1, -1): #neg so carriage isn't in the way of placing draw carrier
 								k.drop(f'b{n}')
-							k.pause(f'C{wcDraw} on R?')
-							for n in range(needles[0], needles[1]-1, -1):
-								k.knit('-', f'f{n}', wcDraw)
-							k.pause(f'move C{wcDraw} out')
+								if f'f{n}' in emptyNeedles: k.drop(f'f{n}') #*
+							k.rack(0) #*
+
+							k.miss('-', f'f{needles[1]+1}', wcDraw) #check #check
+							k.pause(f'cut C{wcDraw}')
+							for n in range(needles[1], needles[0]-1, -1):
+								if f'f{n}' not in emptyNeedles: k.knit('-', f'f{n}', wcDraw) #*
+							tempMissOut(k, width, '+', wcDraw) #new
+							k.pause(f'cut C{wcDraw}')
 
 		row = []
-		n0 = 0 #for whitespace (just for visualization, not knitout)
+		n0 = 0 #for whitespace (just for visualization, not knitout) #TODO: adjust this for gauge maybe #?
 
 		for s in pieceMap[r]:
 			carrier = s #carrier is key
@@ -1043,8 +1271,7 @@ def generatePieceMap(k, imagePath='graphics/knitMap.png', gauge=1):
 
 			twistedStitches = [] #might use later on if increasing
 			
-			n1 = needles[0] #left-most needle
-			n2 = needles[len(needles) - 1] #right-most needle
+			n1, n2 = convertGauge(gauge, needles[0], needles[len(needles) - 1]) #*
 
 			sectionCount = len(pieceMap[r]) #number of sections in this row
 			mapKeys = list(pieceMap[r].keys()) #carriers used in this row
@@ -1057,15 +1284,15 @@ def generatePieceMap(k, imagePath='graphics/knitMap.png', gauge=1):
 
 			if r > 0 and s not in pieceMap[r-1]: #means this is a new section #might need to cast some needles on 
 				if sectionIdx != 0 and sectionIdx != len(mapKeys)-1: #means that it is a new shortrow section that is not on the edge, so need to place carrier in correct spot
-					if dir1 == '+': k.miss('+', f'f{n1}', carrier)
-					else: k.miss('-', f'f{n2}', carrier)
-					k.pause('cut strand') #check
+					if dir1 == '+': k.miss('+', f'f{n1-1}', carrier)
+					else: k.miss('-', f'f{n2+1}', carrier)
+					k.pause(f'cut C{carrier}') #check
 
 		
-				#TODO: maybe remove this, it might never be needed (doesn't look like there is need for caston)
-				prevRowNeedles = []
-				for p in pieceMap[r-1]:
-					prevRowNeedles.extend(pieceMap[r-1][p])
+				#TODO: maybe remove this, it might never be needed (doesn't look like there is need for caston) #actually, go for if need to increase
+				prevRowMapKeys = list(pieceMap[r-1].keys())
+				prevRowNeedles = range(pieceMap[r-1][prevRowMapKeys[0]][0]*gauge, (pieceMap[r-1][prevRowMapKeys[len(prevRowMapKeys)-1]][len(pieceMap[r-1][prevRowMapKeys[len(prevRowMapKeys)-1]])-1]*gauge)+1)
+
 				newNeedles = []
 				needleRange = range(n1, n2+1)
 				if dir1 == '-': needleRange = range(n2, n1-1, -1)
@@ -1073,8 +1300,11 @@ def generatePieceMap(k, imagePath='graphics/knitMap.png', gauge=1):
 					if n not in prevRowNeedles: newNeedles.append(n)
 				if len(newNeedles):
 					k.rack(0.25)
-					for n in range(0, len(newNeedles)-1):
-						k.knit(dir1, f'f{n}', carrier)
+					for n in range(0, len(newNeedles)):
+						if f'f{newNeedles[n]}' not in emptyNeedles: k.knit(dir1, f'f{n}', carrier) #*
+						if f'b{newNeedles[n]}' not in emptyNeedles: k.knit(dir1, f'b{n}', carrier) #*
+						# if f'f{n}' not in emptyNeedles: k.knit(dir1, f'f{n}', carrier) #*
+						# if f'b{n}' not in emptyNeedles: k.knit(dir1, f'b{n}', carrier) #*
 					k.rack(0)
 
 					dir2 = '-'
@@ -1082,53 +1312,60 @@ def generatePieceMap(k, imagePath='graphics/knitMap.png', gauge=1):
 					if dir1 == '-':
 						dir2 = '+'
 						needleRange = range(n1, n2+1)
-					for n in needleRange: #back pass to get carrier on correct side
-						k.knit(dir2, f'b{n}', carrier)
+
+					k.comment('back pass to get carrier on correct side')
+					for n in range(len(newNeedles)-1, -1, -1): #back pass to get carrier on correct side #check
+						if f'b{newNeedles[n]}' not in emptyNeedles: k.knit(dir2, f'b{n}', carrier) #*
 
 			if r < len(pieceMap)-1 and len(pieceMap[r+1]) > sectionCount and s in pieceMap[r+1]:
 				futureMapKeys = list(pieceMap[r+1].keys())
 				if sectionIdx == 0 and futureMapKeys.index(s) != 0: #means new left shortrow section coming
 					futureNewSectionNeedles = pieceMap[r+1][futureMapKeys[0]]
-					futureNewSectionRightN = futureNewSectionNeedles[len(futureNewSectionNeedles)-1]
+					futureNewSectionRightN = convertGauge(gauge, rightN=futureNewSectionNeedles[len(futureNewSectionNeedles)-1])
 					placementPass = [n1, futureNewSectionRightN] #knit up until futureLeftN on back bed #TODO: make sure it misses an extra needle here so not in the way #TODO: maybe plan ahead for future part to make up for extra pass on back bed in left shortrow section?
 
 			if r > 0 and s in pieceMap[r-1]:
 				prevNeedles = pieceMap[r-1][s]
-				prevLeftN = prevNeedles[0]
-				prevRightN = prevNeedles[len(prevNeedles)-1]
+				prevLeftN, prevRightN = convertGauge(gauge, prevNeedles[0], prevNeedles[len(prevNeedles)-1])
 
 				if sectionCount > len(pieceMap[r-1]): #means new section here
 					prevMapKeys = list(pieceMap[r-1].keys())
 
 					if sectionIdx > 0 and mapKeys[sectionIdx-1] not in prevMapKeys: #means new left section was added before this section
-						prevSectionEnd = pieceMap[r][mapKeys[sectionIdx-1]][len(pieceMap[r][mapKeys[sectionIdx-1]])-1]
+						prevSectionEnd = convertGauge(gauge, rightN=pieceMap[r][mapKeys[sectionIdx-1]][len(pieceMap[r][mapKeys[sectionIdx-1]])-1]) #*
 						if prevLeftN < prevSectionEnd: prevLeftN = prevSectionEnd+1
 					if sectionIdx < len(mapKeys)-1 and mapKeys[sectionIdx+1] not in prevMapKeys: #means new right section will be added after this section
-						nextSectionStart = pieceMap[r][mapKeys[sectionIdx+1]][0]
+						nextSectionStart = convertGauge(gauge, leftN=pieceMap[r][mapKeys[sectionIdx+1]][0]) #*
 						if prevRightN > nextSectionStart: prevRightN = nextSectionStart-1
 
-				xferL = prevLeftN - n1 #dec/inc on left side (neg if dec)
-				xferR = n2 - prevRightN #dec/inc on right side (neg if dec)
+				xferL = int((prevLeftN - n1)/gauge) #dec/inc on left side (neg if dec)
+				xferR = int((n2 - prevRightN)/gauge) #dec/inc on right side (neg if dec)
 			
 			def leftShaping():
 				if xferL:
 					if xferL > 0: #increase
-						dummyLeft, twistedLeft = incDoubleBed(k, xferL, prevLeftN, carrier, 'l', emptyNeedles) #TODO: have option to pass incMethod in main function parameters
+						dummyLeft, twistedLeft = incDoubleBed(k, xferL, prevLeftN, carrier, 'l', gauge, emptyNeedles) #TODO: have option to pass incMethod in main function parameters
 						twistedStitches.extend(twistedLeft)
 					else: #decrease
-						dummyLeft = decDoubleBed(k, abs(xferL), prevLeftN, carrier, 'l', emptyNeedles)
+						dummyLeft = decDoubleBed(k, abs(xferL), prevLeftN, carrier, 'l', gauge, emptyNeedles)
+						if xferL == -2: notEnoughNeedlesDecCheck(k, prevLeftN, n2-1, carrier, gauge) #check
 			def rightShaping():
 				if xferR:
 					if xferR > 0:
-						dummyRight, twistedRight = incDoubleBed(k, xferR, prevRightN, carrier, 'r', emptyNeedles) #TODO: have option to pass incMethod in main function parameters
+						dummyRight, twistedRight = incDoubleBed(k, xferR, prevRightN, carrier, 'r', gauge, emptyNeedles) #TODO: have option to pass incMethod in main function parameters
 						twistedStitches.extend(twistedRight)
 					else:
-						dummyRight = decDoubleBed(k, abs(xferR), prevRightN, carrier, 'r', emptyNeedles)
+						dummyRight = decDoubleBed(k, abs(xferR), prevRightN, carrier, 'r', gauge, emptyNeedles)
+						if xferR == -2: notEnoughNeedlesDecCheck(k, prevRightN-1, n1, carrier, gauge)
 			
 			def backBedPass():
 				rightShaping()
+				if dir1 == '+' and xferR > 0: #so can 1. get twisted stitches in *after* xfers, not before and 2. not have ladder
+					for n in range(prevRightN+1, n2+1):
+						if f'f{n}' not in emptyNeedles: k.knit('+', f'f{n}', carrier)
+				
 				for n in range(n2, n1-1, -1):
-					k.knit('-', f'b{n}', carrier)
+					if f'b{n}' not in emptyNeedles: k.knit('-', f'b{n}', carrier) #*
 			
 			for n in range(n0, n1):
 				row.append(0)
@@ -1137,23 +1374,22 @@ def generatePieceMap(k, imagePath='graphics/knitMap.png', gauge=1):
 				backBedPass()
 				if (xferL <-2): #so no ladder (carrier is in correct spot to dec)
 					for n in range(n1-1, prevLeftN-1, -1):
-						k.knit('-', f'b{n}', carrier)
+						if f'b{n}' not in emptyNeedles: k.knit('-', f'b{n}', carrier) #*
 
 			leftShaping()
 			for n in range(n1, n2 + 1):
 				row.append(int(carrier))
-				if xferR <= 0 or n < prevRightN+1: k.knit('+', f'f{n}', carrier) #don't add the knits if increasing, since they will be added anyway thru increasing #TODO: make sure twisted stitches are all actually happening with this alteration (pretty sure it's working for everything except for when dir1 == '-', but actually might be working? since rightShaping is before knitting)
+				if (xferR <= 0 or n < prevRightN+1) and f'f{n}' not in emptyNeedles: k.knit('+', f'f{n}', carrier) #don't add the knits if increasing, since they will be added anyway thru increasing #TODO: make sure twisted stitches are all actually happening with this alteration (pretty sure it's working for everything except for when dir1 == '-', but actually might be working? since rightShaping is before knitting) #*
 			
 			if dir1 == '+' and (xferR < -2): #so no ladder (carrier is in correct spot to dec or inc with yarn) #check
 				for n in range(n2+1, prevRightN+1):
-					k.knit('+', f'f{n}', carrier)
+					if f'f{n}' not in emptyNeedles: k.knit('+', f'f{n}', carrier) #*
 
-			
 			if dir1 == '+': backBedPass()
 
 			if len(placementPass): #if applicable, place middle section carrier by new left-most needle to get it out of the way for new left-most shortrow section in next row
 				for n in range(placementPass[0], placementPass[1]+1):
-					k.knit('+', f'b{n}', carrier)
+					if f'b{n}' not in emptyNeedles: k.knit('+', f'b{n}', carrier) #*
 				k.miss('+', f'b{placementPass[1]+1}', carrier)
 
 			for bn in twistedStitches:
