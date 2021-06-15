@@ -20,17 +20,32 @@ k.write('out.k')
 
 import gabrielle
 
-# gabrielle.generatePieceMap(k, 'graphics/cactus.png')
+# gabrielle.shapeImgToKnitout(k, 'graphics/cactus.png')
 # k.write('cactus-test.k')
 
-gabrielle.generatePieceMap(k, 'graphics/cactus.png', 2)
-k.write('cactus-test-gauge2.k')
+# gabrielle.shapeImgToKnitout(k, 'graphics/cactus.png', 2)
+# k.write('cactus-test-gauge2.k')
 
-# gabrielle.generatePieceMap(k, 'graphics/cactus-waste-test.png')
+# gabrielle.shapeImgToKnitout(k, 'graphics/cactus-waste-test.png')
 # k.write('cactus-waste-test.k')
 
-# gabrielle.generatePieceMap(k, 'graphics/cactus-4sections.png')
+# gabrielle.shapeImgToKnitout(k, 'graphics/cactus-4sections.png')
 # k.write('cactus-4sections.k')
 
-# gabrielle.generatePieceMap(k, 'graphics/cactus-5sections.png')
+# gabrielle.shapeImgToKnitout(k, 'graphics/cactus-5sections.png')
 # k.write('cactus-5sections.k')
+
+# gabrielle.shapeImgToKnitout(k, 'graphics/cactus.png', 2, 1, 4)
+# k.write('cactus-test-gauge2-sr4.k')
+
+# gabrielle.shapeImgToKnitout(k, 'graphics/cactus.png', gauge=2, scale=1, maxShortrowCount=1)
+# k.write('cactus-test-gauge2-sr1.k')
+
+# gabrielle.shapeImgToKnitout(k, 'graphics/cactus.png', gauge=2, scale=2, maxShortrowCount=4)
+# k.write('cactus-test-gauge2-scale2-sr4-2.k')
+
+gabrielle.shapeImgToKnitout(k, 'graphics/cactus.png', gauge=1, scale=2, maxShortrowCount=4)
+k.write('cactus-test-scale2-sr4.k')
+
+# gabrielle.shapeImgToKnitout(k, 'graphics/cactus.png', gauge=1, scale=1, maxShortrowCount=4)
+# k.write('cactus-test-sr4.k')
