@@ -75,7 +75,7 @@ def jersey(k,beg,end,length,c,side='l',bed='f',gauge=1, gstart=0,knitArray=[4,40
                 k.knit('+',(bed,w),c)
 
         else:
-            for w in range(new_end,beg-1,-1*gauge):
+            for w in range(new_end-1,beg-1,-1*gauge):
                 k.knit('-',(bed,w),c)
 
 
@@ -121,7 +121,7 @@ def ribKnit(k,ribarray,beg,end,length,c,side='l',bed1='f',gauge=1,
                 else:
                     k.knit('+',(bed0,s),c)
         else:
-            for s in range(new_end,beg-1,-1*gauge):
+            for s in range(new_end-1,beg-1,-1*gauge):
                 if ref[int(s/gauge)] == 1:
                     k.knit('-',(bed1,s),c)
                 else:
