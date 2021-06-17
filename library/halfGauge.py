@@ -168,7 +168,8 @@ def rib2ribXfer(k,ribarray1,ribarray2,start,finish,gauge=1,gstart=0):
             k.xfer(('f',s),('b',s))
 
 
-def garter(k,garterNum,beg,end,length,c,side1='l',bed1='f',gauge=1, gstart=0):
+def garter(k,garterNum,beg,end,length,c,side1='l',bed1='f',gauge=1,
+    gstart=0,knitArray=[4,400,400],xferArray=[2,0,100]):
     '''Creates a balanced garter knit based on an input number. Bed is starting
     bed of knitting'''
 
@@ -195,19 +196,39 @@ def garter(k,garterNum,beg,end,length,c,side1='l',bed1='f',gauge=1, gstart=0):
     fullcycles=math.floor(length/(2*garterNum));
 
     for i in range(fullcycles):
+        xferSettingsArray(k,xferArray)
         rib2ribXfer(k,array2,array1,beg,end,gauge,gstart)
+
+        knitSettingsArray(k,knitArray)
         jersey(k,beg,end,garterNum,c,side1,bed1,gauge, gstart)
+
+        xferSettingsArray(k,xferArray)
         rib2ribXfer(k,array1,array2,beg,end,gauge,gstart)
+
+        knitSettingsArray(k,knitArray)
         jersey(k,beg,end,garterNum,c,side2,bed2,gauge, gstart)
 
 
     if remainder<garterNum:
+        xferSettingsArray(k,xferArray)
         rib2ribXfer(k,array2,array1,beg,end,gauge,gstart)
+
+        knitSettingsArray(k,knitArray)
         jersey(k,beg,end,remainder,c,side1,bed1,gauge, gstart)
+
+
+
     else:
+        xferSettingsArray(k,xferArray)
         rib2ribXfer(k,array2,array1,beg,end,gauge,gstart)
+
+        knitSettingsArray(k,knitArray)
         jersey(k,beg,end,garterNum,c,side1,bed1,gauge, gstart)
+
+        xferSettingsArray(k,xferArray)
         rib2ribXfer(k,array1,array2,beg,end,gauge,gstart)
+
+        knitSettingsArray(k,knitArray)
         jersey(k,beg,end,remainder,c,side2,bed2,gauge, gstart)
 
 
