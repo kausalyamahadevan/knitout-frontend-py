@@ -31,7 +31,7 @@ def xferSettingsArray(k,specs=[2,0,100]):
 
 
 
-def jersey(k,beg,end,length,c,side='l',bed='f',gauge=1, gstart=0):
+def jersey(k,beg,end,length,c,side='l',bed='f',gauge=1, gstart=0,knitArray=[4,400,400]):
     '''Jersey function to account for different gauge knititng
     k is knitout writer. beg is beginning needle, end is the final needle (**note: no longer 1 after final needle**)
     length is the number of courses knit. c is the carrier,
@@ -67,6 +67,7 @@ def jersey(k,beg,end,length,c,side='l',bed='f',gauge=1, gstart=0):
         start=2
         length=length+1
 
+    knitSettingsArray(k,knitArray)
     for b in range(start,length+1):
 
         if b%2==1:
@@ -74,12 +75,13 @@ def jersey(k,beg,end,length,c,side='l',bed='f',gauge=1, gstart=0):
                 k.knit('+',(bed,w),c)
 
         else:
-            for w in range(new_end,beg-1,-1*gauge):
+            for w in range(new_end-1,beg-1,-1*gauge):
                 k.knit('-',(bed,w),c)
 
 
 
-def ribKnit(k,ribarray,beg,end,length,c,side='l',bed1='f',gauge=1, gstart=0):
+def ribKnit(k,ribarray,beg,end,length,c,side='l',bed1='f',gauge=1,
+    gstart=0,knitArray=[4,400,400]):
 
     #figure out how to count back
     beg=beg+gstart;
@@ -110,6 +112,7 @@ def ribKnit(k,ribarray,beg,end,length,c,side='l',bed1='f',gauge=1, gstart=0):
     else:
         start = 0
 
+    knitSettingsArray(k,knitArray)
     for h in range(start,length):
         if h%2 ==0:
             for s in range(beg,end,gauge):
@@ -118,7 +121,7 @@ def ribKnit(k,ribarray,beg,end,length,c,side='l',bed1='f',gauge=1, gstart=0):
                 else:
                     k.knit('+',(bed0,s),c)
         else:
-            for s in range(new_end,beg-1,-1*gauge):
+            for s in range(new_end+1,beg-1,-1*gauge):
                 if ref[int(s/gauge)] == 1:
                     k.knit('-',(bed1,s),c)
                 else:
@@ -168,7 +171,8 @@ def rib2ribXfer(k,ribarray1,ribarray2,start,finish,gauge=1,gstart=0):
             k.xfer(('f',s),('b',s))
 
 
-def garter(k,garterNum,beg,end,length,c,side1='l',bed1='f',gauge=1, gstart=0):
+def garter(k,garterNum,beg,end,length,c,side1='l',bed1='f',gauge=1,
+    gstart=0,knitArray=[4,400,400],xferArray=[2,0,100]):
     '''Creates a balanced garter knit based on an input number. Bed is starting
     bed of knitting'''
 
@@ -195,23 +199,44 @@ def garter(k,garterNum,beg,end,length,c,side1='l',bed1='f',gauge=1, gstart=0):
     fullcycles=math.floor(length/(2*garterNum));
 
     for i in range(fullcycles):
+        xferSettingsArray(k,xferArray)
         rib2ribXfer(k,array2,array1,beg,end,gauge,gstart)
+
+        knitSettingsArray(k,knitArray)
         jersey(k,beg,end,garterNum,c,side1,bed1,gauge, gstart)
+
+        xferSettingsArray(k,xferArray)
         rib2ribXfer(k,array1,array2,beg,end,gauge,gstart)
+
+        knitSettingsArray(k,knitArray)
         jersey(k,beg,end,garterNum,c,side2,bed2,gauge, gstart)
 
 
     if remainder<garterNum:
+        xferSettingsArray(k,xferArray)
         rib2ribXfer(k,array2,array1,beg,end,gauge,gstart)
+
+        knitSettingsArray(k,knitArray)
         jersey(k,beg,end,remainder,c,side1,bed1,gauge, gstart)
+
+
+
     else:
+        xferSettingsArray(k,xferArray)
         rib2ribXfer(k,array2,array1,beg,end,gauge,gstart)
+
+        knitSettingsArray(k,knitArray)
         jersey(k,beg,end,garterNum,c,side1,bed1,gauge, gstart)
+
+        xferSettingsArray(k,xferArray)
         rib2ribXfer(k,array1,array2,beg,end,gauge,gstart)
+
+        knitSettingsArray(k,knitArray)
         jersey(k,beg,end,remainder,c,side2,bed2,gauge, gstart)
 
 
-def garterArray(k,garterarray,beg,end,length,c,side='l',gauge=1, gstart=0):
+def garterArray(k,garterarray,beg,end,length,c,side='l',gauge=1, gstart=0,
+    knitArray=[4,400,400],xferArray=[2,0,100]):
     '''Creates a garter that doesn't need to be balanced based on an input array.
     1 is front bed and 0 is back bed in the array.'''
 
@@ -219,6 +244,7 @@ def garterArray(k,garterarray,beg,end,length,c,side='l',gauge=1, gstart=0):
     totalRepeatsvert=int(math.ceil(float(length)/sz))
     ref = np.tile(garterarray,totalRepeatsvert+1)
 
+    xferSettingsArray(k,xferArray)
     if ref[0]==1:
         rib2ribXfer(k,[0],[1],beg,end,gauge,gstart)
     else:
@@ -234,6 +260,7 @@ def garterArray(k,garterarray,beg,end,length,c,side='l',gauge=1, gstart=0):
         ref=np.concatenate(([0], ref), axis=None)
 
     for i in range(start,length):
+        knitSettingsArray(k,knitArray)
         if i%2 ==0:
             if ref[i]==1:
                 jersey(k,beg,end,1,c,'l','f',gauge, gstart)
@@ -245,6 +272,7 @@ def garterArray(k,garterarray,beg,end,length,c,side='l',gauge=1, gstart=0):
             else:
                 jersey(k,beg,end,1,c,'r','b',gauge, gstart)
 
+        xferSettingsArray(k,xferArray)
         if (i+1)<length and ref[i]!=ref[i+1] and ref[i]==1:
             rib2ribXfer(k,[1],[0],beg,end,gauge,gstart)
         elif (i+1)<length and ref[i]!=ref[i+1] and ref[i]==0:
@@ -258,16 +286,26 @@ def seed(k,beg,end,length,c,side1='l',gauge=1, gstart=0):
     else:
         side2='l'
 
+    xferSettingsArray(k,xferArray)
     rib2ribXfer(k,[0],[1],beg,end,gauge,gstart)
     rib2ribXfer(k,[1,1],[0,1],beg,end,gauge,gstart)
 
+
     for i in range(int(math.floor(length/2))):
+        knitSettingsArray(k,knitArray)
         ribKnit(k,[0,1],beg,end,1,c,side1,'f',gauge, gstart)
+
+        xferSettingsArray(k,xferArray)
         rib2ribXfer(k,[0,1],[1,0],beg,end,gauge,gstart)
+
+        knitSettingsArray(k,knitArray)
         ribKnit(k,[1,0],beg,end,1,c,side2,'f',gauge, gstart)
+
+        xferSettingsArray(k,xferArray)
         rib2ribXfer(k,[1,0],[0,1],beg,end,gauge,gstart)
 
     if length%2==1:
+        knitSettingsArray(k,knitArray)
         ribKnit(k,[0,1],beg,end,length,c,side1,'f',gauge, gstart) #TODO: maybe change all 'fin' / 'finish' to 'end' so parameter names are consistent; and 'beginning' to 'beg'
 
 
