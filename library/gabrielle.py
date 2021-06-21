@@ -1413,6 +1413,8 @@ def shapeImgToKnitout(k, imagePath='graphics/knitMap.png', gauge=1, scale=1, max
 	# print('\npieceMap:') #remove
 	# print(pieceMap) #remove
 
+	wasteWeightsKeys = list(wasteWeights.keys())
+
 	print('wasteBoundaryExpansions:', wasteBoundaryExpansions) #remove
 
 	print('rightCarriers:', rightCarriers) #remove
@@ -1512,6 +1514,10 @@ def shapeImgToKnitout(k, imagePath='graphics/knitMap.png', gauge=1, scale=1, max
 					for wc in wasteWeights[wr]:
 						waste = wasteWeights[wr][wc]
 
+						takeWcOut = True #check
+						for wk in range(wasteWeightsKeys.index(wr)+1, len(wasteWeightsKeys)):
+							if wc in wasteWeights[wasteWeightsKeys[wk]]: takeWcOut = False
+
 						if 'left' in waste:
 							needles = waste['left'].copy()
 
@@ -1531,7 +1537,7 @@ def shapeImgToKnitout(k, imagePath='graphics/knitMap.png', gauge=1, scale=1, max
 								for n in range(needles[0], needles[1]+1): drawNeedles.append(n)
 							
 							if needles not in skip: #aka if not added to previous wasteWeights section 
-								takeWcOut = False
+								# takeWcOut = False #remove #?
 								
 								if wasteMatchIdx < len(wasteMatches)-1:
 									addonMatches = [w for w in wasteMatches if wasteMatches.index(w) > wasteMatchIdx and wc in wasteWeights[w] and 'left' in wasteWeights[w][wc]]
@@ -1555,8 +1561,8 @@ def shapeImgToKnitout(k, imagePath='graphics/knitMap.png', gauge=1, scale=1, max
 
 											needles[1] = addonRightN #change right-most needle to right-most needle in add-on sections (keep doing until last)
 											skip.append(wasteWeights[a][wc]['left']) #skip this one when looping again since already taking care of it here
-									else: takeWcOut = True #check
-								else: takeWcOut = True #check #?
+									else: takeWcOut = True #check #remove #?
+								else: takeWcOut = True #check #? #remove #?
 					
 								if len(castonNeedles):
 									if addCaston: #meaning first wasteWeights section has a caston
@@ -1607,6 +1613,8 @@ def shapeImgToKnitout(k, imagePath='graphics/knitMap.png', gauge=1, scale=1, max
 										if f'f{n}' in emptyNeedles: k.drop(f'f{n}')
 									k.rack(0) #check^
 
+									if takeWcOut: tempMissOut(k, width, '-', wc, 6)
+
 									if wasteWeightsDrawLeft is None:
 										tempMissOut(k, width, '-') #move *carriage* out of way
 										k.pause(f'manual draw thread over C{wc}') #find which ones by dropped #TODO: determine if manual draw thread is even necessary (is caston enough?)
@@ -1616,7 +1624,7 @@ def shapeImgToKnitout(k, imagePath='graphics/knitMap.png', gauge=1, scale=1, max
 										# 	drawDir = '+'
 										# 	extraCarriersIn.append(wasteWeightsDrawLeft)
 										
-										if takeWcOut: tempMissOut(k, width, '-', wc, 6)
+										# if takeWcOut: tempMissOut(k, width, '-', wc, 6) #remove #?
 										
 										for n in drawNeedles:
 											if f'f{n}' not in emptyNeedles: k.knit('+', f'f{n}', wasteWeightsDrawLeft)
@@ -1652,7 +1660,7 @@ def shapeImgToKnitout(k, imagePath='graphics/knitMap.png', gauge=1, scale=1, max
 								for n in range(needles[0], needles[1]+1): drawNeedles.append(n)
 							
 							if needles not in skip: #aka if not added to previous wasteWeights section 
-								takeWcOut = False
+								# takeWcOut = False #remove #?
 								
 								if wasteMatchIdx < len(wasteMatches)-1:
 									addonMatches = [w for w in wasteMatches if wasteMatches.index(w) > wasteMatchIdx and wc in wasteWeights[w] and 'right' in wasteWeights[w][wc]]
@@ -1675,8 +1683,8 @@ def shapeImgToKnitout(k, imagePath='graphics/knitMap.png', gauge=1, scale=1, max
 
 											needles[1] = addonRightN #change right-most needle to right-most needle in add-on sections (keep doing until last)
 											skip.append(wasteWeights[a][wc]['right']) #skip this one when looping again since already taking care of it here
-									else: takeWcOut = True #check
-								else: takeWcOut = True #check #?
+									# else: takeWcOut = True #check #remove #?
+								# else: takeWcOut = True #check #? #remove #?
 
 								if len(castonNeedles):
 									if addCaston: #meaning first wasteWeights section has a caston
@@ -1727,6 +1735,8 @@ def shapeImgToKnitout(k, imagePath='graphics/knitMap.png', gauge=1, scale=1, max
 										if f'f{n}' in emptyNeedles: k.drop(f'f{n}')
 									k.rack(0) #check^
 
+									if takeWcOut: tempMissOut(k, width, '+', wc, 6) #new #check
+
 									if wasteWeightsDrawRight is None:
 										tempMissOut(k, width, '+') #move *carriage* out of way
 										k.pause(f'manual draw thread over C{wc}') #find which ones by dropped #TODO: determine if manual draw thread is even necessary (is caston enough?)
@@ -1736,7 +1746,7 @@ def shapeImgToKnitout(k, imagePath='graphics/knitMap.png', gauge=1, scale=1, max
 										# 	drawDir = '+'
 										# 	extraCarriersIn.append(wasteWeightsDrawRight)
 
-										if takeWcOut: tempMissOut(k, width, '+', wc, 6) 
+										# if takeWcOut: tempMissOut(k, width, '+', wc, 6) #remove #?
 
 										for n in reversed(drawNeedles):
 											if f'f{n}' not in emptyNeedles: k.knit('-', f'f{n}', wasteWeightsDrawRight)
