@@ -14,14 +14,14 @@ def xferSettings(k,size=2,roll=0,speed=100):
     k.stitchNumber(size)
     k.rollerAdvance(roll)
 
-def knitSettingsArray(k,specs=[4,400,400]):
+def knitSettingsArray(k,specs=[400,4,400]):
     '''helper to quickly set knit settings using an array defined as [stitch size,
     roller advance, speed]"'''
     k.speedNumber(specs[0])
     k.stitchNumber(specs[1])
     k.rollerAdvance(specs[2])
 
-def xferSettingsArray(k,specs=[2,0,100]):
+def xferSettingsArray(k,specs=[100,2,0]):
     '''helper to quickly set xfer settings using an array defined as [stitch size,
     roller advance, speed]. knitSettingsArray is the same thing with different
     default values'''
@@ -31,7 +31,7 @@ def xferSettingsArray(k,specs=[2,0,100]):
 
 
 
-def jersey(k,beg,end,length,c,side='l',bed='f',gauge=1, gstart=0,knitArray=[4,400,400]):
+def jersey(k,beg,end,length,c,side='l',bed='f',gauge=1, gstart=0,knitArray=[400,4,400]):
     '''Jersey function to account for different gauge knititng
     k is knitout writer. beg is beginning needle, end is the final needle (**note: no longer 1 after final needle**)
     length is the number of courses knit. c is the carrier,
@@ -81,7 +81,7 @@ def jersey(k,beg,end,length,c,side='l',bed='f',gauge=1, gstart=0,knitArray=[4,40
 
 
 def ribKnit(k,ribarray,beg,end,length,c,side='l',bed1='f',gauge=1,
-    gstart=0,knitArray=[4,400,400]):
+    gstart=0,knitArray=[400,4,400]):
 
     #figure out how to count back
     beg=beg+gstart;
@@ -172,7 +172,7 @@ def rib2ribXfer(k,ribarray1,ribarray2,start,finish,gauge=1,gstart=0):
 
 
 def garter(k,garterNum,beg,end,length,c,side1='l',bed1='f',gauge=1,
-    gstart=0,knitArray=[4,400,400],xferArray=[2,0,100]):
+    gstart=0,knitArray=[400,4,400],xferArray=[100,2,0]):
     '''Creates a balanced garter knit based on an input number. Bed is starting
     bed of knitting'''
 
@@ -236,7 +236,7 @@ def garter(k,garterNum,beg,end,length,c,side1='l',bed1='f',gauge=1,
 
 
 def garterArray(k,garterarray,beg,end,length,c,side='l',gauge=1, gstart=0,
-    knitArray=[4,400,400],xferArray=[2,0,100]):
+    knitArray=[400,4,400],xferArray=[100,2,0]):
     '''Creates a garter that doesn't need to be balanced based on an input array.
     1 is front bed and 0 is back bed in the array.'''
 
@@ -279,7 +279,8 @@ def garterArray(k,garterarray,beg,end,length,c,side='l',gauge=1, gstart=0,
             rib2ribXfer(k,[0],[1],beg,end,gauge,gstart)
 
 
-def seed(k,beg,end,length,c,side1='l',gauge=1, gstart=0):
+def seed(k,beg,end,length,c,side1='l',gauge=1, gstart=0,
+    knitArray=[400,4,400],xferArray=[100,2,0]):
 
     if side1=='l':
         side2='r'
