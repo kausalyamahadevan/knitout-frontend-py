@@ -63,8 +63,14 @@ import gabrielle
 # gabrielle.shapeImgToKnitout(k, 'graphics/cactus-boundary.png', gauge=2, scale=2, maxShortrowCount=4)
 # k.write('cactus-test-gauge2-scale2-sr4-stackedCheck.k')
 
-gabrielle.shapeImgToKnitout(k, 'graphics/cactus-medium.png', gauge=2, maxShortrowCount=4)
-k.write('cactus-test-medium-gauge2-sr4.k')
-
 # gabrielle.shapeImgToKnitout(k, 'graphics/cactus-medium.png', scale=2, maxShortrowCount=4)
 # k.write('cactus-test-medium-scale2-sr6.k')
+
+for n in range(0, 121):
+	k.drop(f'f{n}')
+
+for n in range(120, -1, -1):
+	k.drop(f'b{n}')
+
+gabrielle.shapeImgToKnitout(k, 'graphics/cactus-medium.png', gauge=2, maxShortrowCount=4, addBindoff=False, excludeCarriers=['4'])
+k.write('cactus-test-medium-gauge2-sr4-take2.k')
