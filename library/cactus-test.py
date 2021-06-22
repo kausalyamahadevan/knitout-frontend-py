@@ -73,4 +73,4 @@ for n in range(120, -1, -1):
 	k.drop(f'b{n}')
 
 gabrielle.shapeImgToKnitout(k, 'graphics/cactus-medium.png', gauge=2, maxShortrowCount=4, addBindoff=False, excludeCarriers=['4'])
-k.write('cactus-test-medium-gauge2-sr4-take2.k')
+k.write('cactus-test-medium-gauge2-sr4-take3.k')

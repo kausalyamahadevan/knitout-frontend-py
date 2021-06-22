@@ -107,6 +107,8 @@ def interlockRange(k, startN, endN, length, c, gauge=1):
 	*gauge is the... well, gauge
 	'''
 
+	length *= 2 #check
+
 	if endN > startN: #first pass is pos
 		beg = 0
 		leftN = startN
@@ -117,7 +119,8 @@ def interlockRange(k, startN, endN, length, c, gauge=1):
 		leftN = endN
 		rightN = startN
 
-	for h in range(beg, length*2):
+	# for h in range(beg, length*2):
+	for h in range(beg, length): #check
 		if h % 2 == 0:
 			for n in range(leftN, rightN+1):
 				if n % gauge == 0 and (((n/gauge) % 2) == 0):
@@ -1536,16 +1539,20 @@ def shapeImgToKnitout(k, imagePath='graphics/knitMap.png', gauge=1, scale=1, max
 		if (r+1) < len(pieceMap)-1 and (sectionCount < len(pieceMap[r+1]) or sectionCount > len(pieceMap[r+1])): sectionCountChangeNext = True
 		else: sectionCountChangeNext = False #check #new location #* ^
 
-		# if sectionIdx == 0 and (sectionCountChangeNext or shortrowCount+1 == maxShortrowCount): #check #new #*
 		if sectionIdx == 0 and shortrowCount == 0: #check #new #*
 		# if sectionIdx == 0: #go back! #? or #remove #? #*
-			for rs in range(r, r+maxShortrowCount): #indent below == #new # +1 #?
-			# for rs in range(r-shortrowCount, r+1): #indent below == #new
+			
+			# wasteIdx = 0 #*#*
+			# wasteRowCount = 0 #*#*
+			# rs = r #*#*
+			# while rs < r+maxShortrowCount: #*#* 
+			for rs in range(r, r+maxShortrowCount): #indent below == #new # +1 #? #remove#*#*
 				if (rs+1) < len(pieceMap)-1 and (sectionCount < len(pieceMap[rs+1]) or sectionCount > len(pieceMap[rs+1])): break #check
 
 				wasteMatches = [w for w in wasteWeights if w-rs <= wasteWeightsRowCount and w-rs >= 0] #TODO: ensure 20 rows is enough for rollers to catch
-				if len(wasteMatches):
+				# wasteSectionCount = len(wasteMatches) #new #check #*#*
 
+				if len(wasteMatches):
 					boundaryExpansions = []
 					if len(wasteBoundaryExpansions) and rs-1 in wasteBoundaryExpansions: boundaryExpansions = wasteBoundaryExpansions[rs-1]
 
@@ -1556,6 +1563,7 @@ def shapeImgToKnitout(k, imagePath='graphics/knitMap.png', gauge=1, scale=1, max
 
 					skip = []
 					for wr in wasteMatches: #go through row keys to knit on needles that have currently active wasteWeights sections
+						# print('!!!', wasteMatches[wasteIdx], wasteWeights[wasteMatches[wasteIdx]]) #remove #*#*
 						wasteMatchIdx = wasteMatches.index(wr)
 
 						addCaston = False #only for wr, not addons (this too v)
@@ -1566,7 +1574,7 @@ def shapeImgToKnitout(k, imagePath='graphics/knitMap.png', gauge=1, scale=1, max
 						for wc in wasteWeights[wr]:
 							waste = wasteWeights[wr][wc]
 
-							takeWcOut = True #check
+							takeWcOut = True
 							for wk in range(wasteWeightsKeys.index(wr)+1, len(wasteWeightsKeys)):
 								if wc in wasteWeights[wasteWeightsKeys[wk]]: takeWcOut = False
 
@@ -1611,8 +1619,6 @@ def shapeImgToKnitout(k, imagePath='graphics/knitMap.png', gauge=1, scale=1, max
 
 												needles[1] = addonRightN #change right-most needle to right-most needle in add-on sections (keep doing until last)
 												skip.append(wasteWeights[a][wc]['left']) #skip this one when looping again since already taking care of it here
-									# 	else: takeWcOut = True #check #remove #?
-									# else: takeWcOut = True #check #? #remove #?
 						
 									if len(castonNeedles):
 										if addCaston: #meaning first wasteWeights section has a caston
@@ -1760,10 +1766,27 @@ def shapeImgToKnitout(k, imagePath='graphics/knitMap.png', gauge=1, scale=1, max
 											
 											tempMissOut(k, width, '+', wasteWeightsDrawRight, 4)
 
+				# rs += 1 #*#* v
+				# wasteRowCount += 1
 
-				# visualization.append([]) #go back! #? or #remove #? #*
-				# n0 = 0 #for whitespace (just for visualization, not knitout) #go back! #? or #remove #? #*
-			# else: n0 = endPoints.pop(0) #go back! #? or #remove #? #*
+				# nextWasteSectionCount = len([w for w in wasteWeights if w-(rs+1) <= wasteWeightsRowCount and w-(rs+1) >= 0])
+				# if (rs+1) < len(pieceMap)-1 and (wasteSectionCount < nextWasteSectionCount or sectionCount > nextWasteSectionCount): wasteSectionCountChangeNext = True
+				# else: wasteSectionCountChangeNext = False #check #new #*
+
+				# if wasteIdx < wasteSectionCount-1: #check
+				# 	if wasteSectionCountChangeNext:
+				# 		wasteIdx += 1
+				# 		rs -= wasteRowCount
+				# 		wasteRowCount = 0
+				# 	elif wasteRowCount == maxShortrowCount:
+				# 		wasteRowCount = 0
+				# 		wasteIdx += 1
+				# 		rs -= maxShortrowCount
+				# else:
+				# 	if wasteSectionCountChangeNext or wasteRowCount == maxShortrowCount:
+				# 		wasteRowCount = 0
+				# 		wasteIdx = 0 #*#* ^
+			
 
 		if sectionIdx == 0:
 			visualization.append([])
