@@ -24,6 +24,9 @@ xferSpeedNumber = 100
 xferStitchNumber = 3
 xferRollerAdvance = 0 #100 #?
 
+#for wasteWeights
+wasteWeightsRowCount = 20
+
 #----------------------
 #--- MISC FUNCTIONS ---
 #----------------------
@@ -93,12 +96,13 @@ def tempMissOut(k, width, direction, c=None, buffer=None):
 def interlockRange(k, startN, endN, length, c, gauge=1):
 	'''Knits on every needle interlock starting on side indicated by which needle value is greater.
 	In this function length is the number of total passes knit so if you want an interlock segment that is 20 courses long on each side set length to 40. Useful if you want to have odd amounts of interlock.
-	k is knitout Writer
-	startN is the starting needle to knit on
-	endN is the last needle to knit on (***note: no longer needs to be +1)
-	length is total passes knit
-	c is carrier
-	gauge is the... well, gauge'''
+	*k is knitout Writer
+	*startN is the starting needle to knit on
+	*endN is the last needle to knit on (***note: no longer needs to be +1)
+	*length is total passes knit
+	*c is carrier
+	*gauge is the... well, gauge
+	'''
 
 	if endN > startN: #first pass is pos
 		beg = 0
@@ -116,17 +120,15 @@ def interlockRange(k, startN, endN, length, c, gauge=1):
 				if n % gauge == 0 and (((n/gauge) % 2) == 0):
 					k.knit('+', f'f{n}', c)
 				elif (gauge == 1 or n % gauge != 0) and ((((n-1)/gauge) % 2) == 0):
-				# elif n % gauge != 0 and ((((n-1)/gauge) % 2) == 0): #remove
 					k.knit('+', f'b{n}', c)
-				elif n == rightN: k.miss('+', f'f{n}', c) #new
+				elif n == rightN: k.miss('+', f'f{n}', c)
 		else:
 			for n in range(rightN, leftN-1, -1):
 				if n % gauge == 0 and (((n/gauge) % 2) != 0):
 					k.knit('-', f'f{n}', c)
 				elif (gauge == 1 or n % gauge != 0) and ((((n-1)/gauge) % 2) != 0):
-				# elif n % gauge != 0 and ((((n-1)/gauge) % 2) != 0): #remove
 					k.knit('-', f'b{n}', c)
-				elif n == leftN: k.miss('-', f'f{n}', c) #new
+				elif n == leftN: k.miss('-', f'f{n}', c)
 
 
 #-------------------------------------
@@ -135,17 +137,18 @@ def interlockRange(k, startN, endN, length, c, gauge=1):
 
 #--- FUNCTION FOR DOING THE MAIN KNITTING OF TUBE ---
 def circular(k, startN, endN, length, c, gauge=1):
-	'''Knits on every needle circular tube starting on side indicated by which needle value is greater.
+	'''
+	Knits on every needle circular tube starting on side indicated by which needle value is greater.
 	In this function length is the number of total passes knit so if you want a tube that
 	is 20 courses long on each side set length to 40.
-	k is knitout Writer
-	startN is the starting needle to knit on
-	endN is the last needle to knit on
-	length is total passes knit
-	c is carrier
-	gauge is... gauge'''
 
-	# width = abs(endN-startN) + 1 #width is width of tube (same on both sides)
+	*k is knitout Writer
+	*startN is the starting needle to knit on
+	*endN is the last needle to knit on
+	*length is total passes knit
+	*c is carrier
+	*gauge is... gauge
+	'''
 
 	if endN > startN: #first pass is pos
 		beg = 0
@@ -171,7 +174,7 @@ def circular(k, startN, endN, length, c, gauge=1):
 #--------------------------
 
 #--- FUNCTION FOR BRINGING IN CARRIERS ---
-def catchyarns(k, leftN, rightN, carriers, gauge=1, endOnRight=[], missNeedles={}, catchMaxNeedles=False): #TODO: add option to knit on all needles in pattern (e.g. when gauge means offset causes some carriers to not even knit on any needles)
+def catchYarns(k, leftN, rightN, carriers, gauge=1, endOnRight=[], missNeedles={}, catchMaxNeedles=False): #TODO: add option to knit on all needles in pattern (e.g. when gauge means offset causes some carriers to not even knit on any needles)
 	if wasteSpeedNumber > 200: k.speedNumber(wasteSpeedNumber-100)
 	else: k.speedNumber(100)
 
@@ -185,9 +188,6 @@ def catchyarns(k, leftN, rightN, carriers, gauge=1, endOnRight=[], missNeedles={
 		backCount = 1
 
 		for h in passes:
-			# frontCount = 0
-			# backCount = 0
-
 			if frontCount % 2 != 0: frontCount = 0
 			else: frontCount = 1
 			if backCount % 2 != 0: backCount = 0
@@ -218,38 +218,64 @@ def catchyarns(k, leftN, rightN, carriers, gauge=1, endOnRight=[], missNeedles={
 	
 
 #--- FUNCTION FOR DOING ALL THINGS BEFORE CAST-ON (catch/initialize yarns, waste yarn, draw thread) ---
-def wasteSection(k, leftN, rightN, closedCaston=True, wasteC='1', drawC='2', otherCs = [], gauge=1, endOnRight=[], firstNeedles={}, catchMaxNeedles=False):
+def wasteSection(k, leftN, rightN, closedCaston=True, wasteC='1', drawC='2', otherCs = [], gauge=1, endOnRight=[], firstNeedles={}, catchMaxNeedles=False, initial=True): #TODO: add option to produce waste section that doesn't bring in carriers etc
+	'''
+	Does everything to prepare for knitting prior to (and not including) the cast-on.
+		- bring in carriers
+		- catch the yarns to make them secure
+		- knit waste section for the rollers to catch
+		- add draw thread
+	Can also be used to produce a waste section to go in-between samples.
 
+	*k is knitout Writer
+	*leftN is the left-most needle to knit on
+	*rightN is the right-most needle to knit on
+	*closedCaston is a boolean that determines what happens with the draw thread (if True, drops back-bed needles and knits draw on front-bed; if False, doesn't drop and knits draw on both beds)
+	*wasteC is an integer in string form indicating the carrier number to be used for the waste yarn
+	*drawC is same as above, but for the draw thread carrier
+	*otherCs is an *optional* list of other carriers that should be brought in/positioned with catchYarns (NOTE: leave empty if not initial wasteSection)
+	*gauge is... gauge
+	*endOnRight is an *optional* list of carriers that should be parked on the right side after the wasteSection (**see NOTE below for details about what to do if not initial**) — e.g.: endOnRight=['2', '3']
+	*firstNeedles is an *optional* dictionary with carrier as key and a list of [leftN, rightN] as the value. It indicates the edge-most needles in the first row that the carrier is used in for the main piece. — e.g.: firstNeedles={'1': [0, 10]}
+	*catchMaxNeedles is a boolean that determines whether or not the maximum number of needles (possible for the given gauge) will be knitted on for *every* carrier (yes if True; if False, knits on interval determined by number of carriers)
+	*initial is a boolean that, if True, indicates that this wasteSection is the very first thing being knitted for the piece; otherwise, if False, it's probably a wasteSection to separate samples (and will skip over catchYarns)
+
+	NOTE:
+	if initial wasteSection, side (prior to this wasteSection) is assumed to be left for all carriers
+	if not initial wasteSection, follow these guidelines for positioning:
+		-> wasteC: if currently on right side (prior to this wasteSection), put it in 'endOnRight' list; otherwise, don't
+		-> drawC: if currently on left side, put it in 'endOnRight' list; otherwise, don't
+	'''
 	k.stitchNumber(stitchNumber)
 	k.rollerAdvance(rollerAdvance)
-	# width = rightN - leftN + 1
+	
+	if initial:
+		carriers = [wasteC, drawC]
+		carriers.extend(otherCs)
+		carriers = list(set(carriers))
+		catchEndOnRight = endOnRight.copy()
 
-	carriers = [wasteC, drawC]
-	carriers.extend(otherCs)
-	carriers = list(set(carriers))
-	catchEndOnRight = endOnRight.copy()
+		missWaste = None
+		missDraw = None
+		missOtherCs = {}
+		if len(firstNeedles):
+			if wasteC in firstNeedles:
+				if wasteC in endOnRight: missWaste = firstNeedles[wasteC][1]
+				else: missWaste = firstNeedles[wasteC][0]
+			if drawC in firstNeedles:
+				if drawC in endOnRight: missDraw = firstNeedles[drawC][1]
+				else: missDraw = firstNeedles[drawC][0]
+			if len(otherCs):
+				for c in range(0, len(otherCs)):
+					if otherCs[c] in firstNeedles:
+						if otherCs[c] in endOnRight: missOtherCs[otherCs[c]] = firstNeedles[otherCs[c]][1]
+						else: missOtherCs[otherCs[c]] = firstNeedles[otherCs[c]][0]
 
-	missWaste = None
-	missDraw = None
-	missOtherCs = {}
-	if len(firstNeedles):
-		if wasteC in firstNeedles:
-			if wasteC in endOnRight: missWaste = firstNeedles[wasteC][1]
-			else: missWaste = firstNeedles[wasteC][0]
-		if drawC in firstNeedles:
-			if drawC in endOnRight: missDraw = firstNeedles[drawC][1]
-			else: missDraw = firstNeedles[drawC][0]
-		if len(otherCs):
-			for c in range(0, len(otherCs)):
-				if otherCs[c] in firstNeedles:
-					if otherCs[c] in endOnRight: missOtherCs[otherCs[c]] = firstNeedles[otherCs[c]][1]
-					else: missOtherCs[otherCs[c]] = firstNeedles[otherCs[c]][0]
+		if len(endOnRight) and closedCaston:
+			if drawC in endOnRight: catchEndOnRight.remove(drawC)
+			else: catchEndOnRight.append(drawC)
 
-	if len(endOnRight) and closedCaston:
-		if drawC in endOnRight: catchEndOnRight.remove(drawC)
-		else: catchEndOnRight.append(drawC)
-
-	catchyarns(k, leftN, rightN, carriers, gauge, catchEndOnRight, missOtherCs, catchMaxNeedles)
+		catchYarns(k, leftN, rightN, carriers, gauge, catchEndOnRight, missOtherCs, catchMaxNeedles)
 
 	k.comment('waste section')
 	k.speedNumber(wasteSpeedNumber)
@@ -607,11 +633,7 @@ def notEnoughNeedlesDecCheck(k, decNeedle, otherEdgeNeedle, c, gauge=1, rearrang
 	
 	width = abs(decNeedle-otherEdgeNeedle)
 
-	print('!! width:', width) #remove
-	print('!! decNeedle:', decNeedle, c) #remove
 	if (gauge == 2 and width < 6) or (gauge == 1 and width < 2): #not enough needles #TODO: determine if should be width <= 6
-	# if width < (3*gauge): #not enough needles
-		# k.comment(f'not enough needles, shifting loop on f{} to f{} dec: {decNeedle} other:{otherEdgeNeedle}')
 		bAdjust = 0
 		if gauge > 1: bAdjust = 1
 
@@ -627,8 +649,6 @@ def notEnoughNeedlesDecCheck(k, decNeedle, otherEdgeNeedle, c, gauge=1, rearrang
 				if n % gauge == 0: k.knit('-', f'f{n}', c)
 			for n in range(originalFN, newBNLoc+1):
 				if (n+1) % gauge == 0: k.knit('+', f'b{n}', c)
-			# for n in range(originalBN, newFNLoc-1, -1):
-			# 	if n % gauge == 0: k.knit('-', f'f{n}', c)
 			
 			k.rack(-gauge) #check #*
 			k.xfer(f'f{originalFN}', f'b{newFNLoc}')
@@ -639,7 +659,7 @@ def notEnoughNeedlesDecCheck(k, decNeedle, otherEdgeNeedle, c, gauge=1, rearrang
 			k.xfer(f'b{newFNLoc}', f'f{newFNLoc}')
 			#TODO: maybe knit through them, since they're stacked? probably don't need to, though
 
-			#-------------------------------------- v #go back! #?
+			#-------------------------------------- v #go back! or #remove #?
 			# originalFN = f'f{decNeedle-(3*gauge)}'
 			# originalBN = f'b{decNeedle-(3*gauge)+bAdjust}'
 			# newFNLoc = f'b{decNeedle-(3*gauge)+1}'
@@ -1257,7 +1277,7 @@ def shapeImgToKnitout(k, imagePath='graphics/knitMap.png', gauge=1, scale=1, max
 									wasteWeightCarrier = availableCarriers.pop()
 									wasteWeightCarriers.append(wasteWeightCarrier)
 
-							if r - 14 > 0: pStart = r - 14
+							if r - wasteWeightsRowCount > 0: pStart = r - wasteWeightsRowCount
 							else: pStart = 0
 
 							wasteRightBoundary = None
@@ -1298,7 +1318,7 @@ def shapeImgToKnitout(k, imagePath='graphics/knitMap.png', gauge=1, scale=1, max
 									wasteWeightCarrier = availableCarriers.pop()
 									wasteWeightCarriers.append(wasteWeightCarrier)
 							
-							if r - 14 > 0: pStart = r - 14
+							if r - wasteWeightsRowCount > 0: pStart = r - wasteWeightsRowCount
 							else: pStart = 0
 
 							wasteRightBoundary = None
@@ -1333,7 +1353,7 @@ def shapeImgToKnitout(k, imagePath='graphics/knitMap.png', gauge=1, scale=1, max
 									wasteWeightCarriers.append(wasteWeightCarrier)
 									rightCarriers.append(wasteWeightCarrier)
 							
-							if r - 14 > 0: pStart = r - 14
+							if r - wasteWeightsRowCount > 0: pStart = r - wasteWeightsRowCount
 							else: pStart = 0
 							wasteLeftBoundary = None
 							expandBoundaryRow = None
@@ -1383,7 +1403,7 @@ def shapeImgToKnitout(k, imagePath='graphics/knitMap.png', gauge=1, scale=1, max
 								wasteWeightCarriers.append(wasteWeightCarrier)
 								rightCarriers.append(wasteWeightCarrier)
 						
-						if r - 14 > 0: pStart = r - 14
+						if r - wasteWeightsRowCount > 0: pStart = r - wasteWeightsRowCount
 						else: pStart = 0
 						wasteLeftBoundary = None
 						expandBoundaryRow = None
@@ -1491,7 +1511,7 @@ def shapeImgToKnitout(k, imagePath='graphics/knitMap.png', gauge=1, scale=1, max
 
 	while r < len(pieceMap):
 		if sectionIdx == 0:
-			wasteMatches = [w for w in wasteWeights if w-r <= 14 and w-r >= 0] #TODO: ensure 14 rows is enough for rollers to catch
+			wasteMatches = [w for w in wasteWeights if w-r <= wasteWeightsRowCount and w-r >= 0] #TODO: ensure 20 rows is enough for rollers to catch
 			if len(wasteMatches):
 				
 				boundaryExpansions = []
@@ -1508,7 +1528,7 @@ def shapeImgToKnitout(k, imagePath='graphics/knitMap.png', gauge=1, scale=1, max
 
 					addCaston = False #only for wr, not addons (this too v)
 					addDraw = False
-					if wr-r == 14 or r == 0: addCaston = True #14 #?
+					if wr-r == wasteWeightsRowCount or r == 0: addCaston = True
 					elif r == wr: addDraw = True
 
 					for wc in wasteWeights[wr]:
@@ -1536,9 +1556,7 @@ def shapeImgToKnitout(k, imagePath='graphics/knitMap.png', gauge=1, scale=1, max
 								drawMiss = needles[1]+1
 								for n in range(needles[0], needles[1]+1): drawNeedles.append(n)
 							
-							if needles not in skip: #aka if not added to previous wasteWeights section 
-								# takeWcOut = False #remove #?
-								
+							if needles not in skip: #aka if not added to previous wasteWeights section 								
 								if wasteMatchIdx < len(wasteMatches)-1:
 									addonMatches = [w for w in wasteMatches if wasteMatches.index(w) > wasteMatchIdx and wc in wasteWeights[w] and 'left' in wasteWeights[w][wc]]
 
@@ -1552,7 +1570,7 @@ def shapeImgToKnitout(k, imagePath='graphics/knitMap.png', gauge=1, scale=1, max
 												for n in range(needles[1]+1, addonLeftN):
 													inBetweenNeedles.append(n)
 											
-											if a-r == 14 or r == 0: #add to caston needles #14 #?
+											if a-r == wasteWeightsRowCount or r == 0: #add to caston needles
 												for n in range(addonLeftN, addonRightN+1):
 													if n not in takenNeedles: castonNeedles.append(n)
 											elif r == a: #add to draw thread needles
@@ -1561,8 +1579,8 @@ def shapeImgToKnitout(k, imagePath='graphics/knitMap.png', gauge=1, scale=1, max
 
 											needles[1] = addonRightN #change right-most needle to right-most needle in add-on sections (keep doing until last)
 											skip.append(wasteWeights[a][wc]['left']) #skip this one when looping again since already taking care of it here
-									else: takeWcOut = True #check #remove #?
-								else: takeWcOut = True #check #? #remove #?
+								# 	else: takeWcOut = True #check #remove #?
+								# else: takeWcOut = True #check #? #remove #?
 					
 								if len(castonNeedles):
 									if addCaston: #meaning first wasteWeights section has a caston
@@ -1577,13 +1595,6 @@ def shapeImgToKnitout(k, imagePath='graphics/knitMap.png', gauge=1, scale=1, max
 
 								if len(drawNeedles) and wasteWeightsDrawLeft is not None: #do this before knitting so it's secure
 									k.miss('-', f'f{needles[0]-1}', wasteWeightsDrawLeft) 
-									# if wasteWeightsDrawLeft in extraCarriersIn: #go back! #? v
-									# 	# drawDir = '-'
-									# 	k.miss('+', f'f{drawMiss}', wasteWeightsDrawLeft)
-									# else:
-									# 	# drawDir = '+'
-									# 	extraCarriersIn.append(wasteWeightsDrawLeft)
-									# 	k.miss('-', f'f{needles[0]-1}', wasteWeightsDrawLeft)
 									k.pause(f'fix slack on draw C{wasteWeightsDrawLeft}')
 
 								for n in range(needles[0], needles[1]+1):
@@ -1619,26 +1630,8 @@ def shapeImgToKnitout(k, imagePath='graphics/knitMap.png', gauge=1, scale=1, max
 										tempMissOut(k, width, '-') #move *carriage* out of way
 										k.pause(f'manual draw thread over C{wc}') #find which ones by dropped #TODO: determine if manual draw thread is even necessary (is caston enough?)
 									else:
-										# if wasteWeightsDrawLeft in extraCarriersIn: drawDir = '-' #remove #?
-										# else:
-										# 	drawDir = '+'
-										# 	extraCarriersIn.append(wasteWeightsDrawLeft)
-										
-										# if takeWcOut: tempMissOut(k, width, '-', wc, 6) #remove #?
-										
 										for n in drawNeedles:
 											if f'f{n}' not in emptyNeedles: k.knit('+', f'f{n}', wasteWeightsDrawLeft)
-
-										# if drawDir == '-': #remove #? v
-										# 	k.miss('+', f'f{drawMiss}', wasteWeightsDrawLeft)
-										# 	k.pause(f'fix slack on draw C{wasteWeightsDrawLeft}')
-										# 	for n in reversed(drawNeedles):
-										# 		if f'f{n}' not in emptyNeedles: k.knit('-', f'f{n}', wasteWeightsDrawLeft)
-										# else:
-										# 	k.miss('-', f'f{needles[0]-1}', wasteWeightsDrawLeft) #note: needles[0] still correct since addons go on right
-										# 	k.pause(f'fix slack on draw C{wasteWeightsDrawLeft}')
-										# 	for n in drawNeedles:
-										# 		if f'f{n}' not in emptyNeedles: k.knit('+', f'f{n}', wasteWeightsDrawLeft)
 
 										tempMissOut(k, width, '-', wasteWeightsDrawLeft, 4)
 
@@ -1659,9 +1652,7 @@ def shapeImgToKnitout(k, imagePath='graphics/knitMap.png', gauge=1, scale=1, max
 								drawMiss = needles[1]+1
 								for n in range(needles[0], needles[1]+1): drawNeedles.append(n)
 							
-							if needles not in skip: #aka if not added to previous wasteWeights section 
-								# takeWcOut = False #remove #?
-								
+							if needles not in skip: #aka if not added to previous wasteWeights section 								
 								if wasteMatchIdx < len(wasteMatches)-1:
 									addonMatches = [w for w in wasteMatches if wasteMatches.index(w) > wasteMatchIdx and wc in wasteWeights[w] and 'right' in wasteWeights[w][wc]]
 
@@ -1674,7 +1665,7 @@ def shapeImgToKnitout(k, imagePath='graphics/knitMap.png', gauge=1, scale=1, max
 												for n in range(needles[1]+1, addonLeftN):
 													inBetweenNeedles.append(n)
 											
-											if a-r == 14 or r == 0: #add to caston needles #14 #?
+											if a-r == wasteWeightsRowCount or r == 0: #add to caston needles
 												for n in range(addonLeftN, addonRightN+1):
 													if n not in takenNeedles: castonNeedles.append(n)
 											elif r == a: #add to draw thread needles
@@ -1683,8 +1674,6 @@ def shapeImgToKnitout(k, imagePath='graphics/knitMap.png', gauge=1, scale=1, max
 
 											needles[1] = addonRightN #change right-most needle to right-most needle in add-on sections (keep doing until last)
 											skip.append(wasteWeights[a][wc]['right']) #skip this one when looping again since already taking care of it here
-									# else: takeWcOut = True #check #remove #?
-								# else: takeWcOut = True #check #? #remove #?
 
 								if len(castonNeedles):
 									if addCaston: #meaning first wasteWeights section has a caston
@@ -1699,13 +1688,6 @@ def shapeImgToKnitout(k, imagePath='graphics/knitMap.png', gauge=1, scale=1, max
 								
 								if len(drawNeedles) and wasteWeightsDrawRight is not None: #do this before knitting so it's secure #TODO: determine if changing the drawDir makes it more secure
 									k.miss('+', f'f{drawMiss}', wasteWeightsDrawRight)
-									# if wasteWeightsDrawRight in extraCarriersIn: #go back! or #remove #? v
-									# 	# drawDir = '-'
-									# 	k.miss('+', f'f{drawMiss}', wasteWeightsDrawRight)
-									# else:
-									# 	# drawDir = '+'
-									# 	extraCarriersIn.append(wasteWeightsDrawRight)
-									# 	k.miss('-', f'f{needles[0]-1}', wasteWeightsDrawRight)
 									k.pause(f'fix slack on draw C{wasteWeightsDrawRight}')
 									
 								for n in range(needles[1], needles[0]-1, -1):
@@ -1741,26 +1723,8 @@ def shapeImgToKnitout(k, imagePath='graphics/knitMap.png', gauge=1, scale=1, max
 										tempMissOut(k, width, '+') #move *carriage* out of way
 										k.pause(f'manual draw thread over C{wc}') #find which ones by dropped #TODO: determine if manual draw thread is even necessary (is caston enough?)
 									else:
-										# if wasteWeightsDrawRight in extraCarriersIn: drawDir = '-' #remove #?
-										# else:
-										# 	drawDir = '+'
-										# 	extraCarriersIn.append(wasteWeightsDrawRight)
-
-										# if takeWcOut: tempMissOut(k, width, '+', wc, 6) #remove #?
-
 										for n in reversed(drawNeedles):
 											if f'f{n}' not in emptyNeedles: k.knit('-', f'f{n}', wasteWeightsDrawRight)
-
-										# if drawDir == '-': #remove #? v
-										# 	k.miss('+', f'f{drawMiss}', wasteWeightsDrawRight)
-										# 	k.pause(f'fix slack on draw C{wasteWeightsDrawRight}')
-										# 	for n in reversed(drawNeedles):
-										# 		if f'f{n}' not in emptyNeedles: k.knit('-', f'f{n}', wasteWeightsDrawRight)
-										# else:
-										# 	k.miss('-', f'f{needles[0]-1}', wasteWeightsDrawRight)
-										# 	k.pause(f'fix slack on draw C{wasteWeightsDrawRight}')
-										# 	for n in drawNeedles:
-										# 		if f'f{n}' not in emptyNeedles: k.knit('+', f'f{n}', wasteWeightsDrawRight)
 										
 										tempMissOut(k, width, '+', wasteWeightsDrawRight, 4)
 
