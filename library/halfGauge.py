@@ -127,10 +127,12 @@ def ribKnit(k,ribarray,beg,end,length,c,side='l',bed1='f',gauge=1,
                 else:
                     k.knit('-',(bed0,s),c)
 
-def rib2ribXfer(k,ribarray1,ribarray2,start,finish,gauge=1,gstart=0):
+def rib2ribXfer(k,ribarray1,ribarray2,start,finish,
+    gauge=1,gstart=0,settings=[100,2,0]):
     '''Transfer function for half gauge ribs etc to half or third gauge ribs
     of the same  gauge. Will ignore transferring all non-active needles.'''
 
+    xferSettingsArray(k,settings)
     #add in offset
     start=start+gstart
 
@@ -199,40 +201,156 @@ def garter(k,garterNum,beg,end,length,c,side1='l',bed1='f',gauge=1,
     fullcycles=math.floor(length/(2*garterNum));
 
     for i in range(fullcycles):
-        xferSettingsArray(k,xferArray)
-        rib2ribXfer(k,array2,array1,beg,end,gauge,gstart)
 
-        knitSettingsArray(k,knitArray)
-        jersey(k,beg,end,garterNum,c,side1,bed1,gauge, gstart)
+        jersey(k,beg,end,garterNum,c,side1,bed1,gauge, gstart,knitArray)
 
-        xferSettingsArray(k,xferArray)
-        rib2ribXfer(k,array1,array2,beg,end,gauge,gstart)
+        if side2=='r' and gauge>1:
+            k.tuck('+', (bed1,end), c)
+            k.tuck('+', (bed2,end+1), c)
 
-        knitSettingsArray(k,knitArray)
-        jersey(k,beg,end,garterNum,c,side2,bed2,gauge, gstart)
+        rib2ribXfer(k,array1,array2,beg,end,gauge,gstart,xferArray)
+
+        if side2=='r' and gauge>1:
+            k.drop((bed1, end))
+            k.drop((bed2, end+1))
+
+
+        jersey(k,beg,end,garterNum,c,side2,bed2,gauge, gstart,knitArray)
+
+
+        if side1=='r' and gauge>1:
+            k.tuck('+', (bed2,end), c)
+            k.tuck('+', (bed1,end+1), c)
+
+        rib2ribXfer(k,array2,array1,beg,end,gauge,gstart,xferArray)
+
+        if side1=='r' and gauge>1:
+            k.drop((bed2, end))
+            k.drop((bed1, end+1))
+
 
 
     if remainder<garterNum:
-        xferSettingsArray(k,xferArray)
-        rib2ribXfer(k,array2,array1,beg,end,gauge,gstart)
+        # xferSettingsArray(k,xferArray)
+        # rib2ribXfer(k,array2,array1,beg,end,gauge,gstart)
 
-        knitSettingsArray(k,knitArray)
-        jersey(k,beg,end,remainder,c,side1,bed1,gauge, gstart)
+        jersey(k,beg,end,remainder,c,side1,bed1,gauge, gstart,knitArray)
 
 
 
     else:
-        xferSettingsArray(k,xferArray)
-        rib2ribXfer(k,array2,array1,beg,end,gauge,gstart)
+        # xferSettingsArray(k,xferArray)
+        # rib2ribXfer(k,array2,array1,beg,end,gauge,gstart)
 
-        knitSettingsArray(k,knitArray)
-        jersey(k,beg,end,garterNum,c,side1,bed1,gauge, gstart)
+        jersey(k,beg,end,garterNum,c,side1,bed1,gauge, gstart,knitArray)
 
-        xferSettingsArray(k,xferArray)
-        rib2ribXfer(k,array1,array2,beg,end,gauge,gstart)
+        if side2=='r' and gauge>1:
+            k.tuck('+', (bed1,end), c)
+            k.tuck('+', (bed2,end+1), c)
 
-        knitSettingsArray(k,knitArray)
-        jersey(k,beg,end,remainder,c,side2,bed2,gauge, gstart)
+        rib2ribXfer(k,array1,array2,beg,end,gauge,gstart,xferArray)
+
+        if side2=='r' and gauge>1:
+            k.drop((bed1, end))
+            k.drop((bed2, end+1))
+
+
+        jersey(k,beg,end,remainder,c,side2,bed2,gauge, gstart,knitArray)
+
+def garterSecure(k,garterNum,beg,end,length,c,side1='l',bed1='f',gauge=1,
+    gstart=0,knitArray=[400,4,400],xferArray=[100,2,0]):
+    '''Creates a balanced garter knit based on an input number. Bed is starting
+    bed of knitting'''
+
+    if bed1=='f':
+        array1=[1]
+        array2=[0]
+        bed2='b'
+    else:
+        array1=[0]
+        array2=[1]
+        bed2='f'
+
+    #if garter number is odd then we need to alternate knitting direction after switching
+    if (garterNum%2)==1:
+        if side1 == 'l':
+            side2='r'
+        else:
+            side2='l'
+    else:
+        side2=side1
+
+    remainder=length%(2*garterNum);
+
+    fullcycles=math.floor(length/(2*garterNum));
+
+    for i in range(fullcycles):
+
+        jersey(k,beg,end,garterNum,c,side1,bed1,gauge, gstart,knitArray)
+
+        if side1=='r' and gauge>1:
+            k.drop((bed2, end))
+
+        if side2=='r' and gauge>1:
+            k.tuck('+', (bed1,end), c)
+            k.tuck('+', (bed2,end+1), c)
+
+        rib2ribXfer(k,array1,array2,beg,end,gauge,gstart,xferArray)
+
+        if side2=='r' and gauge>1:
+            k.drop((bed2, end+1))
+
+
+        jersey(k,beg,end,garterNum,c,side2,bed2,gauge, gstart,knitArray)
+
+        if side2=='r' and gauge>1:
+            k.drop((bed1, end))
+
+
+        if side1=='r' and gauge>1:
+            k.tuck('+', (bed2,end), c)
+            k.tuck('+', (bed1,end+1), c)
+
+        rib2ribXfer(k,array2,array1,beg,end,gauge,gstart,xferArray)
+
+        if side1=='r' and gauge>1:
+            k.drop((bed1, end+1))
+
+
+
+    if remainder<garterNum:
+        # xferSettingsArray(k,xferArray)
+        # rib2ribXfer(k,array2,array1,beg,end,gauge,gstart)
+
+        jersey(k,beg,end,remainder,c,side1,bed1,gauge, gstart,knitArray)
+
+        if side1=='r' and gauge>1:
+            k.drop((bed2, end))
+
+
+
+    else:
+        # xferSettingsArray(k,xferArray)
+        # rib2ribXfer(k,array2,array1,beg,end,gauge,gstart)
+
+        jersey(k,beg,end,garterNum,c,side1,bed1,gauge, gstart,knitArray)
+
+        if side1=='r' and gauge>1:
+            k.drop((bed2, end))
+
+        if side2=='r' and gauge>1:
+            k.tuck('+', (bed1,end), c)
+            k.tuck('+', (bed2,end+1), c)
+
+        rib2ribXfer(k,array1,array2,beg,end,gauge,gstart,xferArray)
+
+        if side2=='r' and gauge>1:
+            k.drop((bed2, end+1))
+
+        jersey(k,beg,end,remainder,c,side2,bed2,gauge, gstart,knitArray)
+
+        if side2=='r' and gauge>1:
+            k.drop((bed1, end))
 
 
 def garterArray(k,garterarray,beg,end,length,c,side='l',gauge=1, gstart=0,
