@@ -210,19 +210,14 @@ class Writer:
         self.operations.append('x-presser-mode ' + mode)
 
     #function for going back to make a twisted stitch
-    # def twist(self, *args):
     def twist(self, bedNeedle_s, rollerAdvanceOffset=None): #bedNeedle_s can be just a single bed-needle, or a list to go through multiple
         if type(bedNeedle_s) == str: bedNeedle_s = [bedNeedle_s]
-        # argl = list(args)
-        # bn = argl[0]
-        # rollerAdvanceOffset = ''
-        # if len(argl) > 1: rollerAdvanceOffset = f'x-add-roller-advance {argl[1]}'
+
         if rollerAdvanceOffset is not None: rollerAdvanceOffset = f'x-add-roller-advance {rollerAdvanceOffset}'
         
-        leftovers = [] #new #check
+        leftovers = []
 
-        print('bnList:', bedNeedle_s) #remove
-        for bn in bedNeedle_s: #new #check
+        for bn in bedNeedle_s:
             for o in range (len(self.operations)-1, 0, -1):
                 if f'xfer {bn}' in self.operations[o]: #new #check #v
                     leftovers.append(bn) 
@@ -234,12 +229,11 @@ class Writer:
                     else: twistDir = '-'
                     missLine = line.replace('knit', 'miss')
                     twistLine = line.replace(originalDir, twistDir)
-                    print(missLine, twistLine) #remove
                     if rollerAdvanceOffset is not None: self.operations[o:o+1] = ';twisted stitch', rollerAdvanceOffset, missLine, rollerAdvanceOffset, twistLine
                     else: self.operations[o:o+1] = ';twisted stitch', missLine, twistLine
                     break
         
-        return leftovers #new #check
+        return leftovers
 
 
     #function for going back to make a split stitch
@@ -275,7 +269,7 @@ class Writer:
                     found = True
                     break
 
-            if not found: print(f"WARNING: Couldn't find operation matching keyword: {kwd}, so didn't delete anything.")
+            if not found: print(f"WARNING: Couldn't find operation matching keyword: {kwd}, so didn't delete anything.") #remove #?
 
 
     def clear(self):

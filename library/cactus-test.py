@@ -1,24 +1,13 @@
 import knitout
-
-# import halfGauge
+import gabrielle
 
 k = knitout.Writer('1 2 3 4 5 6')
 
-'''
-k.incarrier('1')
+# for n in range(0, 121):
+# 	k.drop(f'f{n}')
 
-'''
-# insert knitout here
-'''
-
-halfGauge.jersey(k=k, beg=0, end=19, length=10, c='3', gauge=2)
-
-k.outcarrier('1')
-
-k.write('out.k')
-'''
-
-import gabrielle
+# for n in range(120, -1, -1):
+# 	k.drop(f'b{n}')
 
 
 # gabrielle.shapeImgToKnitout(k, 'graphics/cactus.png')
@@ -65,12 +54,6 @@ import gabrielle
 
 # gabrielle.shapeImgToKnitout(k, 'graphics/cactus-medium.png', scale=2, maxShortrowCount=4)
 # k.write('cactus-test-medium-scale2-sr6.k')
-
-for n in range(0, 121):
-	k.drop(f'f{n}')
-
-for n in range(120, -1, -1):
-	k.drop(f'b{n}')
 
 # gabrielle.shapeImgToKnitout(k, 'graphics/cactus-medium.png', gauge=2, maxShortrowCount=4, addBindoff=False, excludeCarriers=['4'])
 # k.write('cactus-test-medium-gauge2-sr4-take3.k')
