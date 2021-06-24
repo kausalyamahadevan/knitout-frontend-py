@@ -210,25 +210,73 @@ class Writer:
         self.operations.append('x-presser-mode ' + mode)
 
     #function for going back to make a twisted stitch
-    # def twist(self, bn):
-    def twist(self, *args):
-        argl = list(args)
-        bn = argl[0]
-        rollerAdvanceOffset = ''
-        if len(argl) > 1: rollerAdvanceOffset = f'x-add-roller-advance {argl[1]}'
+    # def twist(self, *args):
+    def twist(self, bedNeedle_s, rollerAdvanceOffset=None): #bedNeedle_s can be just a single bed-needle, or a list to go through multiple
+        if type(bedNeedle_s) == str: bedNeedle_s = [bedNeedle_s]
+        # argl = list(args)
+        # bn = argl[0]
+        # rollerAdvanceOffset = ''
+        # if len(argl) > 1: rollerAdvanceOffset = f'x-add-roller-advance {argl[1]}'
+        if rollerAdvanceOffset is not None: rollerAdvanceOffset = f'x-add-roller-advance {rollerAdvanceOffset}'
         
+        leftovers = [] #new #check
+
+        print('bnList:', bedNeedle_s) #remove
+        for bn in bedNeedle_s: #new #check
+            for o in range (len(self.operations)-1, 0, -1):
+                if f'xfer {bn}' in self.operations[o]: #new #check #v
+                    leftovers.append(bn) 
+                    break #^
+                if 'knit' in self.operations[o] and bn in self.operations[o]:
+                    line = self.operations[o]
+                    originalDir = line.split()[1]
+                    if originalDir == '-': twistDir = '+'
+                    else: twistDir = '-'
+                    missLine = line.replace('knit', 'miss')
+                    twistLine = line.replace(originalDir, twistDir)
+                    print(missLine, twistLine) #remove
+                    if rollerAdvanceOffset is not None: self.operations[o:o+1] = ';twisted stitch', rollerAdvanceOffset, missLine, rollerAdvanceOffset, twistLine
+                    else: self.operations[o:o+1] = ';twisted stitch', missLine, twistLine
+                    break
+        
+        return leftovers #new #check
+
+
+    #function for going back to make a split stitch
+    def switchToSplit(self, *args):
+        argl = list(args)
+        direction  = shiftDirection(argl)
+        bn_from = shiftBedNeedle(argl)
+        bn_to = shiftBedNeedle(argl)
+        cs = shiftCarrierSet(argl, self.carriers)
+
         for o in range (len(self.operations)-1, 0, -1):
-            if 'knit' in self.operations[o] and bn in self.operations[o]:
-                line = self.operations[o]
-                twistDir = '-'
-                originalDir = line.split()[1]
-                if originalDir == '-': twistDir = '+'
-                missLine = line.replace('knit', 'miss')
-                twistLine = line.replace(originalDir, twistDir)
-                # extensions.append(missLine, twistLine)
-                if rollerAdvanceOffset: self.operations[o:o+1] = ';twisted stitch', rollerAdvanceOffset, missLine, rollerAdvanceOffset, twistLine
-                else: self.operations[o:o+1] = ';twisted stitch', missLine, twistLine
+            if 'knit' in self.operations[o] and bn_from in self.operations[o]:
+                self.operations[o] = f'split {direction} {bn_from} {bn_to} {cs}'
                 break
+
+
+    def deleteLastOp(self, kwd=None, breakCondition=None):
+    # def deleteLastOp(self, kwd=None, searchRange=None, breakCondition=None):
+        if kwd is None: self.operations.pop()
+        else:
+            # if searchRange is None: stop = 0
+            # else:
+            #     stop = len(self.operations)-2-searchRange
+            #     if stop < 0: stop = 0
+            
+            found = False
+            # for o in range(len(self.operations)-1, stop, -1):
+            for o in range(len(self.operations)-1, 0, -1):
+                if breakCondition is not None and breakCondition(self.operations[o]): break
+
+                if kwd in self.operations[o]:
+                    del self.operations[o]
+                    found = True
+                    break
+
+            if not found: print(f"WARNING: Couldn't find operation matching keyword: {kwd}, so didn't delete anything.")
+
 
     def clear(self):
         #clear buffers

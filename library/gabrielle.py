@@ -93,9 +93,29 @@ def tempMissOut(k, width, direction, c=None, buffer=None):
 		else: k.miss('+', f'f{missN}', c) #move carrier out of way
 
 
-#-------------------------------------------------------------------------------
+#--------------------------
+#--- KNITTING FUNCTIONS ---
+#--------------------------
+
+#--- KNITTING PASSES ---
+def knitPass(k, startN, endN, c, bed='f', gauge=1, emptyNeedles=[]):
+	if endN > startN: #pass is pos
+		for n in range(startN, endN+1):
+			if n not in emptyNeedles:
+				if (bed == 'f' and n % gauge == 0) or (bed == 'b' and (gauge == 1 or n % gauge != 0)): k.knit('+', f'{bed}{n}', c) #check
+				elif n == endN: k.miss('+', f'{bed}{n}', c)
+				# elif bed == 'b' and (gauge == 1 or n % gauge != 0): k.knit('+', f'b{n}', c) #check
+			elif n == endN: k.miss('+', f'{bed}{n}', c)
+	else: #pass is neg
+		for n in range(startN, endN-1, -1):
+			if n not in emptyNeedles:
+				if (bed == 'f' and n % gauge == 0) or (bed == 'b' and (gauge == 1 or n % gauge != 0)): k.knit('-', f'{bed}{n}', c) #check
+				elif n == endN: k.miss('-', f'{bed}{n}', c)
+				# if bed == 'b' and (gauge == 1 or n % gauge != 0): k.knit('-', f'b{n}', c) #check
+				# elif bed == 'f' and n % gauge == 0: k.knit('-', f'f{n}', c) #check
+			elif n == endN: k.miss('-', f'{bed}{n}', c)
+
 #--- FUNCTION FOR KNITTING ON ALT NEEDLES, PARITY SWITCHING FOR FRONT & BACK ---
-#-------------------------------------------------------------------------------
 def interlockRange(k, startN, endN, length, c, gauge=1):
 	'''Knits on every needle interlock starting on side indicated by which needle value is greater.
 	In this function length is the number of total passes knit so if you want an interlock segment that is 20 courses long on each side set length to 40. Useful if you want to have odd amounts of interlock.
@@ -136,12 +156,7 @@ def interlockRange(k, startN, endN, length, c, gauge=1):
 					k.knit('-', f'b{n}', c)
 				elif n == leftN: k.miss('-', f'f{n}', c)
 
-
-#-------------------------------------
-#--- KNITTING CIRCULAR, OPEN TUBES ---
-#-------------------------------------
-
-#--- FUNCTION FOR DOING THE MAIN KNITTING OF TUBE ---
+#--- FUNCTION FOR DOING THE MAIN KNITTING OF CIRCULAR, OPEN TUBES ---
 def circular(k, startN, endN, length, c, gauge=1):
 	'''
 	Knits on every needle circular tube starting on side indicated by which needle value is greater.
@@ -169,10 +184,12 @@ def circular(k, startN, endN, length, c, gauge=1):
 	for h in range(beg, length):
 		if h % 2 == 0:
 			for n in range(leftN, rightN+1):
-				if gauge == 1 or n % gauge != 0: k.knit('+', f'b{n}', c)
+				if n % gauge == 0: k.knit('+', f'f{n}', c) #check
+				# if gauge == 1 or n % gauge != 0: k.knit('+', f'b{n}', c) #remove #?
 		else:
 			for n in range(rightN, leftN-1, -1):
-				if n % gauge == 0: k.knit('-', f'f{n}', c)
+				if gauge == 1 or n % gauge != 0: k.knit('-', f'b{n}', c) #check
+				# if n % gauge == 0: k.knit('-', f'f{n}', c) #remove #?
 
 
 #--------------------------
@@ -733,95 +750,216 @@ def notEnoughNeedlesDecCheck(k, decNeedle, otherEdgeNeedle, c, gauge=1, rearrang
 			# k.xfer(originalBN, newBNLoc)
 			# k.rack(0)
 
-
-def shapeXferDoubleBedHalfGauge(k, type, count, edgeNeedleF, side='l'):
+def shapeXferDoubleBedHalfGauge(k, type, count, edgeNeedle, side='l'):
+# def shapeXferDoubleBedHalfGauge(k, type, count, edgeNeedleF, side='l'):
 	'''
 	*k in knitout Writer
 	*count is number of needles to dec (**note: based on gauge 1, so enter count assuming will convert according to gauge in this function**)
-	*edgeNeedleF is edge-most needle being xferred on front bed (so if fn = f2, bn = fn+1 = b3)
+	*edgeNeedleF is edge-most needle being xferred on front bed (so if fn = f2, bn = fn+1 = b3) #TODO: adjust to new parameter
 	*side is side to xfer on
 
 	note: only for dec/xfer inc method, <= 2
 	'''
-	edgeNeedleB = edgeNeedleF+1
+	if edgeNeedle % 2 == 0:
+		if side == 'l':
+			edgeNeedleF = edgeNeedle
+			edgeNeedleB = edgeNeedle+1
+		else:
+			edgeNeedleF = edgeNeedle
+			edgeNeedleB = edgeNeedle-1
+		
+		#variable naming convention based on count == 1
+		rack1st = 1
+		rack2nd = -1
+		bed1 = 'f'
+		bed2 = 'b'
+		needle1 = edgeNeedleF
+		needle2 = edgeNeedleB
+	else:
+		if side == 'l':
+			edgeNeedleB = edgeNeedle
+			edgeNeedleF = edgeNeedle+1
+		else:
+			edgeNeedleB = edgeNeedle
+			edgeNeedleF = edgeNeedle-1
+		
+		#variable naming convention based on count == 1
+		rack1st = -1
+		rack2nd = 1
+		bed1 = 'b'
+		bed2 = 'f'
+		needle1 = edgeNeedleB
+		needle2 = edgeNeedleF
+
+	# if side == 'l':
+	# 	if edgeNeedle % 2 == 0:
+	# 		edgeNeedleF = edgeNeedle
+	# 		edgeNeedleB = edgeNeedle+1
+
+	# 		# for count == 1
+	# 		rack1st = 1
+	# 		rack2nd = -1
+	# 		bed1 = 'f'
+	# 		bed2 = 'b'
+	# 		needle1 = edgeNeedleF
+	# 		needle2 = edgeNeedleB
+	# 	else:
+	# 		edgeNeedleB = edgeNeedle
+	# 		edgeNeedleF = edgeNeedle+1
+
+	# 		# for count == 1
+	# 		rack1st = -1
+	# 		rack2nd = 1
+	# 		bed1 = 'b'
+	# 		bed2 = 'f'
+	# 		needle1 = edgeNeedleB
+	# 		needle2 = edgeNeedleF
+	# else:
+	# 	if edgeNeedle % 2 != 0:
+	# 		edgeNeedleB = edgeNeedle
+	# 		edgeNeedleF = edgeNeedle-1
+	# 	else:
+	# 		edgeNeedleF = edgeNeedle
+	# 		edgeNeedleB = edgeNeedle-1
+
+	# edgeNeedleB = edgeNeedleF+1 #go back! or #remove #?
 	if count == 1: #TODO: figure out which loops are stacked here
 		if (type == 'inc' and side == 'l') or (type == 'dec' and side == 'r'): #left side inc or right side dec
-			k.rack(1)
-			k.xfer(f'f{edgeNeedleF}', f'b{edgeNeedleB-2}')
-			k.rack(-1)
-			k.xfer(f'b{edgeNeedleB-2}', f'f{edgeNeedleF-2}')
-			k.xfer(f'b{edgeNeedleB}', f'f{edgeNeedleF}')
-			k.rack(1)
-			k.xfer(f'f{edgeNeedleF}', f'b{edgeNeedleB-2}')
+			k.rack(rack1st)
+			k.xfer(f'{bed1}{needle1}', f'{bed2}{needle2-2}')
+			k.rack(rack2nd)
+			k.xfer(f'{bed2}{needle2-2}', f'{bed1}{needle1-2}')
+			k.xfer(f'{bed2}{needle2}', f'{bed1}{needle1}')
+			k.rack(rack1st)
+			k.xfer(f'{bed1}{needle1}', f'{bed2}{needle2-2}')
 			k.rack(0)
+			# k.rack(1) #go back! or #remove #? #v
+			# k.xfer(f'f{edgeNeedleF}', f'b{edgeNeedleB-2}')
+			# k.rack(-1)
+			# k.xfer(f'b{edgeNeedleB-2}', f'f{edgeNeedleF-2}')
+			# k.xfer(f'b{edgeNeedleB}', f'f{edgeNeedleF}')
+			# k.rack(1)
+			# k.xfer(f'f{edgeNeedleF}', f'b{edgeNeedleB-2}')
+			# k.rack(0) #^
 			# if type == 'dec': return [] #? #TODO: figure out which loops are stacked here
 		else: #right side inc or left side dec
-			k.rack(1)
-			k.xfer(f'b{edgeNeedleB}', f'f{edgeNeedleF+2}')
-			k.rack(-1)
-			k.xfer(f'f{edgeNeedleF+2}', f'b{edgeNeedleB+2}')
-			k.xfer(f'f{edgeNeedleF}', f'b{edgeNeedleB}')
-			k.rack(1)
-			k.xfer(f'b{edgeNeedleB}', f'f{edgeNeedleF+2}')
+			k.rack(rack1st)
+			k.xfer(f'{bed2}{needle2}', f'{bed1}{needle1+2}')
+			k.rack(rack2nd)
+			k.xfer(f'{bed1}{needle1+2}', f'{bed2}{needle2+2}')
+			k.xfer(f'{bed1}{needle1}', f'{bed2}{needle2}')
+			k.rack(rack1st)
+			k.xfer(f'{bed2}{needle2}', f'{bed1}{needle1+2}')
 			k.rack(0)
+			# k.rack(1) #go back! or #remove #? #v
+			# k.xfer(f'b{edgeNeedleB}', f'f{edgeNeedleF+2}')
+			# k.rack(-1)
+			# k.xfer(f'f{edgeNeedleF+2}', f'b{edgeNeedleB+2}')
+			# k.xfer(f'f{edgeNeedleF}', f'b{edgeNeedleB}')
+			# k.rack(1)
+			# k.xfer(f'b{edgeNeedleB}', f'f{edgeNeedleF+2}')
+			# k.rack(0) #^
 			# if type == 'dec': return [] #? #TODO: figure out which loops are stacked here
 	else: #count == 2
 		if type == 'inc': #inc
 			if side == 'l': #left side inc
-				k.rack(2)
-				k.xfer(f'f{edgeNeedleF}', f'b{edgeNeedleB-3}')
-				k.rack(-2)
-				k.xfer(f'b{edgeNeedleB-3}', f'f{edgeNeedleF-4}')
-				k.xfer(f'b{edgeNeedleB}', f'f{edgeNeedleF-1}')
-				k.rack(2)
-				k.xfer(f'f{edgeNeedleF-1}', f'b{edgeNeedleB-4}')
+				k.rack(rack1st*2)
+				k.xfer(f'{bed1}{needle1}', f'{bed2}{needle2-3}')
+				k.rack(rack2nd*2)
+				k.xfer(f'{bed2}{needle2-3}', f'{bed1}{needle1-4}')
+				k.xfer(f'{bed2}{needle2}', f'{bed1}{needle1-1}')
+				k.rack(rack1st*2)
+				k.xfer(f'{bed1}{needle1-1}', f'{bed2}{needle2-4}')
 				k.rack(0)
+				# k.rack(2) #go back! or #remove #? #v
+				# k.xfer(f'f{edgeNeedleF}', f'b{edgeNeedleB-3}')
+				# k.rack(-2)
+				# k.xfer(f'b{edgeNeedleB-3}', f'f{edgeNeedleF-4}')
+				# k.xfer(f'b{edgeNeedleB}', f'f{edgeNeedleF-1}')
+				# k.rack(2)
+				# k.xfer(f'f{edgeNeedleF-1}', f'b{edgeNeedleB-4}')
+				# k.rack(0) #^
 			else: #right side inc
-				k.rack(-2)
-				k.xfer(f'f{edgeNeedleF}', f'b{edgeNeedleB+1}')
-				k.rack(2)
-				k.xfer(f'b{edgeNeedleB+1}', f'f{edgeNeedleF+4}')
-				k.xfer(f'b{edgeNeedleB}', f'f{edgeNeedleF+3}')
-				k.rack(-2)
-				k.xfer(f'f{edgeNeedleF+3}', f'b{edgeNeedleB+4}')
+				k.rack(rack2nd*2)
+				k.xfer(f'{bed1}{needle1}', f'{bed2}{needle2+1}')
+				k.rack(rack1st*2)
+				k.xfer(f'{bed2}{needle2+1}', f'{bed1}{needle1+4}')
+				k.xfer(f'{bed2}{needle2}', f'{bed1}{needle1+3}')
+				k.rack(rack2nd*2)
+				k.xfer(f'{bed1}{needle1+3}', f'{bed2}{needle2+4}')
 				k.rack(0)
+				# k.rack(-2) #go back! or #remove #? #v
+				# k.xfer(f'f{edgeNeedleF}', f'b{edgeNeedleB+1}')
+				# k.rack(2)
+				# k.xfer(f'b{edgeNeedleB+1}', f'f{edgeNeedleF+4}')
+				# k.xfer(f'b{edgeNeedleB}', f'f{edgeNeedleF+3}')
+				# k.rack(-2)
+				# k.xfer(f'f{edgeNeedleF+3}', f'b{edgeNeedleB+4}')
+				# k.rack(0) #^
 		else: #dec
 			if side == 'l': #left side dec
-				k.rack(2)
-				k.xfer(f'b{edgeNeedleB}', f'f{edgeNeedleF+3}')
-				k.xfer(f'b{edgeNeedleB+2}', f'f{edgeNeedleF+5}')
-				k.xfer(f'f{edgeNeedleF+6}', f'b{edgeNeedleB+3}')
-				k.rack(-2)
-				k.xfer(f'f{edgeNeedleF}', f'b{edgeNeedleB+1}')
-				k.xfer(f'f{edgeNeedleF+2}', f'b{edgeNeedleB+3}')
-				k.xfer(f'f{edgeNeedleF+3}', f'b{edgeNeedleB+4}')
-				k.xfer(f'f{edgeNeedleF+5}', f'b{edgeNeedleB+6}')
-				k.rack(2)
-				k.xfer(f'b{edgeNeedleB+1}', f'f{edgeNeedleF+4}')
-				k.xfer(f'b{edgeNeedleB+3}', f'f{edgeNeedleF+6}')
+				k.rack(rack1st*2)
+				k.xfer(f'{bed2}{needle2}', f'{bed1}{needle1+3}')
+				k.xfer(f'{bed2}{needle2+2}', f'{bed1}{needle1+5}')
+				k.xfer(f'{bed1}{needle1+6}', f'{bed2}{needle2+3}')
+				k.rack(rack2nd*2)
+				k.xfer(f'{bed1}{needle1}', f'{bed2}{needle2+1}')
+				k.xfer(f'{bed1}{needle1+2}', f'{bed2}{needle2+3}')
+				k.xfer(f'{bed1}{needle1+3}', f'{bed2}{needle2+4}')
+				k.xfer(f'{bed1}{needle1+5}', f'{bed2}{needle2+6}')
+				k.rack(rack1st*2)
+				k.xfer(f'{bed2}{needle2+1}', f'{bed1}{needle1+4}')
+				k.xfer(f'{bed2}{needle2+3}', f'{bed1}{needle1+6}')
 				k.rack(0)
-				return [f'f{edgeNeedleF+4}', f'b{edgeNeedleB+4}', f'f{edgeNeedleF+6}', f'b{edgeNeedleB+6}'] #stacked-loop needles
+				return [f'{bed1}{needle1+4}', f'{bed2}{needle2+4}', f'{bed1}{needle1+6}', f'{bed2}{needle2+6}'] #stacked-loop needles
+				# k.rack(2) #go back! or #remove #? #v
+				# k.xfer(f'b{edgeNeedleB}', f'f{edgeNeedleF+3}')
+				# k.xfer(f'b{edgeNeedleB+2}', f'f{edgeNeedleF+5}')
+				# k.xfer(f'f{edgeNeedleF+6}', f'b{edgeNeedleB+3}')
+				# k.rack(-2)
+				# k.xfer(f'f{edgeNeedleF}', f'b{edgeNeedleB+1}')
+				# k.xfer(f'f{edgeNeedleF+2}', f'b{edgeNeedleB+3}')
+				# k.xfer(f'f{edgeNeedleF+3}', f'b{edgeNeedleB+4}')
+				# k.xfer(f'f{edgeNeedleF+5}', f'b{edgeNeedleB+6}')
+				# k.rack(2)
+				# k.xfer(f'b{edgeNeedleB+1}', f'f{edgeNeedleF+4}')
+				# k.xfer(f'b{edgeNeedleB+3}', f'f{edgeNeedleF+6}')
+				# k.rack(0)
+				# return [f'f{edgeNeedleF+4}', f'b{edgeNeedleB+4}', f'f{edgeNeedleF+6}', f'b{edgeNeedleB+6}'] #stacked-loop needles #^
 			else: #right side dec
-				k.rack(-2)
-				k.xfer(f'b{edgeNeedleB}', f'f{edgeNeedleF-1}')
-				k.xfer(f'b{edgeNeedleB-2}', f'f{edgeNeedleF-3}')
-				k.rack(2)
-				k.xfer(f'f{edgeNeedleF}', f'b{edgeNeedleB-3}')
-				k.xfer(f'f{edgeNeedleF-1}', f'b{edgeNeedleB-4}')
-				k.xfer(f'f{edgeNeedleF-2}', f'b{edgeNeedleB-5}')
-				k.xfer(f'f{edgeNeedleF-3}', f'b{edgeNeedleB-6}')
-				k.rack(-2)
-				k.xfer(f'b{edgeNeedleB-3}', f'f{edgeNeedleF-4}')
-				k.xfer(f'b{edgeNeedleB-5}', f'f{edgeNeedleF-6}')
+				k.rack(rack2nd*2)
+				k.xfer(f'{bed2}{needle2}', f'{bed1}{needle1-1}')
+				k.xfer(f'{bed2}{needle2-2}', f'{bed1}{needle1-3}')
+				k.rack(rack1st*2)
+				k.xfer(f'{bed1}{needle1}', f'{bed2}{needle2-3}')
+				k.xfer(f'{bed1}{needle1-1}', f'{bed2}{needle2-4}')
+				k.xfer(f'{bed1}{needle1-2}', f'{bed2}{needle2-5}')
+				k.xfer(f'{bed1}{needle1-3}', f'{bed2}{needle2-6}')
+				k.rack(rack2nd*2)
+				k.xfer(f'{bed2}{needle2-3}', f'{bed1}{needle1-4}')
+				k.xfer(f'{bed2}{needle2-5}', f'{bed1}{needle1-6}')
 				k.rack(0)
-				return [f'b{edgeNeedleB-4}', f'f{edgeNeedleF-4}', f'b{edgeNeedleB-6}', f'f{edgeNeedleF-6}'] #stacked-loop needles
+				return [f'{bed2}{needle2-4}', f'{bed1}{needle1-4}', f'{bed2}{needle2-6}', f'{bed1}{needle1-6}'] #stacked-loop needles
+				# k.rack(-2) #go back! or #remove #? #v
+				# k.xfer(f'b{edgeNeedleB}', f'f{edgeNeedleF-1}')
+				# k.xfer(f'b{edgeNeedleB-2}', f'f{edgeNeedleF-3}')
+				# k.rack(2)
+				# k.xfer(f'f{edgeNeedleF}', f'b{edgeNeedleB-3}')
+				# k.xfer(f'f{edgeNeedleF-1}', f'b{edgeNeedleB-4}')
+				# k.xfer(f'f{edgeNeedleF-2}', f'b{edgeNeedleB-5}')
+				# k.xfer(f'f{edgeNeedleF-3}', f'b{edgeNeedleB-6}')
+				# k.rack(-2)
+				# k.xfer(f'b{edgeNeedleB-3}', f'f{edgeNeedleF-4}')
+				# k.xfer(f'b{edgeNeedleB-5}', f'f{edgeNeedleF-6}')
+				# k.rack(0)
+				# return [f'b{edgeNeedleB-4}', f'f{edgeNeedleF-4}', f'b{edgeNeedleB-6}', f'f{edgeNeedleF-6}'] #stacked-loop needles #^
 
 
 def decDoubleBed(k, count, decNeedle, c=None, side='l', gauge=1, emptyNeedles=[]):
 	'''
 	*k in knitout Writer
 	*count is number of needles to dec
-	*decNeedle is edge-most needle being decreased (so reference point for increasing; **note: if gauge > 1, use front bed needle for this parameter [but if you use back bed by accident, the function will fix that by subtracting one; detected by if edgeNeedle is an odd number]**)
+	*decNeedle is edge-most needle being decreased (so reference point for increasing; **note: if gauge > 1, use front bed needle for this parameter [but if you use back bed by accident, the function will fix that by subtracting one; detected by if edgeNeedle is an odd number]**) #TODO: adjust based on recent changes
 	*c is carrier (optional, but necessary if dec > 2, so worth including anyway)
 	*side is side to dec on
 	*emptyNeedles is an optional list of needles that are not currently holding loops (e.g. if using stitch pattern), so don't waste time xferring them
@@ -829,14 +967,33 @@ def decDoubleBed(k, count, decNeedle, c=None, side='l', gauge=1, emptyNeedles=[]
 	returns new edge-needle on given side based on decrease count, so should be called as so (e.g.):
 	leftneedle = decDoubleBed(...)
 
-	**note that, if gauge > 1, newEdgeNeedle will be the edge-most needle when comparing those on front and back bed (so if on left side, think about how fn < bn so newEdgeNeedle will reference front bed; if on right side, think about how bn > fn so newEdgeNeedle will reference back bed [use 'emptyNeedles' list to ensure empty edge-most needle reference on other bed is not knitted on])**
+	**note that, if gauge > 1, newEdgeNeedle will be the edge-most needle when comparing those on front and back bed (so if on left side, think about how fn < bn so newEdgeNeedle will reference front bed; if on right side, think about how bn > fn so newEdgeNeedle will reference back bed [use 'emptyNeedles' list to ensure empty edge-most needle reference on other bed is not knitted on])** #TODO: adjust based on recent changes
 	'''
 	stackedLoopNeedles = []
 
 	decMethod = 'xfer'
 	if count > 2: decMethod = 'bindoff'
 
-	if gauge > 1 and decNeedle % 2 != 0: decNeedle -= 1
+	if gauge == 1:
+		edgeNeedleF = decNeedle
+		edgeNeedleB = decNeedle
+	else:
+		if side == 'l':
+			if decNeedle % 2 == 0:
+				edgeNeedleF = decNeedle
+				edgeNeedleB = decNeedle+1
+			else:
+				edgeNeedleB = decNeedle
+				edgeNeedleF = decNeedle+1
+		else:
+			if decNeedle % 2 != 0:
+				edgeNeedleB = decNeedle
+				edgeNeedleF = decNeedle-1
+			else:
+				edgeNeedleF = decNeedle
+				edgeNeedleB = decNeedle-1
+
+	# if gauge > 1 and decNeedle % 2 != 0: decNeedle -= 1 #go back! or #remove #?
 
 	newEdgeNeedle = decNeedle
 	if side == 'l':
@@ -938,7 +1095,7 @@ def decDoubleBed(k, count, decNeedle, c=None, side='l', gauge=1, emptyNeedles=[]
 	else: #dec by more than 2, bindoff method
 		bindNeedle = decNeedle
 
-		if gauge > 1 and side == 'r': bindNeedle += 1 #since want to start from bn since bn > fn
+		# if gauge > 1 and side == 'r': bindNeedle += 1 #since want to start from bn since bn > fn #go back! or #remove #? 
 
 		bindoff(k, count, bindNeedle, c, side, True, True, emptyNeedles)
 
@@ -946,11 +1103,11 @@ def decDoubleBed(k, count, decNeedle, c=None, side='l', gauge=1, emptyNeedles=[]
 	return newEdgeNeedle, stackedLoopNeedles
 
 
-def incDoubleBed(k, count, edgeNeedle, c, side='l', gauge=1, emptyNeedles=[], incMethod='xfer'):
+def incDoubleBed(k, count, edgeNeedle, c, side='l', gauge=1, emptyNeedles=[], incMethod='xfer'): #TODO: change so edgeNeedle is based on *actual* edgeNeedle (since returning edgeNeedle based on front, not back, while is getting confusing)
 	'''
 	*k in knitout Writer
 	*count is number of needles to inc
-	*edgeNeedle is *current* edge-most needle before inc occurs (so reference point for increasing; **note: if gauge > 1, use front bed needle for this parameter [but if you use back bed by accident, the function will fix that by subtracting one; detected by if edgeNeedle is an odd number]**)
+	*edgeNeedle is *current* edge-most needle before inc occurs (so reference point for increasing; **note: if gauge > 1, use front bed needle for this parameter [but if you use back bed by accident, the function will fix that by subtracting one; detected by if edgeNeedle is an odd number]**) #TODO: adjust based on recent changes
 	*c is carrier
 	*side is side to inc on
 	*gauge is gauge
@@ -960,11 +1117,33 @@ def incDoubleBed(k, count, edgeNeedle, c, side='l', gauge=1, emptyNeedles=[], in
 	returns 1) new edge-needle on given side based on inc count and 2) list of now-empty needles to perform twisted stitches on, so should be called as so (e.g.):
 	leftneedle, twistedStitches = incDoubleBed(...)
 
-	**note that, if gauge > 1, newEdgeNeedle will be the edge-most needle when comparing those on front and back bed (so if on left side, think about how fn < bn so newEdgeNeedle will reference front bed; if on right side, think about how bn > fn so newEdgeNeedle will reference back bed [use 'emptyNeedles' list to ensure empty edge-most needle reference on other bed is not knitted on])**
+	**note that, if gauge > 1, newEdgeNeedle will be the edge-most needle when comparing those on front and back bed (so if on left side, think about how fn < bn so newEdgeNeedle will reference front bed; if on right side, think about how bn > fn so newEdgeNeedle will reference back bed [use 'emptyNeedles' list to ensure empty edge-most needle reference on other bed is not knitted on])** #TODO: adjust based on recent changes
 	'''
 	if count > 2: incMethod='zig-zag' #default since no code for inc > 2 by xfer
 
-	if gauge > 1 and edgeNeedle % 2 != 0: edgeNeedle -= 1
+	if gauge == 1:
+		edgeNeedleF = edgeNeedle
+		edgeNeedleB = edgeNeedle
+	else:
+		if side == 'l':
+			if edgeNeedle % 2 == 0:
+				edgeNeedleF = edgeNeedle
+				edgeNeedleB = edgeNeedle+1
+			else:
+				edgeNeedleB = edgeNeedle
+				edgeNeedleF = edgeNeedle+1
+		else:
+			if edgeNeedle % 2 != 0:
+				edgeNeedleB = edgeNeedle
+				edgeNeedleF = edgeNeedle-1
+			else:
+				edgeNeedleF = edgeNeedle
+				edgeNeedleB = edgeNeedle-1
+	
+	# edgeNeedleOnFront = True #go back! or #remove #? #v
+	# if gauge > 1 and edgeNeedle % 2 != 0:
+		# edgeNeedleOnFront = False
+		# edgeNeedle -= 1 #fix to reference front bed #^
 
 	newEdgeNeedle = edgeNeedle
 	if side == 'l': #left side
@@ -975,25 +1154,31 @@ def incDoubleBed(k, count, edgeNeedle, c, side='l', gauge=1, emptyNeedles=[], in
 		k.comment(f'inc {count} on right by {incMethod}')
 		count *= gauge
 		newEdgeNeedle += count
-		if gauge > 1: newEdgeNeedle += 1 #since bn > fn
+		# if gauge > 1: newEdgeNeedle += 1 #since bn > fn #go back! or #remove #?
 
 	twistedStitches = []
 	if incMethod == 'xfer':
 		xferSettings(k)
 
-		shift = 1
 		if side == 'r': shift = -1
-
-		bAdjust = 0
-		if gauge != 1: bAdjust = 1
+		else: shift = 1
 
 		if count > 2: #applicable for when count is adjusted based on gauge #TODO: adjust this once have xfer methods for inc with gauge > 2
-			if f'b{edgeNeedle+bAdjust}' not in emptyNeedles: twistedStitches.append(f'b{edgeNeedle+bAdjust}')
-			if f'f{edgeNeedle}' not in emptyNeedles: twistedStitches.append(f'f{edgeNeedle}')
+			if f'b{edgeNeedleB}' not in emptyNeedles: twistedStitches.append(f'b{edgeNeedleB}')
+			if f'f{edgeNeedleF}' not in emptyNeedles: twistedStitches.append(f'f{edgeNeedleF}')
 
+		if f'b{(edgeNeedleB)-(shift*count)+(shift*gauge)}' not in emptyNeedles: twistedStitches.append(f'b{(edgeNeedleB)-(shift*count)+(shift*gauge)}')
+		if f'f{edgeNeedleF-(shift*count)+(shift*gauge)}' not in emptyNeedles: twistedStitches.append(f'f{edgeNeedleF-(shift*count)+(shift*gauge)}')
 
-		if f'b{(edgeNeedle+bAdjust)-(shift*count)+(shift*gauge)}' not in emptyNeedles: twistedStitches.append(f'b{(edgeNeedle+bAdjust)-(shift*count)+(shift*gauge)}')
-		if f'f{edgeNeedle-(shift*count)+(shift*gauge)}' not in emptyNeedles: twistedStitches.append(f'f{edgeNeedle-(shift*count)+(shift*gauge)}')
+		# if gauge == 1: bAdjust = 0 #go back! or #remove #? #v
+		# else: bAdjust = 1
+
+		# if count > 2: #applicable for when count is adjusted based on gauge #TODO: adjust this once have xfer methods for inc with gauge > 2
+		# 	if f'b{edgeNeedle+bAdjust}' not in emptyNeedles: twistedStitches.append(f'b{edgeNeedle+bAdjust}')
+		# 	if f'f{edgeNeedle}' not in emptyNeedles: twistedStitches.append(f'f{edgeNeedle}')
+
+		# if f'b{(edgeNeedle+bAdjust)-(shift*count)+(shift*gauge)}' not in emptyNeedles: twistedStitches.append(f'b{(edgeNeedle+bAdjust)-(shift*count)+(shift*gauge)}')
+		# if f'f{edgeNeedle-(shift*count)+(shift*gauge)}' not in emptyNeedles: twistedStitches.append(f'f{edgeNeedle-(shift*count)+(shift*gauge)}') #^
 
 		if gauge == 1:
 			if count == 1:
@@ -1064,17 +1249,114 @@ def incDoubleBed(k, count, edgeNeedle, c, side='l', gauge=1, emptyNeedles=[], in
 				if f'f{x}' not in emptyNeedles: k.knit('+', f'f{x}', c)
 				if f'b{x}' not in emptyNeedles: k.knit('+', f'b{x}', c)
 		k.rack(0)
-	else:
-		bAdjust = 0
-		if gauge > 1: bAdjust = 1
+	elif incMethod == 'split': #TODO: add stuff for empty needle check
+		# edgeNeedleF = edgeNeedle #go back! or #remove #? #v
+		# if gauge == 1: edgeNeedleB = edgeNeedle
+		# else:
+			# if edgeNeedleOnFront: edgeNeedleB = edgeNeedle-1
+			# else: edgeNeedleB = edgeNeedle+1 #^
+		if gauge == 1:
+			if side == 'l':
+				k.rack(1)
+				k.split('+', f'f{edgeNeedle}', f'b{edgeNeedle-1}', c)
+				k.rack(-1)
+				k.split('+', f'b{edgeNeedle}', f'f{edgeNeedle-1}', c)
+				k.rack(0)
+			else:
+				k.rack(-1)
+				k.split('-', f'f{edgeNeedle}', f'b{edgeNeedle+1}', c)
+				k.rack(1)
+				k.split('+', f'b{edgeNeedle}', f'f{edgeNeedle+1}', c)
+				k.rack(0)
+		else: # gauge > 1
+			if (count//gauge) == 1:
+				if side == 'l':
+					k.deleteLastOp(kwd = f'knit - f{edgeNeedleF}', breakCondition = lambda op: 'knit + ' in op)
+					k.deleteLastOp(kwd = f'knit - b{edgeNeedleB}', breakCondition = lambda op: 'knit + ' in op)
+					if edgeNeedleF > edgeNeedleB: k.split('-', f'f{edgeNeedleF}', f'b{edgeNeedleF}', c)
+					k.split('-', f'b{edgeNeedleB}', f'f{edgeNeedleB}', c)
+					if edgeNeedleF < edgeNeedleB: k.split('-', f'f{edgeNeedleF}', f'b{edgeNeedleF}', c)
+
+					# k.split('-', f'b{edgeNeedleB}', f'f{edgeNeedleB}', c) #remove #?
+					# k.switchToSplit('-', f'f{edgeNeedleF}', f'b{edgeNeedleF}', c) #remove #?
+					k.rack(-gauge)
+					if edgeNeedleF > edgeNeedleB: #?
+						k.tuck('-', f'f{edgeNeedleF-1}', c)
+						k.tuck('-', f'b{edgeNeedleF-2-gauge}', c)
+
+					k.xfer(f'b{edgeNeedleF}', f'f{edgeNeedleF-gauge}')
+					if edgeNeedleF > edgeNeedleB: #?
+						k.drop(f'b{edgeNeedleF-2-gauge}')
+						k.drop(f'f{edgeNeedleF-1}')
+
+					k.rack(gauge)
+					if edgeNeedleF < edgeNeedleB: #?
+						k.tuck('-', f'b{edgeNeedleB-1}', c)
+						k.tuck('-', f'f{edgeNeedleB-2-gauge}', c)
+
+					k.xfer(f'f{edgeNeedleB}', f'b{edgeNeedleB-gauge}')
+
+					if edgeNeedleF < edgeNeedleB: #?
+						k.drop(f'f{edgeNeedleB-2-gauge}')
+						k.drop(f'b{edgeNeedleB-1}')
+
+					k.rack(0)
+				else:
+					k.deleteLastOp(kwd = f'knit + f{edgeNeedleF}', breakCondition = lambda op: 'knit - ' in op)
+					k.deleteLastOp(kwd = f'knit + b{edgeNeedleB}', breakCondition = lambda op: 'knit - ' in op)
+					if edgeNeedleF < edgeNeedleB: k.split('+', f'f{edgeNeedleF}', f'b{edgeNeedleF}', c)
+					k.split('+', f'b{edgeNeedleB}', f'f{edgeNeedleB}', c)
+					if edgeNeedleF > edgeNeedleB: k.split('+', f'f{edgeNeedleF}', f'b{edgeNeedleF}', c)
+
+					# k.switchToSplit('+', f'f{edgeNeedleF}', f'b{edgeNeedleF}', c) #remove #?
+					# k.split('+', f'b{edgeNeedleB}', f'f{edgeNeedleB}', c) #remove #?
+					k.rack(-gauge)
+					if edgeNeedleF < edgeNeedleB: #?
+						k.tuck('+', f'f{edgeNeedleB+1}', c)
+						k.tuck('+', f'b{edgeNeedleB+2+gauge}', c)
+					
+					k.xfer(f'f{edgeNeedleB}', f'b{edgeNeedleB+gauge}')
+
+					if edgeNeedleF < edgeNeedleB:
+						k.drop(f'b{edgeNeedleB+2+gauge}')
+						k.drop(f'f{edgeNeedleB+1}')
+					
+					k.rack(gauge)
+					if edgeNeedleF > edgeNeedleB:
+						k.tuck('+', f'b{edgeNeedleF+1}', c) #?
+						k.tuck('+', f'f{edgeNeedleF+2+gauge}', c) #?
+
+					k.xfer(f'b{edgeNeedleF}', f'f{edgeNeedleF+gauge}')
+
+					if edgeNeedleF > edgeNeedleB:
+						k.drop(f'f{edgeNeedleF+2+gauge}') #?
+						k.drop(f'b{edgeNeedleF+1}') #?
+
+					k.rack(0)
+					#TODO: make sure it knits on 1 in from new edgeNeedle in next pass	
+			elif (count//gauge == 2):
+				print('#TODO')
+
+	else: #just twisted stitches
 		if side == 'l': #left side
 			for n in range(edgeNeedle-1, edgeNeedle-count-1, -1):
-				if f'f{n}' not in emptyNeedles: twistedStitches.append(f'f{n}')
-				if f'b{n+bAdjust}' not in emptyNeedles: twistedStitches.append(f'b{n+bAdjust}')
+				if f'f{n}' not in emptyNeedles and (gauge == 1 or n % gauge == 0): twistedStitches.append(f'f{n}')
+				if f'b{n}' not in emptyNeedles and (gauge == 1 or (n+1) % gauge == 0): twistedStitches.append(f'b{n}')
 		else: #right side
 			for n in range(edgeNeedle+1, edgeNeedle+count+1):
-				if f'f{n}' not in emptyNeedles: twistedStitches.append(f'f{n}')
-				if f'b{n+bAdjust}' not in emptyNeedles: twistedStitches.append(f'b{n+bAdjust}')
+				if f'f{n}' not in emptyNeedles and (gauge == 1 or n % gauge == 0): twistedStitches.append(f'f{n}')
+				if f'b{n}' not in emptyNeedles and (gauge == 1 or (n+1) % gauge == 0): twistedStitches.append(f'b{n}')
+
+		# bAdjust = 0 #go back! or #remove #? #v
+		# if gauge > 1: bAdjust = 1
+		# if side == 'l': #left side
+		# 	for n in range(edgeNeedle-1, edgeNeedle-count-1, -1):
+		# 		if f'f{n}' not in emptyNeedles: twistedStitches.append(f'f{n}')
+		# 		if f'b{n+bAdjust}' not in emptyNeedles: twistedStitches.append(f'b{n+bAdjust}')
+		# else: #right side
+		# 	for n in range(edgeNeedle+1, edgeNeedle+count+1):
+		# 		if f'f{n}' not in emptyNeedles: twistedStitches.append(f'f{n}')
+		# 		if f'b{n+bAdjust}' not in emptyNeedles: twistedStitches.append(f'b{n+bAdjust}') #^
 
 	return newEdgeNeedle, twistedStitches
 
