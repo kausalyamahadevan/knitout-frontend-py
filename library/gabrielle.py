@@ -23,7 +23,6 @@ rollerAdvance = 300
 #for xfers
 xferSpeedNumber = 100
 xferStitchNumber = math.ceil(stitchNumber//2)
-# xferStitchNumber = 3
 xferRollerAdvance = 0 #100 #?
 
 #for wasteWeights
@@ -1092,6 +1091,7 @@ def incDoubleBed(k, count, edgeNeedle, c, side='l', gauge=1, emptyNeedles=[], in
 				if f'b{x}' not in emptyNeedles: k.knit('+', f'b{x}', c)
 		k.rack(0)
 	elif incMethod == 'split': #TODO: add stuff for empty needle check
+		k.speedNumber(xferSpeedNumber)
 		if gauge == 1:
 			if side == 'l':
 				k.rack(1)
@@ -1170,6 +1170,7 @@ def incDoubleBed(k, count, edgeNeedle, c, side='l', gauge=1, emptyNeedles=[], in
 			elif (count//gauge == 2):
 				print('#TODO')
 
+		k.speedNumber(speedNumber)
 	else: #just twisted stitches
 		if side == 'l': #left side
 			for n in range(edgeNeedle-1, edgeNeedle-count-1, -1):
