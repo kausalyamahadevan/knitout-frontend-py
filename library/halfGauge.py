@@ -267,8 +267,10 @@ def garterEdgeProtect(k,garterNum,beg,end,length,c,side1='l',bed1='f',gauge=1,
 
     fullcycles=math.floor(length/(2*garterNum));
 
+
     for i in range(fullcycles):
 
+        knitSettingsArray(k,knitArray)
         for q in range(garterNum):
 
             if ((side1=='l') and (q%2==0)) or (side1=='r' and (q%2==1)):
@@ -300,11 +302,12 @@ def garterEdgeProtect(k,garterNum,beg,end,length,c,side1='l',bed1='f',gauge=1,
 
 
         #transfer to other bed
+        xferSettingsArray(k,xferArray)
         for m in range(beg+edgeprotect,end-edgeprotect):
             if m%2==offset:
                 k.xfer((bed1,m),(bed2,m))
 
-
+        knitSettingsArray(k,knitArray)
         for q in range(garterNum):
 
             if ((side2=='l') and (q%2==0)) or (side2=='r' and (q%2==1)):
@@ -336,6 +339,7 @@ def garterEdgeProtect(k,garterNum,beg,end,length,c,side1='l',bed1='f',gauge=1,
                         k.knit('-',(bed1,w),c)
 
         #transfer to other bed
+        xferSettingsArray(k,xferArray)
         for m in range(beg+edgeprotect,end-edgeprotect):
             if m%2==offset:
                 k.xfer((bed2,m),(bed1,m))
@@ -343,6 +347,7 @@ def garterEdgeProtect(k,garterNum,beg,end,length,c,side1='l',bed1='f',gauge=1,
 
     if remainder<garterNum:
 
+        knitSettingsArray(k,knitArray)
         for q in range(remainder):
 
             if ((side1=='l') and (q%2==0)) or (side1=='r' and (q%2==1)):
@@ -376,6 +381,7 @@ def garterEdgeProtect(k,garterNum,beg,end,length,c,side1='l',bed1='f',gauge=1,
 
 
     else:
+        knitSettingsArray(k,knitArray)
         for q in range(garterNum):
 
             if ((side1=='l') and (q%2==0)) or (side1=='r' and (q%2==1)):
@@ -406,11 +412,13 @@ def garterEdgeProtect(k,garterNum,beg,end,length,c,side1='l',bed1='f',gauge=1,
                     if w%2==offset:
                         k.knit('-',(bed1,w),c)
 
+        #transfer
+        xferSettingsArray(k,xferArray)
         for m in range(beg+edgeprotect,end-edgeprotect):
                 if m%2==offset:
                     k.xfer((bed1,m),(bed2,m))
 
-
+        knitSettingsArray(k,knitArray)
         for q in rage(remainder):
 
             if ((side2=='l') and (q%2==0)) or (side2=='r' and (q%2==1)):
