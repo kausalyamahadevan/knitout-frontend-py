@@ -4,12 +4,12 @@ import gabrielle
 k = knitout.Writer('1 2 3 4 5 6')
 
 #customizable variables
-filename = 'split-inc-test-2'
+filename = 'split-inc-test-gauge1-3'
 leftN = 10
 rightN = 40
-mainC = '1'
-drawC = '2'
-gauge = 2
+mainC = '2'
+drawC = '1'
+gauge = 1
 posBed = 'f'
 negBed = 'b'
 rowsBtwInc = 6
@@ -24,13 +24,13 @@ k.outcarrier(drawC)
 
 gabrielle.closedTubeCaston(k, startN=rightN, endN=leftN, c=mainC, gauge=gauge)
 
+k.pause(f'{rowsBtwInc} rows btw splits')
 #knit 6 rows
 gabrielle.circular(k, startN=leftN, endN=rightN, length=6, c=mainC, gauge=gauge)
 
 leftoverTwistedStitches = []
 
 prevRowsBtwInc = rowsBtwInc
-k.pause(f'{rowsBtwInc} rows btw splits')
 
 for r in range(0, rowCount+1):
 	twistedStitches = []

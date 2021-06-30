@@ -8,6 +8,7 @@ from skimage.transform import resize
 
 #NOTE: for gauge > 1: decided baseBed should consistently be front so as to make things less complicated (because doesn't really matter) --- so translation would be fn -> f(gauge*n) bn -> b((gauge*n)+1)
 
+#TODO: maybe fix things so if -> f then b and if <- 
 #---------------------------------------------
 #--- CUSTOMIZABLE VARIABLES FOR EXTENSIONS ---
 #---------------------------------------------
@@ -349,16 +350,20 @@ def closedTubeCaston(k, startN, endN, c, gauge=1):
 
 	if endN > startN: #pass is pos
 		dir = '+'
+		bed1 = 'f'
+		bed2 = 'b'
 		needleRange = range(startN, endN+1)
 	else: #pass is neg
 		dir = '-'
+		bed1 = 'b'
+		bed2 = 'f'
 		needleRange = range(startN, endN-1, -1)
 
 	k.rack(0.25)
 
 	for n in needleRange:
-		if n % gauge == 0: k.knit(dir, f'f{n}', c)
-		if (n+1) % gauge == 0: k.knit(dir, f'b{n}', c)
+		if n % gauge == 0: k.knit(dir, f'{bed1}{n}', c)
+		if (n+1) % gauge == 0: k.knit(dir, f'{bed2}{n}', c)
 
 	k.rack(0)
 	k.comment('begin main piece')
@@ -1096,15 +1101,19 @@ def incDoubleBed(k, count, edgeNeedle, c, side='l', gauge=1, emptyNeedles=[], in
 			if side == 'l':
 				k.rack(1)
 				k.split('+', f'f{edgeNeedle}', f'b{edgeNeedle-1}', c)
-				k.rack(-1)
-				k.split('+', f'b{edgeNeedle}', f'f{edgeNeedle-1}', c)
 				k.rack(0)
+				k.split('+', f'b{edgeNeedle-1}', f'f{edgeNeedle-1}', c)
+				# k.rack(-1)
+				# k.split('+', f'b{edgeNeedle}', f'f{edgeNeedle-1}', c)
+				# k.rack(0)
 			else:
 				k.rack(-1)
 				k.split('-', f'f{edgeNeedle}', f'b{edgeNeedle+1}', c)
-				k.rack(1)
-				k.split('+', f'b{edgeNeedle}', f'f{edgeNeedle+1}', c)
 				k.rack(0)
+				k.split('-', f'b{edgeNeedle+1}', f'f{edgeNeedle+1}', c)
+				# k.rack(1)
+				# k.split('-', f'b{edgeNeedle}', f'f{edgeNeedle+1}', c)
+				# k.rack(0)
 		else: # gauge > 1
 			if (count//gauge) == 1:
 				if side == 'l':
