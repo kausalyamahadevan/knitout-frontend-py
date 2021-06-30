@@ -5,3 +5,4 @@
 *.DS_Store
 
 .vscode/
+library/*-test.py
