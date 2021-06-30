@@ -449,6 +449,7 @@ def garterEdgeProtect(k,garterNum,beg,end,length,c,side1='l',bed1='f',gauge=1,
                         k.knit('-',(bed1,w),c)
 
         #transfer to other bed
+        xferSettingsArray(k,xferArray)
         for m in range(beg+edgeprotect,end-edgeprotect):
             if m%2==offset:
                 k.xfer((bed2,m),(bed1,m))
