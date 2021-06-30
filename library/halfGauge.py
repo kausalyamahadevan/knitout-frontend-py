@@ -238,7 +238,7 @@ def garterPlain(k,garterNum,beg,end,length,c,side1='l',bed1='f',gauge=1,
         jersey(k,beg,end,remainder,c,side2,bed2,gauge, gstart,knitArray)
 
 
-def garterEdgeProtect(k,garterNum,beg,end,length,c,side1='l',bed1='f',
+def garterEdgeProtect(k,garterNum,beg,end,length,c,side1='l',bed1='f',gauge=1,
     gstart=0,knitArray=[400,4,400],xferArray=[100,2,0],edgeprotect=0,offset=0):
     '''Creates a balanced garter knit based on an input number. Bed is starting
     bed of knitting'''
@@ -262,12 +262,15 @@ def garterEdgeProtect(k,garterNum,beg,end,length,c,side1='l',bed1='f',
     else:
         side2=side1
 
+    edgeprotect=int(edgeprotect*gauge)
     remainder=length%(2*garterNum);
 
     fullcycles=math.floor(length/(2*garterNum));
 
+
     for i in range(fullcycles):
 
+        knitSettingsArray(k,knitArray)
         for q in range(garterNum):
 
             if ((side1=='l') and (q%2==0)) or (side1=='r' and (q%2==1)):
@@ -299,11 +302,12 @@ def garterEdgeProtect(k,garterNum,beg,end,length,c,side1='l',bed1='f',
 
 
         #transfer to other bed
+        xferSettingsArray(k,xferArray)
         for m in range(beg+edgeprotect,end-edgeprotect):
             if m%2==offset:
                 k.xfer((bed1,m),(bed2,m))
 
-
+        knitSettingsArray(k,knitArray)
         for q in range(garterNum):
 
             if ((side2=='l') and (q%2==0)) or (side2=='r' and (q%2==1)):
@@ -335,6 +339,7 @@ def garterEdgeProtect(k,garterNum,beg,end,length,c,side1='l',bed1='f',
                         k.knit('-',(bed1,w),c)
 
         #transfer to other bed
+        xferSettingsArray(k,xferArray)
         for m in range(beg+edgeprotect,end-edgeprotect):
             if m%2==offset:
                 k.xfer((bed2,m),(bed1,m))
@@ -342,6 +347,7 @@ def garterEdgeProtect(k,garterNum,beg,end,length,c,side1='l',bed1='f',
 
     if remainder<garterNum:
 
+        knitSettingsArray(k,knitArray)
         for q in range(remainder):
 
             if ((side1=='l') and (q%2==0)) or (side1=='r' and (q%2==1)):
@@ -375,6 +381,7 @@ def garterEdgeProtect(k,garterNum,beg,end,length,c,side1='l',bed1='f',
 
 
     else:
+        knitSettingsArray(k,knitArray)
         for q in range(garterNum):
 
             if ((side1=='l') and (q%2==0)) or (side1=='r' and (q%2==1)):
@@ -405,11 +412,13 @@ def garterEdgeProtect(k,garterNum,beg,end,length,c,side1='l',bed1='f',
                     if w%2==offset:
                         k.knit('-',(bed1,w),c)
 
+        #transfer
+        xferSettingsArray(k,xferArray)
         for m in range(beg+edgeprotect,end-edgeprotect):
                 if m%2==offset:
                     k.xfer((bed1,m),(bed2,m))
 
-
+        knitSettingsArray(k,knitArray)
         for q in rage(remainder):
 
             if ((side2=='l') and (q%2==0)) or (side2=='r' and (q%2==1)):
@@ -440,6 +449,7 @@ def garterEdgeProtect(k,garterNum,beg,end,length,c,side1='l',bed1='f',
                         k.knit('-',(bed1,w),c)
 
         #transfer to other bed
+        xferSettingsArray(k,xferArray)
         for m in range(beg+edgeprotect,end-edgeprotect):
             if m%2==offset:
                 k.xfer((bed2,m),(bed1,m))
