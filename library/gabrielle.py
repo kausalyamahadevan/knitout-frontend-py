@@ -410,7 +410,6 @@ def garter(k, startN, endN, length, c, garterRows=1, startBed='f', borderC=None,
 
 		for l in range(0, length):
 			for r in range(0, garterRows):
-				print('#1:', 'garterRows:', garterRows, 'r:', r, 'direction:', direction, 'needleRange:', needleRange) #remove
 				for n in needleRange:
 					if condition1(n): k.knit(direction, f'{bed1}{n}', c)
 
@@ -418,8 +417,6 @@ def garter(k, startN, endN, length, c, garterRows=1, startBed='f', borderC=None,
 				else: direction = dir1
 				if needleRange == range1: needleRange = range2
 				else: needleRange = range1
-
-				# print('#1:', 'garterRows:', garterRows, 'r:', r, 'direction:', direction) #remove
 
 			if borderC is None:
 				if direction == dir2: #meaning *next* row with be dir2
@@ -450,7 +447,6 @@ def garter(k, startN, endN, length, c, garterRows=1, startBed='f', borderC=None,
 				i = 0
 				for n in range1:
 					if condition1(n):
-						# if okToXfer(n):
 						if okToXfer(n):
 							if i % 2 == 0:
 								emptyNeedles.append(f'{bed1}{n}')
@@ -463,7 +459,7 @@ def garter(k, startN, endN, length, c, garterRows=1, startBed='f', borderC=None,
 				# rangeList = list(range1)
 				# borderStartN = rangeList[0]
 				# borderEndN = rangeList[len(rangeList)-1]
-				toDrop = wasteBorder(k, startN, endN, garterRows, borderC, gauge=gauge, emptyNeedles=emptyNeedles, firstTime=(l==0), lastTime=(l==length-1))
+				toDrop = wasteBorder(k, startN, endN, garterRows, borderC, gauge=gauge, emptyNeedles=emptyNeedles, firstTime=(l==0))
 
 				if gauge > 1: k.rack(-1)
 				for n in range(0, len(xferAfter)):
@@ -476,7 +472,6 @@ def garter(k, startN, endN, length, c, garterRows=1, startBed='f', borderC=None,
 			resetSettings(k)
 
 			for r in range(0, garterRows):
-				print('#2:', 'garterRows:', garterRows, 'r:', r, 'direction:', direction, 'needleRange:', needleRange) #remove
 				for n in needleRange:
 					if condition2(n): k.knit(direction, f'{bed2}{n}', c)
 
