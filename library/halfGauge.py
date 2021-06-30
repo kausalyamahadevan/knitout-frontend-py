@@ -238,7 +238,7 @@ def garterPlain(k,garterNum,beg,end,length,c,side1='l',bed1='f',gauge=1,
         jersey(k,beg,end,remainder,c,side2,bed2,gauge, gstart,knitArray)
 
 
-def garterEdgeProtect(k,garterNum,beg,end,length,c,side1='l',bed1='f',
+def garterEdgeProtect(k,garterNum,beg,end,length,c,side1='l',bed1='f',gauge=1,
     gstart=0,knitArray=[400,4,400],xferArray=[100,2,0],edgeprotect=0,offset=0):
     '''Creates a balanced garter knit based on an input number. Bed is starting
     bed of knitting'''
@@ -262,6 +262,7 @@ def garterEdgeProtect(k,garterNum,beg,end,length,c,side1='l',bed1='f',
     else:
         side2=side1
 
+    edgeprotect=int(edgeprotect*gauge)
     remainder=length%(2*garterNum);
 
     fullcycles=math.floor(length/(2*garterNum));
