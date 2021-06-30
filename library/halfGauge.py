@@ -173,6 +173,370 @@ def rib2ribXfer(k,ribarray1,ribarray2,start,finish,
             k.xfer(('f',s),('b',s))
 
 
+
+
+def garterPlain(k,garterNum,beg,end,length,c,side1='l',bed1='f',gauge=1,
+    gstart=0,knitArray=[400,4,400],xferArray=[100,2,0]):
+    '''Creates a balanced garter knit based on an input number. Bed is starting
+    bed of knitting'''
+
+    if bed1=='f':
+        array1=[1]
+        array2=[0]
+        bed2='b'
+    else:
+        array1=[0]
+        array2=[1]
+        bed2='f'
+
+
+    #if garter number is odd then we need to alternate knitting direction after switching
+    if (garterNum%2)==1:
+        if side1 == 'l':
+            side2='r'
+        else:
+            side2='l'
+    else:
+        side2=side1
+
+    remainder=length%(2*garterNum);
+
+    fullcycles=math.floor(length/(2*garterNum));
+
+    for i in range(fullcycles):
+
+        jersey(k,beg,end,garterNum,c,side1,bed1,gauge, gstart,knitArray)
+
+
+        rib2ribXfer(k,array1,array2,beg,end,gauge,gstart,xferArray)
+
+
+        jersey(k,beg,end,garterNum,c,side2,bed2,gauge, gstart,knitArray)
+
+        rib2ribXfer(k,array2,array1,beg,end,gauge,gstart,xferArray)
+
+
+
+    if remainder<garterNum:
+        # xferSettingsArray(k,xferArray)
+        # rib2ribXfer(k,array2,array1,beg,end,gauge,gstart)
+
+        jersey(k,beg,end,remainder,c,side1,bed1,gauge, gstart,knitArray)
+
+
+
+    else:
+        # xferSettingsArray(k,xferArray)
+        # rib2ribXfer(k,array2,array1,beg,end,gauge,gstart)
+
+        jersey(k,beg,end,garterNum,c,side1,bed1,gauge, gstart,knitArray)
+
+
+        rib2ribXfer(k,array1,array2,beg,end,gauge,gstart,xferArray)
+
+
+        jersey(k,beg,end,remainder,c,side2,bed2,gauge, gstart,knitArray)
+
+
+def garterEdgeProtect(k,garterNum,beg,end,length,c,side1='l',bed1='f',
+    gstart=0,knitArray=[400,4,400],xferArray=[100,2,0],edgeprotect=0,offset=0):
+    '''Creates a balanced garter knit based on an input number. Bed is starting
+    bed of knitting'''
+
+    if bed1=='f':
+        array1=[1]
+        array2=[0]
+        bed2='b'
+    else:
+        array1=[0]
+        array2=[1]
+        bed2='f'
+
+
+    #if garter number is odd then we need to alternate knitting direction after switching
+    if (garterNum%2)==1:
+        if side1 == 'l':
+            side2='r'
+        else:
+            side2='l'
+    else:
+        side2=side1
+
+    remainder=length%(2*garterNum);
+
+    fullcycles=math.floor(length/(2*garterNum));
+
+    for i in range(fullcycles):
+
+        for q in range(garterNum):
+
+            if ((side1=='l') and (q%2==0)) or (side1=='r' and (q%2==1)):
+                for w in range(beg,beg+edgeprotect):
+                    if w%2==offset:
+                        k.knit('+',(bed1,w),c)
+
+                for w in range(beg+edgeprotect,end-edgeprotect):
+                    if w%2==offset:
+                        k.knit('+',(bed1,w),c)
+
+                for w in range(end-edgeprotect,end):
+                    if w%2==offset:
+                        k.knit('+',(bed1,w),c)
+
+
+            else:
+                for w in range(end-1,end-edgeprotect-1,-1):
+                    if w%2==offset:
+                        k.knit('-',(bed1,w),c)
+
+                for w in range(end-edgeprotect-1,beg+edgeprotect-1,-1):
+                    if w%2==offset:
+                        k.knit('-',(bed1,w),c)
+
+                for w in range(beg+edgeprotect-1,beg-1,-1):
+                    if w%2==offset:
+                        k.knit('-',(bed1,w),c)
+
+
+        #transfer to other bed
+        for m in range(beg+edgeprotect,end-edgeprotect):
+            if m%2==offset:
+                k.xfer((bed1,m),(bed2,m))
+
+
+        for q in range(garterNum):
+
+            if ((side2=='l') and (q%2==0)) or (side2=='r' and (q%2==1)):
+
+                for w in range(beg,beg+edgeprotect):
+                    if w%2==offset:
+                        k.knit('+',(bed1,w),c)
+
+                for w in range(beg+edgeprotect,end-edgeprotect):
+                    if w%2==offset:
+                        k.knit('+',(bed2,w),c)
+
+                for w in range(end-edgeprotect,end):
+                    if w%2==offset:
+                        k.knit('+',(bed1,w),c)
+
+
+            else:
+                for w in range(end-1,end-edgeprotect-1,-1):
+                    if w%2==offset:
+                        k.knit('-',(bed1,w),c)
+
+                for w in range(end-edgeprotect-1,beg+edgeprotect-1,-1):
+                    if w%2==offset:
+                        k.knit('-',(bed2,w),c)
+
+                for w in range(beg+edgeprotect-1,beg-1,-1):
+                    if w%2==offset:
+                        k.knit('-',(bed1,w),c)
+
+        #transfer to other bed
+        for m in range(beg+edgeprotect,end-edgeprotect):
+            if m%2==offset:
+                k.xfer((bed2,m),(bed1,m))
+
+
+    if remainder<garterNum:
+
+        for q in range(remainder):
+
+            if ((side1=='l') and (q%2==0)) or (side1=='r' and (q%2==1)):
+
+                for w in range(beg,beg+edgeprotect):
+                    if w%2==offset:
+                        k.knit('+',(bed1,w),c)
+
+                for w in range(beg+edgeprotect,end-edgeprotect):
+                    if w%2==offset:
+                        k.knit('+',(bed2,w),c)
+
+                for w in range(end-edgeprotect,end):
+                    if w%2==offset:
+                        k.knit('+',(bed1,w),c)
+
+
+            else:
+                for w in range(end-1,end-edgeprotect-1,-1):
+                    if w%2==offset:
+                        k.knit('-',(bed1,w),c)
+
+                for w in range(end-edgeprotect-1,beg+edgeprotect-1,-1):
+                    if w%2==offset:
+                        k.knit('-',(bed2,w),c)
+
+                for w in range(beg+edgeprotect-1,beg-1,-1):
+                    if w%2==offset:
+                        k.knit('-',(bed1,w),c)
+
+
+
+    else:
+        for q in range(garterNum):
+
+            if ((side1=='l') and (q%2==0)) or (side1=='r' and (q%2==1)):
+
+                for w in range(beg,beg+edgeprotect):
+                    if w%2==offset:
+                        k.knit('+',(bed1,w),c)
+
+                for w in range(beg+edgeprotect,end-edgeprotect):
+                    if w%2==offset:
+                        k.knit('+',(bed1,w),c)
+
+                for w in range(end-edgeprotect,end):
+                    if w%2==offset:
+                        k.knit('+',(bed1,w),c)
+
+
+            else:
+                for w in range(end-1,end-edgeprotect-1,-1):
+                    if w%2==offset:
+                        k.knit('-',(bed1,w),c)
+
+                for w in range(end-edgeprotect-1,beg+edgeprotect-1,-1):
+                    if w%2==offset:
+                        k.knit('-',(bed1,w),c)
+
+                for w in range(beg+edgeprotect-1,beg-1,-1):
+                    if w%2==offset:
+                        k.knit('-',(bed1,w),c)
+
+        for m in range(beg+edgeprotect,end-edgeprotect):
+                if m%2==offset:
+                    k.xfer((bed1,m),(bed2,m))
+
+
+        for q in rage(remainder):
+
+            if ((side2=='l') and (q%2==0)) or (side2=='r' and (q%2==1)):
+                for w in range(beg,beg+edgeprotect):
+                    if w%2==offset:
+                        k.knit('+',(bed1,w),c)
+
+                for w in range(beg+edgeprotect,end-edgeprotect):
+                    if w%2==offset:
+                        k.knit('+',(bed2,w),c)
+
+                for w in range(end-edgeprotect,end):
+                    if w%2==offset:
+                        k.knit('+',(bed1,w),c)
+
+
+            else:
+                for w in range(end-1,end-edgeprotect-1,-1):
+                    if w%2==offset:
+                        k.knit('-',(bed1,w),c)
+
+                for w in range(end-edgeprotect-1,beg+edgeprotect-1,-1):
+                    if w%2==offset:
+                        k.knit('-',(bed2,w),c)
+
+                for w in range(beg+edgeprotect-1,beg-1,-1):
+                    if w%2==offset:
+                        k.knit('-',(bed1,w),c)
+
+        #transfer to other bed
+        for m in range(beg+edgeprotect,end-edgeprotect):
+            if m%2==offset:
+                k.xfer((bed2,m),(bed1,m))
+
+
+
+
+
+# def garterEdgeProtect(k,garterNum,beg,end,length,c,side1='l',bed1='f',gauge=1,
+#     gstart=0,knitArray=[400,4,400],xferArray=[100,2,0],edgeprotect=0):
+#     '''Creates a balanced garter knit based on an input number. Bed is starting
+#     bed of knitting'''
+#
+#     if bed1=='f':
+#         array1=[1]
+#         array2=[0]
+#         bed2='b'
+#     else:
+#         array1=[0]
+#         array2=[1]
+#         bed2='f'
+#
+#
+#     #if garter number is odd then we need to alternate knitting direction after switching
+#     if (garterNum%2)==1:
+#         if side1 == 'l':
+#             side2='r'
+#         else:
+#             side2='l'
+#     else:
+#         side2=side1
+#
+#     remainder=length%(2*garterNum);
+#
+#     fullcycles=math.floor(length/(2*garterNum));
+#
+#     for i in range(fullcycles):
+#
+#         # jersey(k,beg,end,garterNum,c,side1,bed1,gauge, gstart,knitArray)
+#
+#         for m in range(garterNum):
+#             if (side1=='l'and garterNum%2==1) or (side1=='r' and garterNum%2==0):
+#                 jersey(k,end-edgeprotect,end,1,c,side2,bed1,gauge,gstart,knitArray)
+#                 jersey(k,beg+edgeprotect,end-edgeprotect,1,c,side2,bed2,gauge, gstart,knitArray)
+#                 jersey(k,beg,edgeprotect,1,c,side2,bed1,gauge,gstart,knitArray)
+#             else:
+#                 jersey(k,beg,edgeprotect,1,c,side2,bed1,gauge,gstart,knitArray)
+#                 jersey(k,beg+edgeprotect,end-edgeprotect,1,c,side2,bed2,gauge, gstart,knitArray)
+#                 jersey(k,end-edgeprotect,end,1,c,side2,bed1,gauge,gstart,knitArray)
+#
+#
+#         rib2ribXfer(k,array1,array2,beg+edgeprotect,end-edgeprotect,gauge,gstart,xferArray)
+#
+#
+#         for m in range(garterNum):
+#             if (side2=='r'and garterNum%2==0) or (side2=='l' and garterNum%2==1):
+#                 jersey(k,end-edgeprotect,end,1,c,side2,bed1,gauge,gstart,knitArray)
+#                 jersey(k,beg+edgeprotect,end-edgeprotect,1,c,side2,bed2,gauge, gstart,knitArray)
+#                 jersey(k,beg,edgeprotect,1,c,side2,bed1,gauge,gstart,knitArray)
+#             else:
+#                 jersey(k,beg,edgeprotect,1,c,side2,bed1,gauge,gstart,knitArray)
+#                 jersey(k,beg+edgeprotect,end-edgeprotect,1,c,side2,bed2,gauge, gstart,knitArray)
+#                 jersey(k,end-edgeprotect,end,1,c,side2,bed1,gauge,gstart,knitArray)
+#
+#
+#         rib2ribXfer(k,array2,array1,beg+edgeprotect,end-edgeprotect,gauge,gstart,xferArray)
+#
+#
+#
+#     if remainder<garterNum:
+#         # xferSettingsArray(k,xferArray)
+#         # rib2ribXfer(k,array2,array1,beg,end,gauge,gstart)
+#
+#         jersey(k,beg,end,remainder,c,side1,bed1,gauge, gstart,knitArray)
+#
+#
+#
+#     else:
+#         # xferSettingsArray(k,xferArray)
+#         # rib2ribXfer(k,array2,array1,beg,end,gauge,gstart)
+#
+#         jersey(k,beg,end,garterNum,c,side1,bed1,gauge, gstart,knitArray)
+#
+#
+#         rib2ribXfer(k,array1,array2,beg+edgeprotect,end-edgeprotect,gauge,gstart,xferArray)
+#
+#         for z in rage(remainder):
+#             if (side2=='r'and remainder%2==0) or (side2=='l' and remainder%2==1):
+#                 jersey(k,end-edgeprotect,end,1,c,side2,bed1,gauge,gstart,knitArray)
+#                 jersey(k,beg+edgeprotect,end-edgeprotect,1,c,side2,bed2,gauge, gstart,knitArray)
+#                 jersey(k,beg,edgeprotect,1,c,side2,bed1,gauge,gstart,knitArray)
+#             else:
+#                 jersey(k,beg,edgeprotect,1,c,side2,bed1,gauge,gstart,knitArray)
+#                 jersey(k,beg+edgeprotect,end-edgeprotect,1,c,side2,bed2,gauge, gstart,knitArray)
+#                 jersey(k,end-edgeprotect,end,1,c,side2,bed1,gauge,gstart,knitArray)
+
+
 def garter(k,garterNum,beg,end,length,c,side1='l',bed1='f',gauge=1,
     gstart=0,knitArray=[400,4,400],xferArray=[100,2,0]):
     '''Creates a balanced garter knit based on an input number. Bed is starting
@@ -201,6 +565,7 @@ def garter(k,garterNum,beg,end,length,c,side1='l',bed1='f',gauge=1,
     fullcycles=math.floor(length/(2*garterNum));
 
     for i in range(fullcycles):
+
 
         jersey(k,beg,end,garterNum,c,side1,bed1,gauge, gstart,knitArray)
 
@@ -280,7 +645,7 @@ def garterSecure(k,garterNum,beg,end,length,c,side1='l',bed1='f',gauge=1,
     else:
         side2=side1
 
-    remainder=length%(2*garterNum);
+    remainder=length%(garterNum);
 
     fullcycles=math.floor(length/(2*garterNum));
 
