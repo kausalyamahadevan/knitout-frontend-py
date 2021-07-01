@@ -195,12 +195,13 @@ def circular(k, startN, endN, length, c, gauge=1):
 	for h in range(beg, length):
 		if h % 2 == 0:
 			for n in range(leftN, rightN+1):
-				if n % gauge == 0: k.knit('+', f'f{n}', c) #check
-				# if gauge == 1 or n % gauge != 0: k.knit('+', f'b{n}', c) #remove #?
+				if n % gauge == 0: k.knit('+', f'f{n}', c)
+				elif n == rightN: k.miss('+', f'f{n}', c)
 		else:
 			for n in range(rightN, leftN-1, -1):
-				if gauge == 1 or n % gauge != 0: k.knit('-', f'b{n}', c) #check
-				# if n % gauge == 0: k.knit('-', f'f{n}', c) #remove #?
+				if gauge == 1 or n % gauge != 0: k.knit('-', f'b{n}', c)
+				elif n == leftN: k.miss('-', f'b{n}', c)
+
 
 def wasteBorder(k, startN, endN, rows, c, width=4, gauge=2, emptyNeedles=[], firstTime=False, lastTime=False):
 	'''
@@ -585,7 +586,7 @@ def catchYarns(k, leftN, rightN, carriers, gauge=1, endOnRight=[], missNeedles={
 
 
 #--- FUNCTION FOR DOING ALL THINGS BEFORE CAST-ON (catch/initialize yarns, waste yarn, draw thread) ---
-def wasteSection(k, leftN, rightN, closedCaston=True, wasteC='1', drawC='2', otherCs = [], gauge=1, endOnRight=[], firstNeedles={}, catchMaxNeedles=False, initial=True):
+def wasteSection(k, leftN, rightN, closedCaston=True, wasteC='1', drawC='2', otherCs = [], gauge=1, endOnRight=[], firstNeedles={}, catchMaxNeedles=False, initial=True, drawMiddle=False, interlockLength=36):
 	'''
 	Does everything to prepare for knitting prior to (and not including) the cast-on.
 		- bring in carriers
@@ -606,6 +607,8 @@ def wasteSection(k, leftN, rightN, closedCaston=True, wasteC='1', drawC='2', oth
 	*firstNeedles is an *optional* dictionary with carrier as key and a list of [leftN, rightN] as the value. It indicates the edge-most needles in the first row that the carrier is used in for the main piece. — e.g.: firstNeedles={'1': [0, 10]}
 	*catchMaxNeedles is a boolean that determines whether or not the maximum number of needles (possible for the given gauge) will be knitted on for *every* carrier (yes if True; if False, knits on interval determined by number of carriers)
 	*initial is a boolean that, if True, indicates that this wasteSection is the very first thing being knitted for the piece; otherwise, if False, it's probably a wasteSection to separate samples (and will skip over catchYarns)
+	*drawMiddle is a boolean that, if True, indicates that a draw thread should be placed in the middle of the waste section (and no draw thread will be added at end, also no circular knitting, so only interlock)
+	*interlockLength is the number of passes of interlock that should be included (note that, if not drawMiddle, 8 rows of circular will also be added onto the x number of interlockLength indicated)
 
 	NOTE:
 	if initial wasteSection, side (prior to this wasteSection) is assumed to be left for all carriers
@@ -613,71 +616,142 @@ def wasteSection(k, leftN, rightN, closedCaston=True, wasteC='1', drawC='2', oth
 		-> wasteC: if currently on right side (prior to this wasteSection), put it in 'endOnRight' list; otherwise, don't
 		-> drawC: if currently on left side, put it in 'endOnRight' list; otherwise, don't
 	'''
+	carrierLocations = {}
+
 	k.stitchNumber(stitchNumber)
 	k.rollerAdvance(rollerAdvance)
 	
+	missWaste = None
+	missDraw = None
+	missOtherCs = {}
+	if len(firstNeedles):
+		if wasteC in firstNeedles:
+			if wasteC in endOnRight:
+				missWaste = firstNeedles[wasteC][1]
+				carrierLocations[wasteC] = firstNeedles[wasteC][1] #*
+			else:
+				missWaste = firstNeedles[wasteC][0]
+				carrierLocations[wasteC] = firstNeedles[wasteC][0] #*
+		
+		if drawC in firstNeedles:
+			if drawC in endOnRight:
+				missDraw = firstNeedles[drawC][1]
+				carrierLocations[drawC] = firstNeedles[drawC][1]
+			else:
+				missDraw = firstNeedles[drawC][0]
+				carrierLocations[drawC] = firstNeedles[drawC][0]
+
+		if len(otherCs):
+			for c in range(0, len(otherCs)):
+				if otherCs[c] in firstNeedles:
+					if otherCs[c] in endOnRight:
+						missOtherCs[otherCs[c]] = firstNeedles[otherCs[c]][1]
+						carrierLocations[otherCs[c]] = firstNeedles[otherCs[c]][1] #*
+					else:
+						missOtherCs[otherCs[c]] = firstNeedles[otherCs[c]][0]
+						carrierLocations[otherCs[c]] = firstNeedles[otherCs[c]][0] #*
+				# else: 
+				# 	if otherCs[c] in endOnRight: carrierLocations[otherCs[c]] = rightN
+				# 	else: carrierLocations[otherCs[c]] = leftN
+
+	carriers = [wasteC, drawC]
+	carriers.extend(otherCs)
+	carriers = list(set(carriers))
+
+	if len(carriers) != len(carrierLocations):
+		for c in carriers:
+			if c not in carrierLocations:
+				if c in endOnRight: carrierLocations[c] = rightN
+				else: carrierLocations[c] = leftN
+
+
 	if initial:
-		carriers = [wasteC, drawC]
-		carriers.extend(otherCs)
-		carriers = list(set(carriers))
+		# carriers = [wasteC, drawC]
+		# carriers.extend(otherCs)
+		# carriers = list(set(carriers))
 		catchEndOnRight = endOnRight.copy()
 
-		missWaste = None
-		missDraw = None
-		missOtherCs = {}
-		if len(firstNeedles):
-			if wasteC in firstNeedles:
-				if wasteC in endOnRight: missWaste = firstNeedles[wasteC][1]
-				else: missWaste = firstNeedles[wasteC][0]
-			if drawC in firstNeedles:
-				if drawC in endOnRight: missDraw = firstNeedles[drawC][1]
-				else: missDraw = firstNeedles[drawC][0]
-			if len(otherCs):
-				for c in range(0, len(otherCs)):
-					if otherCs[c] in firstNeedles:
-						if otherCs[c] in endOnRight: missOtherCs[otherCs[c]] = firstNeedles[otherCs[c]][1]
-						else: missOtherCs[otherCs[c]] = firstNeedles[otherCs[c]][0]
+		# missWaste = None
+		# missDraw = None
+		# missOtherCs = {}
+		# if len(firstNeedles):
+		# 	if wasteC in firstNeedles:
+		# 		if wasteC in endOnRight: missWaste = firstNeedles[wasteC][1]
+		# 		else: missWaste = firstNeedles[wasteC][0]
+		# 	if drawC in firstNeedles:
+		# 		if drawC in endOnRight: missDraw = firstNeedles[drawC][1]
+		# 		else: missDraw = firstNeedles[drawC][0]
+		# 	if len(otherCs):
+		# 		for c in range(0, len(otherCs)):
+		# 			if otherCs[c] in firstNeedles:
+		# 				if otherCs[c] in endOnRight: missOtherCs[otherCs[c]] = firstNeedles[otherCs[c]][1]
+		# 				else: missOtherCs[otherCs[c]] = firstNeedles[otherCs[c]][0]
 
-		if len(endOnRight) and closedCaston:
+		if closedCaston:
+		# if len(endOnRight) and closedCaston: #remove #? #*
 			if drawC in endOnRight: catchEndOnRight.remove(drawC)
 			else: catchEndOnRight.append(drawC)
 
 		catchYarns(k, leftN, rightN, carriers, gauge, catchEndOnRight, missOtherCs, catchMaxNeedles)
 
+	def posDraw(bed='f', addMiss=True):
+		for n in range(leftN, rightN+1):
+			if (n % gauge == 0 and bed=='f') or ((gauge == 1 or n % gauge != 0) and bed=='b'): k.knit('+', f'{bed}{n}', drawC)
+			elif n == rightN: k.miss('+', f'{bed}{n}', drawC)
+		if addMiss and missDraw is not None: k.miss('+', f'{bed}{missDraw}', drawC)
+
+	def negDraw(bed='f', addMiss=True):
+		for n in range(rightN, leftN-1, -1):
+			if (n % gauge == 0 and bed=='f') or ((gauge == 1 or n % gauge != 0) and bed=='b'):  k.knit('-', f'{bed}{n}', drawC)
+			elif n == leftN: k.miss('-', f'{bed}{n}', drawC)
+		if addMiss and missDraw is not None: k.miss('-', f'{bed}{missDraw}', drawC)
+	
+	def drawThread():
+		k.comment('draw thread')
+
+		if drawC in endOnRight:
+		# if (len(endOnRight) == 0 and not drawMiddle) or drawC in endOnRight: #draw thread ends on right #remove #?
+			if (not closedCaston) or drawMiddle: negDraw('b', False)
+			posDraw()
+		else:
+			if (not closedCaston) or drawMiddle: posDraw('b', False)
+			negDraw()
+
 	k.comment('waste section')
 	k.speedNumber(wasteSpeedNumber)
 
+	if drawMiddle: interlockLength //= 2 #check
+
 	if wasteC in endOnRight: #TODO: add extra pass if wasteC == drawC and closedCaston == True
-		interlock(k, rightN, leftN, 36, wasteC, gauge)
-		circular(k, rightN, leftN, 8, wasteC, gauge)
+		interlock(k, rightN, leftN, interlockLength, wasteC, gauge)
+		if drawMiddle:
+			drawThread()
+			interlock(k, rightN, leftN, interlockLength, wasteC, gauge)
+		else: circular(k, rightN, leftN, 8, wasteC, gauge)
 		if missWaste is not None: k.miss('+', f'f{missWaste}', wasteC)
 	else:
-		interlock(k, leftN, rightN, 36, wasteC, gauge)
-		circular(k, leftN, rightN, 8, wasteC, gauge)
+		interlock(k, leftN, rightN, interlockLength, wasteC, gauge)
+		if drawMiddle:
+			drawThread()
+			interlock(k, leftN, rightN, interlockLength, wasteC, gauge)
+		else: circular(k, leftN, rightN, 8, wasteC, gauge)
 		if missWaste is not None: k.miss('-', f'f{missWaste}', wasteC)
 
 	if closedCaston:
 		for n in range(leftN, rightN+1):
 			if (n + 1) % gauge == 0: k.drop(f'b{n}')
 
-	k.comment('draw thread')
+	if not drawMiddle: drawThread()
+	# 	k.comment('draw thread')
 
-	def posDraw(bed='f', addMiss=True):
-		for n in range(leftN, rightN+1):
-			if n % gauge == 0: k.knit('+', f'{bed}{n}', drawC)
-		if addMiss and missDraw is not None: k.miss('+', f'f{missDraw}', drawC)
+	# 	if len(endOnRight) == 0 or drawC in endOnRight:
+	# 		if not closedCaston: negDraw('b', False)
+	# 		posDraw()
+	# 	else:
+	# 		if not closedCaston: posDraw('b', False)
+	# 		negDraw()
 
-	def negDraw(bed='f', addMiss=True):
-		for n in range(rightN, leftN-1, -1):
-			if n % gauge == 0: k.knit('-', f'{bed}{n}', drawC)
-		if addMiss and missDraw is not None: k.miss('-', f'f{missDraw}', drawC)
-
-	if len(endOnRight) == 0 or drawC in endOnRight:
-		if not closedCaston: negDraw('b', False)
-		posDraw()
-	else:
-		if not closedCaston: posDraw('b', False)
-		negDraw()
+	return carrierLocations
 
 
 #--------------------------------------
