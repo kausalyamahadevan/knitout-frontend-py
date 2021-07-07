@@ -127,7 +127,7 @@ def knitPass(k, startN, endN, c, bed='f', gauge=1, emptyNeedles=[]):
 			elif n == endN: k.miss('-', f'{bed}{n}', c)
 
 #--- FUNCTION FOR KNITTING ON ALT NEEDLES, PARITY SWITCHING FOR FRONT & BACK ---
-def interlock(k, startN, endN, length, c, gauge=1):
+def interlock(k, startN, endN, length, c, gauge=1, startCondition=1):
 	'''Knits on every needle interlock starting on side indicated by which needle value is greater.
 	In this function length is the number of total passes knit so if you want an interlock segment that is 20 courses long on each side set length to 40. Useful if you want to have odd amounts of interlock.
 	*k is knitout Writer
@@ -137,8 +137,9 @@ def interlock(k, startN, endN, length, c, gauge=1):
 	*c is carrier
 	*gauge is the... well, gauge
 	'''
-
+	
 	length *= 2 #check
+	length = int(length) #incase doing e.g. .5 length (only a pass)
 
 	if endN > startN: #first pass is pos
 		beg = 0
@@ -149,23 +150,77 @@ def interlock(k, startN, endN, length, c, gauge=1):
 		length += 1
 		leftN = endN
 		rightN = startN
+		if startCondition == 1: startCondition = 2 #switch since starting at 1
+		else: startCondition = 1
 
-	# for h in range(beg, length*2):
-	for h in range(beg, length): #check
+	def frontBed1(n, direction): #new #check #v
+		if n % gauge == 0 and (((n//gauge) % 2) == 0):
+			k.knit(direction, f'f{n}', c)
+			return True
+		else: return False
+	
+	def backBed1(n, direction):
+		if (gauge == 1 or n % gauge != 0) and ((((n-1)//gauge) % 2) == 0):
+			k.knit(direction, f'b{n}', c)
+			return True
+		else: return False
+	
+	def frontBed2(n, direction):
+		if n % gauge == 0 and (((n//gauge) % 2) != 0):
+			k.knit(direction, f'f{n}', c)
+			return True
+		else: return False
+	
+	def backBed2(n, direction):
+		if (gauge == 1 or n % gauge != 0) and ((((n-1)//gauge) % 2) != 0):
+			k.knit(direction, f'b{n}', c)
+			return True
+		else: return False
+
+	for h in range(beg, length):
 		if h % 2 == 0:
 			for n in range(leftN, rightN+1):
-				if n % gauge == 0 and (((n/gauge) % 2) == 0):
-					k.knit('+', f'f{n}', c)
-				elif (gauge == 1 or n % gauge != 0) and ((((n-1)/gauge) % 2) == 0):
-					k.knit('+', f'b{n}', c)
-				elif n == rightN: k.miss('+', f'f{n}', c)
+				if startCondition == 1:
+				# if bed1 == 'f':
+					if frontBed1(n, '+'): continue
+					elif backBed1(n, '+'): continue
+					elif n == rightN: k.miss('+', f'f{n}', c)
+				else:
+					if frontBed2(n, '+'): continue
+					elif backBed2(n, '+'): continue
+					# if backBed1(n): continue
+					# elif frontBed1(n): continue
+					elif n == rightN: k.miss('+', f'f{n}', c)
 		else:
 			for n in range(rightN, leftN-1, -1):
-				if n % gauge == 0 and (((n/gauge) % 2) != 0):
-					k.knit('-', f'f{n}', c)
-				elif (gauge == 1 or n % gauge != 0) and ((((n-1)/gauge) % 2) != 0):
-					k.knit('-', f'b{n}', c)
-				elif n == leftN: k.miss('-', f'f{n}', c)
+				if startCondition == 2:
+				# if bed1 == 'f':
+					if frontBed1(n, '-'): continue
+					elif backBed1(n, '-'): continue
+					# if backBed2(n): continue
+					# elif frontBed2(n): continue
+					elif n == leftN: k.miss('-', f'f{n}', c)
+				else:
+					if frontBed2(n, '-'): continue
+					elif backBed2(n, '-'): continue
+					elif n == leftN: k.miss('-', f'f{n}', c) #new #check #^
+
+	# for h in range(beg, length): #check
+	# 	if h % 2 == 0:
+	# 		for n in range(leftN, rightN+1):
+	# 			if n % gauge == 0 and (((n/gauge) % 2) == 0):
+	# 				k.knit('+', f'f{n}', c)
+	# 			elif (gauge == 1 or n % gauge != 0) and ((((n-1)/gauge) % 2) == 0):
+	# 				k.knit('+', f'b{n}', c)
+	# 			elif n == rightN: k.miss('+', f'f{n}', c)
+	# 	else:
+	# 		for n in range(rightN, leftN-1, -1):
+	# 			if n % gauge == 0 and (((n/gauge) % 2) != 0):
+	# 				k.knit('-', f'f{n}', c)
+	# 			elif (gauge == 1 or n % gauge != 0) and ((((n-1)/gauge) % 2) != 0):
+	# 				k.knit('-', f'b{n}', c)
+	# 			elif n == leftN: k.miss('-', f'f{n}', c)
+
 
 #--- FUNCTION FOR DOING THE MAIN KNITTING OF CIRCULAR, OPEN TUBES ---
 def circular(k, startN, endN, length, c, gauge=1):
@@ -203,41 +258,23 @@ def circular(k, startN, endN, length, c, gauge=1):
 				elif n == leftN: k.miss('-', f'b{n}', c)
 
 
-def wasteBorder(k, startN, endN, rows, c, width=4, gauge=2, emptyNeedles=[], firstTime=False, lastTime=False):
+def wasteBorder(k, startN, endN, rows, c, width=4, gauge=2, emptyNeedles=[], offLimits=[], firstTime=False, lastTime=False):
 	'''
-	should have carrier by startN before adding border
+	*k is the knitout Writer
+	*startN is the needle closest to the main swatch that is meant to be knitted as part of the waste border on the side that will start on
+	*endN is the needle closest to the main swatch that is meant to be knitted as part of the waste border on the side that will end on
+	*c is carrier to use for waste border
+	*gauge is... gauge
+	*emptyNeedles is an optional list of needles that are not currently holding loops (e.g. if using stitch pattern); these needles are eligible to be tucked on
+	*offLimits is an optional list of needles that are are 'off limits' for being knitted/tucked on
+	*firstTime is a boolean that indicates whether or not the waste border is being knitted for the first time and a caston needs to be included
+	*lastTime is a boolean that indicates whether or not the waste border is being knitted for the last time and the loops need to be dropped
+
+	NOTE: should have carrier by startN before adding border
 	'''
-	# ranges1 = {'l': range(startN-1, startN-width-2, -1), 'r': range(endN+1, endN+width+2)}
-	# ranges2 = {'l': range(startN-width-1, startN), 'r': range(endN+width+1, endN, -1)}
-	# ranges1 = {'l': range(startN-1, startN-width-2, -1), 'r': range(startN+1, startN+width+2)}
-	# ranges2 = {'l': range(startN-width-1, startN), 'r': range(endN+width+1, endN, -1)}
-	# posRanges = {'l': range(startN-width-1, startN), 'r': range(endN+1, endN+width+2)}
-	# negRanges = {'l': range(startN-1, startN-width-2, -1), 'r': range(endN+width+1, endN, -1)}
 	k.rollerAdvance(0)
 
-	startBeds = {}
-	endBeds = {}
-	
-	if startN % 2 == 0: #have *last* stitch knitted on left side be on front bed if startN is even so it makes a diagonal when tucked thru/out main knitting
-		startBeds['l'] = 'b'
-		endBeds['l'] = 'f'
-	else:
-		startBeds['l'] = 'f'
-		endBeds['l'] = 'b'
-	
-	if endN % 2 == 0: #have *first* stitch knitted on right side be on front bed if endN is even so it makes a diagonal after tucked thru/out main knitting
-		startBeds['r'] = 'f'
-		endBeds['r'] = 'b'
-	else:
-		startBeds['r'] = 'b'
-		endBeds['r'] = 'f'
-
-	# leftPosRange = range(startN-width-1, startN)
-	# leftNegRange = range(startN-1, startN-width-2, -1)
-	# rightPosRange = range(endN+1, endN+width+2)
-	# rightNegRange = range(endN+width+1, endN, -1)
 	if endN > startN: #first pass is pos, so starting on left side
-		# direction = '+'
 		dir1 = '-'
 		dir2 = '+'
 		side1 = 'l'
@@ -247,7 +284,6 @@ def wasteBorder(k, startN, endN, rows, c, width=4, gauge=2, emptyNeedles=[], fir
 
 		tuckRange = range(startN, endN+1)
 	else: #first pass is neg, so starting on right side
-		# direction = '-'
 		dir1 = '+'
 		dir2 = '-'
 		side1 = 'r'
@@ -256,78 +292,164 @@ def wasteBorder(k, startN, endN, rows, c, width=4, gauge=2, emptyNeedles=[], fir
 		leftN = endN
 
 		tuckRange = range(startN, endN-1, -1)
-	
-	ranges1 = {'l': range(leftN-1, leftN-width-2, -1), 'r': range(rightN+1, rightN+width+2)}
-	ranges2 = {'l': range(leftN-width-1, leftN), 'r': range(rightN+width+1, rightN, -1)}
 
-	if firstTime:
+	startBeds = {}  #remove #?
+	endBeds = {}  #remove #?
+	interlockStart = {}
+
+	# interlockCondition1 = lambda n: (n % gauge != 0 or gauge == 1) #remove #?
+	# interlockCondition2 = lambda n: n % gauge == 0 #remove #?
+	if leftN % 2 == 0: #have *last* stitch knitted in waste border on left side be on front bed if leftN is even (meaning 1st empty needle to be tucked on would be odd) so it makes a diagonal when tucked thru/out main knitting
+	# if startN % 2 == 0: #have *last* stitch knitted in waste border on left side be on front bed if startN is even (meaning 1st empty needle to be tucked on would be odd) so it makes a diagonal when tucked thru/out main knitting #remove #?
+		startBeds['l'] = 'b' #remove #?
+		endBeds['l'] = 'f' #remove #?
+
+		if ((leftN//gauge) % 2) == 0: interlockStart['l'] = 2 #the way the interlock func code is written, ((leftN//gauge) % 2) == 0 [which corresponds with frontBed1 func] should happen second time around, so start with frontBed2 func
+		else: interlockStart['l'] = 1
+
+		# if ((leftN//gauge) % 2) != 0: interlockLeftBed1 = 'f' #on left side, first pass is negative—the way the interlock func code is written, second time around interlock will knit leftN on front bed, so ends on front bed
+		# else: interlockLeftBed1 = 'b' #remove #?
+
+		# if (startN > endN and ((startN//gauge) % 2) == 0) or (startN < endN and ((startN//gauge) % 2) != 0): interlockLeftBed1 = 'f' #if first pass is negative (startN > endN; on right side)—the way the interlock func code is written, second time around interlock will knit startN; if first pass is positive (startN < endN; on left side)—will be opposite
+		# else: interlockBed1 = 'b' #remove #?
+	else: #last stitch on left side should be on back bed
+		startBeds['l'] = 'f' #remove #?
+		endBeds['l'] = 'b' #remove #?
+
+		if (((leftN-1)//gauge) % 2) == 0: interlockStart['l'] = 2 #the way the interlock func code is written, (((leftN-1)//gauge) % 2) == 0 [which corresponds with backBed1 func] should happen second time around, so start with backBed2 func
+		else: interlockStart['l'] = 1
+
+		# if (((n-1)//gauge) % 2) == 0: interlockBed1 = 'f' #if first pass is negative (startN > endN; on right side)—the way the interlock func code is written, second time around interlock will knit startN; if first pass is positive (startN < endN; on left side)—will be opposite
+		# else: interlockBed1 = 'b'
+	
+	if rightN % 2 == 0: #have *first* stitch knitted in waste border on right side before tucking in middle be on front bed if rightN is even so it makes a diagonal after tucked thru/out main knitting
+	# if endN % 2 == 0: #have *first* stitch knitted in waste border on right side before tucking in middle be on front bed if endN is even so it makes a diagonal after tucked thru/out main knitting #remove #?
+		startBeds['r'] = 'f' #remove #?
+		endBeds['r'] = 'b' #otherwise, on back bed if endN is odd so #remove #?
+
+		if ((rightN//gauge) % 2) == 0: interlockStart['r'] = 2 #the way the interlock func code is written, ((rightN//gauge) % 2) == 0 [which corresponds with frontBed1 func] should happen second time around, so start with frontBed2 func
+		else: interlockStart['r'] = 1
+		# if ((rightN//gauge) % 2) == 0: interlockRightBed1 = 'f' #on right side, first pass is positive—the way the interlock func code is written, first time around interlock will knit rightN on front bed if ((rightN//gauge) % 2) == 0, so starts on front bed
+		# else: interlockRightBed1 = 'b'
+	else:
+		startBeds['r'] = 'b' #remove #?
+		endBeds['r'] = 'f' #remove #?
+
+		if (((rightN-1)//gauge) % 2) == 0: interlockStart['r'] = 2 #the way the interlock func code is written, (((rightN-1)//gauge) % 2) == 0 [which corresponds with backBed1 func] should happen second time around, so start with backBed2 func
+		else: interlockStart['r'] = 1
+
+	# if endN > startN: #first pass is pos, so starting on left side #remove #? #v
+	# 	dir1 = '-'
+	# 	dir2 = '+'
+	# 	side1 = 'l'
+	# 	side2 = 'r'
+	# 	leftN = startN
+	# 	rightN = endN
+
+	# 	tuckRange = range(startN, endN+1)
+	# else: #first pass is neg, so starting on right side
+	# 	dir1 = '+'
+	# 	dir2 = '-'
+	# 	side1 = 'r'
+	# 	side2 = 'l'	
+	# 	rightN = startN
+	# 	leftN = endN
+
+	# 	tuckRange = range(startN, endN-1, -1) #remove #? #^
+	
+	needles = {'l': [leftN-1, leftN-width-1], 'r': [rightN+1, rightN+width+1]}
+	# needles2 = {'l': [leftN-width-1, leftN-1], 'r': [rightN+width+1, rightN+1]}
+	ranges1 = {'l': range(leftN-1, leftN-width-2, -1), 'r': range(rightN+1, rightN+width+2)} #remove #?
+	ranges2 = {'l': range(leftN-width-1, leftN), 'r': range(rightN+width+1, rightN, -1)} #remove #?
+
+	if firstTime: #caston if first time
 		k.rack(0.25)
 		if dir1 == '+':
 			castonBed1 = 'f'
 			castonBed2 = 'b'
+			condition1 = lambda n: n % gauge == 0
+			condition2 = lambda n: (n % gauge != 0 or gauge == 1)
 		else:
 			castonBed1 = 'b'
 			castonBed2 = 'f'
+			condition1 = lambda n: (n % gauge != 0 or gauge == 1)
+			condition2 = lambda n: n % gauge == 0
 		for n in ranges1[side1]:
-			k.knit(dir1, f'{castonBed1}{n}', c)
-			k.knit(dir1, f'{castonBed2}{n}', c)
+			if condition1(n): k.knit(dir1, f'{castonBed1}{n}', c)
+			if condition2(n): k.knit(dir1, f'{castonBed2}{n}', c)
 		k.rack(0)
 
-		for n in ranges2[side1]: #interlock, just to get it on correct side #TODO: make this better (maybe rack -0.25 ?)
-			if n % 2 == 0: k.knit(dir2, f'f{n}', c)
-			else: k.knit(dir2, f'b{n}', c)
+		interlock(k, needles[side1][1], needles[side1][0], 0.5, c, gauge, startCondition=(2 if interlockStart[side1] == 1 else 1)) #interlock, just to get it on correct side #new #check
+		# for n in ranges2[side1]: #interlock, just to get it on correct side #TODO: make this better (maybe rack -0.25 ?) #remove #? #v
+		# 	if n % 2 == 0: k.knit(dir2, f'f{n}', c)
+		# 	else: k.knit(dir2, f'b{n}', c) #remove #? #^
 
-	for r in range(0, rows):
-		for n in ranges1[side1]:
-			k.knit(dir1, f'{startBeds[side1]}{n}', c)
-		for n in ranges2[side1]:
-			k.knit(dir2, f'{endBeds[side1]}{n}', c)
+	interlock(k, needles[side1][0], needles[side1][1], rows, c, gauge, startCondition=interlockStart[side1]) #new #check
+	# for r in range(0, rows): #knit first border side #remove #? #v
+	# 	for n in ranges1[side1]:
+	# 		k.knit(dir1, f'{startBeds[side1]}{n}', c)
+	# 	for n in ranges2[side1]:
+	# 		k.knit(dir2, f'{endBeds[side1]}{n}', c) #remove #? #^
 	
 	toDrop = []
-	#TODO: add tucking here
+	tuckF = 0
+	tuckB = 0
 	for n in tuckRange:
-		if (gauge == 1 and f'f{n}' in emptyNeedles) or (gauge != 1 and n % gauge != 0):
-			toDrop.append(f'f{n}')
-			k.tuck(dir2, f'f{n}', c)
-		elif (gauge == 1 and f'b{n}' in emptyNeedles) or (gauge != 1 and n % gauge == 0):
-			toDrop.append(f'b{n}')
-			k.tuck(dir2, f'b{n}', c)
+		if f'f{n}' not in offLimits and ((gauge == 1 and f'f{n}' in emptyNeedles) or (gauge != 1 and n % gauge != 0)):
+			if tuckF % 3 == 0:
+				toDrop.append(f'f{n}')
+				k.tuck(dir2, f'f{n}', c)
+			elif n == endN and startBeds[side2] == 'b': k.tuck(dir2, f'f{n}', c)
+			tuckF += 1
+		elif f'b{n}' not in offLimits and ((gauge == 1 and f'b{n}' in emptyNeedles) or (gauge != 1 and n % gauge == 0)):
+			if tuckB % 3 == 0:
+				toDrop.append(f'b{n}')
+				k.tuck(dir2, f'b{n}', c)
+			elif n == endN and startBeds[side2] == 'f': k.tuck(dir2, f'f{n}', c)
+			tuckB += 1
+	
 
 	if firstTime:
 		k.rack(0.25)
 		if dir2 == '+':
 			castonBed1 = 'f'
 			castonBed2 = 'b'
+			condition1 = lambda n: n % gauge == 0
+			condition2 = lambda n: (n % gauge != 0 or gauge == 1)
 		else:
 			castonBed1 = 'b'
 			castonBed2 = 'f'
+			condition1 = lambda n: (n % gauge != 0 or gauge == 1)
+			condition2 = lambda n: n % gauge == 0
 		for n in ranges1[side2]:
-			k.knit(dir2, f'{castonBed1}{n}', c)
-			k.knit(dir2, f'{castonBed2}{n}', c)
+			if condition1(n): k.knit(dir2, f'{castonBed1}{n}', c)
+			if condition2(n): k.knit(dir2, f'{castonBed2}{n}', c)
 		k.rack(0)
 
-		for n in ranges2[side2]: #interlock, just to get it on correct side #TODO: make this better (maybe rack -0.25 ?)
-			if n % 2 == 0: k.knit(dir1, f'f{n}', c)
-			else: k.knit(dir1, f'b{n}', c)
+		interlock(k, needles[side2][1], needles[side2][0], 0.5, c, gauge, startCondition=(2 if interlockStart[side2] == 1 else 1)) #interlock, just to get it on correct side
+		# for n in ranges2[side2]: #interlock, just to get it on correct side #TODO: make this better (maybe rack -0.25 ?) #remove #? #v
+		# 	if n % 2 == 0: k.knit(dir1, f'f{n}', c)
+		# 	else: k.knit(dir1, f'b{n}', c) #remove #? #^
 	
-	for r in range(0, rows):
-		for n in ranges1[side2]:
-			k.knit(dir2, f'{startBeds[side2]}{n}', c)
-		for n in ranges2[side2]:
-			k.knit(dir1, f'{endBeds[side2]}{n}', c)
+	interlock(k, needles[side2][0], needles[side2][1], rows, c, gauge, startCondition=interlockStart[side2]) #new #check
+	# for r in range(0, rows): #remove #? #v
+	# 	for n in ranges1[side2]:
+	# 		k.knit(dir2, f'{startBeds[side2]}{n}', c)
+	# 	for n in ranges2[side2]:
+	# 		k.knit(dir1, f'{endBeds[side2]}{n}', c) #remove #? #^
 
 	if dir2 == '+': k.miss(dir2, f'f{endN+2}', c) #get carrier out of way from main knitting
 	else: k.miss(dir2, f'f{endN-2}', c)
 
 	if lastTime:
 		for n in ranges1[side1]:
-			k.drop(f'f{n}')
+			if n % gauge == 0: k.drop(f'f{n}')
 		for n in ranges2[side1]:
-			k.drop(f'b{n}')
+			if (n % gauge != 0 or gauge == 1): k.drop(f'b{n}')
 		for n in ranges1[side2]:
-			k.drop(f'f{n}')
+			if n % gauge == 0: k.drop(f'f{n}')
 		for n in ranges2[side2]:
-			k.drop(f'b{n}')
+			if (n % gauge != 0 or gauge == 1): k.drop(f'b{n}')
 
 	k.rollerAdvance(rollerAdvance)
 
@@ -742,14 +864,6 @@ def wasteSection(k, leftN, rightN, closedCaston=True, wasteC='1', drawC='2', oth
 			if (n + 1) % gauge == 0: k.drop(f'b{n}')
 
 	if not drawMiddle: drawThread()
-	# 	k.comment('draw thread')
-
-	# 	if len(endOnRight) == 0 or drawC in endOnRight:
-	# 		if not closedCaston: negDraw('b', False)
-	# 		posDraw()
-	# 	else:
-	# 		if not closedCaston: posDraw('b', False)
-	# 		negDraw()
 
 	return carrierLocations
 
@@ -1427,11 +1541,11 @@ def incDoubleBed(k, count, edgeNeedle, c, side='l', gauge=1, emptyNeedles=[], in
 	if side == 'l': #left side
 		count *= gauge
 		newEdgeNeedle -= count
-		k.comment(f'inc {count} on left ({edgeNeedle} -> {newEdgeNeedle}) by {incMethod}')
+		k.comment(f'inc {count//gauge} on left ({edgeNeedle} -> {newEdgeNeedle}) by {incMethod}')
 	else: #right side
 		count *= gauge
 		newEdgeNeedle += count
-		k.comment(f'inc {count} on right ({edgeNeedle} -> {newEdgeNeedle}) by {incMethod}')
+		k.comment(f'inc {count//gauge} on right ({edgeNeedle} -> {newEdgeNeedle}) by {incMethod}')
 
 	twistedStitches = []
 	if incMethod == 'xfer':
@@ -1537,66 +1651,133 @@ def incDoubleBed(k, count, edgeNeedle, c, side='l', gauge=1, emptyNeedles=[], in
 				# k.rack(0)
 		else: # gauge > 1
 			if (count//gauge) == 1:
+				splitType = 3 #remove #debug
 				if side == 'l':
-					k.deleteLastOp(kwd = f'knit - f{edgeNeedleF}', breakCondition = lambda op: 'knit + ' in op)
-					k.deleteLastOp(kwd = f'knit - b{edgeNeedleB}', breakCondition = lambda op: 'knit + ' in op)
-					if edgeNeedleF > edgeNeedleB: k.split('-', f'f{edgeNeedleF}', f'b{edgeNeedleF}', c)
-					k.split('-', f'b{edgeNeedleB}', f'f{edgeNeedleB}', c)
-					if edgeNeedleF < edgeNeedleB: k.split('-', f'f{edgeNeedleF}', f'b{edgeNeedleF}', c)
+					if splitType == 1: #remove #debug #original split style (include xfers)
+						k.deleteLastOp(kwd = f'knit - f{edgeNeedleF}', breakCondition = lambda op: 'knit + ' in op)
+						k.deleteLastOp(kwd = f'knit - b{edgeNeedleB}', breakCondition = lambda op: 'knit + ' in op)
+						if edgeNeedleF > edgeNeedleB: k.split('-', f'f{edgeNeedleF}', f'b{edgeNeedleF}', c)
+						k.split('-', f'b{edgeNeedleB}', f'f{edgeNeedleB}', c)
+						if edgeNeedleF < edgeNeedleB: k.split('-', f'f{edgeNeedleF}', f'b{edgeNeedleF}', c)
 
-					k.rack(-gauge)
-					if edgeNeedleF > edgeNeedleB: #?
-						k.tuck('-', f'f{edgeNeedleF-1}', c)
-						k.tuck('-', f'b{edgeNeedleF-2-gauge}', c)
+						k.rack(-gauge)
+						if edgeNeedleF > edgeNeedleB: #?
+							k.tuck('-', f'f{edgeNeedleF-1}', c)
+							k.tuck('-', f'b{edgeNeedleF-2-gauge}', c)
 
-					k.xfer(f'b{edgeNeedleF}', f'f{edgeNeedleF-gauge}')
-					if edgeNeedleF > edgeNeedleB: #?
-						k.drop(f'b{edgeNeedleF-2-gauge}')
-						k.drop(f'f{edgeNeedleF-1}')
+						k.xfer(f'b{edgeNeedleF}', f'f{edgeNeedleF-gauge}')
+						if edgeNeedleF > edgeNeedleB: #?
+							k.drop(f'b{edgeNeedleF-2-gauge}')
+							k.drop(f'f{edgeNeedleF-1}')
 
-					k.rack(gauge)
-					if edgeNeedleF < edgeNeedleB: #?
-						k.tuck('-', f'b{edgeNeedleB-1}', c)
-						k.tuck('-', f'f{edgeNeedleB-2-gauge}', c)
+						k.rack(gauge)
+						if edgeNeedleF < edgeNeedleB: #?
+							k.tuck('-', f'b{edgeNeedleB-1}', c)
+							k.tuck('-', f'f{edgeNeedleB-2-gauge}', c)
 
-					k.xfer(f'f{edgeNeedleB}', f'b{edgeNeedleB-gauge}')
+						k.xfer(f'f{edgeNeedleB}', f'b{edgeNeedleB-gauge}')
 
-					if edgeNeedleF < edgeNeedleB: #?
-						k.drop(f'f{edgeNeedleB-2-gauge}')
-						k.drop(f'b{edgeNeedleB-1}')
+						if edgeNeedleF < edgeNeedleB: #?
+							k.drop(f'f{edgeNeedleB-2-gauge}')
+							k.drop(f'b{edgeNeedleB-1}')
 
-					k.rack(0)
+						k.rack(0)
+					elif splitType == 2:
+						if edgeNeedleF < edgeNeedleB:
+							k.deleteLastOp(kwd = f'knit - f{edgeNeedleF}', breakCondition = lambda op: 'knit + ' in op)
+							k.rack(1)
+							k.split('-', f'f{edgeNeedleF}', f'b{edgeNeedleB-2}', c)
+							k.rack(-1)
+							k.split('-', f'b{edgeNeedleB-2}', f'f{edgeNeedleF-2}', c)
+						else:
+							k.deleteLastOp(kwd = f'knit - b{edgeNeedleB}', breakCondition = lambda op: 'knit + ' in op)
+							k.rack(-1)
+							k.split('-', f'b{edgeNeedleB}', f'f{edgeNeedleF-2}', c)
+							k.rack(1)
+							k.split('-', f'f{edgeNeedleB-2}', f'b{edgeNeedleF-2}', c)
+
+						k.rack(0)
+					elif splitType == 3:
+						if edgeNeedleF < edgeNeedleB:
+							k.deleteLastOp(kwd = f'knit - f{edgeNeedleF}', breakCondition = lambda op: 'knit + ' in op)
+							k.rack(1)
+							k.split('-', f'f{edgeNeedleF}', f'b{edgeNeedleB-2}', c)
+							k.knit('+', f'b{edgeNeedleB-2}', c) # '+' or '-' #?
+							k.rack(-1)
+							k.split('-', f'b{edgeNeedleB-2}', f'f{edgeNeedleF-2}', c)
+						else:
+							k.deleteLastOp(kwd = f'knit - b{edgeNeedleB}', breakCondition = lambda op: 'knit + ' in op)
+							k.rack(-1)
+							k.split('-', f'b{edgeNeedleB}', f'f{edgeNeedleF-2}', c)
+							k.knit('+', f'f{edgeNeedleF-2}', c) # '+' or '-' #?
+							k.rack(1)
+							k.split('-', f'f{edgeNeedleB-2}', f'b{edgeNeedleF-2}', c)
+
+						k.rack(0)
 				else:
-					k.deleteLastOp(kwd = f'knit + f{edgeNeedleF}', breakCondition = lambda op: 'knit - ' in op)
-					k.deleteLastOp(kwd = f'knit + b{edgeNeedleB}', breakCondition = lambda op: 'knit - ' in op)
-					if edgeNeedleF < edgeNeedleB: k.split('+', f'f{edgeNeedleF}', f'b{edgeNeedleF}', c)
-					k.split('+', f'b{edgeNeedleB}', f'f{edgeNeedleB}', c)
-					if edgeNeedleF > edgeNeedleB: k.split('+', f'f{edgeNeedleF}', f'b{edgeNeedleF}', c)
+					if splitType == 1: #remove #debug
+						k.deleteLastOp(kwd = f'knit + f{edgeNeedleF}', breakCondition = lambda op: 'knit - ' in op)
+						k.deleteLastOp(kwd = f'knit + b{edgeNeedleB}', breakCondition = lambda op: 'knit - ' in op)
+						if edgeNeedleF < edgeNeedleB: k.split('+', f'f{edgeNeedleF}', f'b{edgeNeedleF}', c)
+						k.split('+', f'b{edgeNeedleB}', f'f{edgeNeedleB}', c)
+						if edgeNeedleF > edgeNeedleB: k.split('+', f'f{edgeNeedleF}', f'b{edgeNeedleF}', c)
 
-					k.rack(-gauge)
-					if edgeNeedleF < edgeNeedleB: #?
-						k.tuck('+', f'f{edgeNeedleB+1}', c)
-						k.tuck('+', f'b{edgeNeedleB+2+gauge}', c)
-					
-					k.xfer(f'f{edgeNeedleB}', f'b{edgeNeedleB+gauge}')
+						k.rack(-gauge)
+						if edgeNeedleF < edgeNeedleB: #?
+							k.tuck('+', f'f{edgeNeedleB+1}', c)
+							k.tuck('+', f'b{edgeNeedleB+2+gauge}', c)
+						
+						k.xfer(f'f{edgeNeedleB}', f'b{edgeNeedleB+gauge}')
 
-					if edgeNeedleF < edgeNeedleB:
-						k.drop(f'b{edgeNeedleB+2+gauge}')
-						k.drop(f'f{edgeNeedleB+1}')
-					
-					k.rack(gauge)
-					if edgeNeedleF > edgeNeedleB:
-						k.tuck('+', f'b{edgeNeedleF+1}', c) #?
-						k.tuck('+', f'f{edgeNeedleF+2+gauge}', c) #?
+						if edgeNeedleF < edgeNeedleB:
+							k.drop(f'b{edgeNeedleB+2+gauge}')
+							k.drop(f'f{edgeNeedleB+1}')
+						
+						k.rack(gauge)
+						if edgeNeedleF > edgeNeedleB:
+							k.tuck('+', f'b{edgeNeedleF+1}', c) #?
+							k.tuck('+', f'f{edgeNeedleF+2+gauge}', c) #?
 
-					k.xfer(f'b{edgeNeedleF}', f'f{edgeNeedleF+gauge}')
+						k.xfer(f'b{edgeNeedleF}', f'f{edgeNeedleF+gauge}')
 
-					if edgeNeedleF > edgeNeedleB:
-						k.drop(f'f{edgeNeedleF+2+gauge}') #?
-						k.drop(f'b{edgeNeedleF+1}') #?
+						if edgeNeedleF > edgeNeedleB:
+							k.drop(f'f{edgeNeedleF+2+gauge}') #?
+							k.drop(f'b{edgeNeedleF+1}') #?
 
-					k.rack(0)
-					#TODO: make sure it knits on 1 in from new edgeNeedle in next pass	
+						k.rack(0)
+						#TODO: make sure it knits on 1 in from new edgeNeedle in next pass
+					elif splitType == 2:
+						if edgeNeedleB > edgeNeedleF:
+							k.deleteLastOp(kwd = f'knit + b{edgeNeedleB}', breakCondition = lambda op: 'knit - ' in op)
+							k.rack(1)
+							k.split('+', f'b{edgeNeedleB}', f'f{edgeNeedleF+2}', c)
+							k.rack(-1)
+							k.split('+', f'f{edgeNeedleF+2}', f'b{edgeNeedleB+2}', c)
+						else:
+							k.deleteLastOp(kwd = f'knit + f{edgeNeedleF}', breakCondition = lambda op: 'knit - ' in op)
+							k.rack(-1)
+							k.split('+', f'f{edgeNeedleF}', f'b{edgeNeedleB+2}', c)
+							k.rack(1)
+							k.split('+', f'b{edgeNeedleB+2}', f'f{edgeNeedleF+2}', c)
+
+						k.rack(0)
+					elif splitType == 3:
+						if edgeNeedleB > edgeNeedleF:
+							k.deleteLastOp(kwd = f'knit + b{edgeNeedleB}', breakCondition = lambda op: 'knit - ' in op)
+							k.rack(1)
+							k.split('+', f'b{edgeNeedleB}', f'f{edgeNeedleF+2}', c)
+							k.knit('-', f'f{edgeNeedleF+2}', c) #new #check
+							k.rack(-1)
+							k.split('+', f'f{edgeNeedleF+2}', f'b{edgeNeedleB+2}', c)
+						else:
+							k.deleteLastOp(kwd = f'knit + f{edgeNeedleF}', breakCondition = lambda op: 'knit - ' in op)
+							k.rack(-1)
+							k.split('+', f'f{edgeNeedleF}', f'b{edgeNeedleB+2}', c)
+							k.knit('-', f'b{edgeNeedleB+2}', c) #new #check
+							k.rack(1)
+							k.split('+', f'b{edgeNeedleB+2}', f'f{edgeNeedleF+2}', c)
+						
+						k.rack(0)
 			elif (count//gauge == 2):
 				print('#TODO')
 
@@ -2565,3 +2746,206 @@ def shapeImgToKnitout(k, imagePath='graphics/knitMap.png', gauge=1, scale=1, max
 		# print(v) #remove
 
 	vFile.close()
+
+
+def testHalfGaugeInc(k, incMethod='split', startWidth=40, endWidth=50, length=21): #TODO: add option of inc by > 1 per row
+	'''
+	*startWidth is number of needles to start with at base of fabric (NOTE: *NOT* number of loops)
+	'''
+	dropWaste = False #remove #?
+	tuckForBothSides = False #remove #?
+	gradualSplit = True
+
+	gauge = 2
+	posBed = 'f'
+	negBed = 'b'
+
+	leftN = 0
+	# rightN = (2*startWidth)-1
+	rightN = startWidth-1
+	mainC = '2'
+	drawC = '1'
+	borderC='6'
+
+	# incCount = endWidth-startWidth
+	incCount = endWidth-startWidth # //2 since half gauge
+	
+	rowsBtwInc = (length//(incCount//2))*2 #assumes inc on either side each time # *2 since half gauge
+	# rowsBtwInc = (length//(incCount//2))-1 #assumes inc on either side each time
+	print('rowsBtwInc:', rowsBtwInc) #remove
+
+	wasteSection(k, leftN=leftN, rightN=rightN, wasteC=mainC, drawC=drawC, otherCs=[borderC], endOnRight=[mainC], gauge=gauge)
+
+	k.outcarrier(drawC)
+
+	closedTubeCaston(k, startN=rightN, endN=leftN, c=mainC, gauge=gauge)
+
+	k.pause(f'{rowsBtwInc} rows btw inc') #remove #?
+
+	#knit 6 rows
+	circular(k, startN=leftN, endN=rightN, length=6, c=mainC, gauge=gauge)
+
+	leftoverTwistedStitches = []
+
+	prevRowsBtwInc = rowsBtwInc
+
+	# borderStartN = (leftN-incCount)-2 #starts on left #not incCount//2 bc half gauge, so would be *2 anyway
+	# borderEndN = (rightN+incCount)+2
+	borderStartN = leftN #starts on left
+	borderEndN = rightN
+	borderStartLeft = True
+	borderWidth = endWidth-startWidth+6 #not //2 bc half gauge, so would be *2 anyway #+6 for extra
+	# borderWidth = (endWidth-startWidth)//2
+	toDrop = []
+
+	def shiftBorder(startN, endN, startLeft, borderWidth): #returns new borderStartN, borderEndN
+		if startLeft: mult = -1
+		else: mult = 1
+		dropN = startN
+		k.comment(f'startN: {startN}, endN: {endN}') #remove
+		for y in range(0, 2):
+			for n in range(1, gauge+1):
+				if dropWaste and (dropN+(mult*n)) % gauge == 0: k.drop(f'f{dropN+(mult*n)}')
+				# if dropWaste or ((dropN+(mult*n))%gauge != 0):
+				# 	k.drop(f'f{dropN+(mult*n)}')
+			for n in range(1, gauge+1):
+				if dropWaste and (gauge == 1 or (dropN+(mult*n)) % gauge != 0): k.drop(f'b{dropN+(mult*n)}')
+				# if dropWaste or ((dropN+(mult*n))%gauge == 0):
+				# 	k.drop(f'b{dropN+(mult*n)}')
+			if tuckForBothSides: break
+			else:
+				mult *= -1
+				dropN = endN
+		
+		borderWidth -= gauge #only here
+		if startLeft: #startLeft if inc on left
+			
+			# if dropWaste: #remove #? #TODO: maybe drop loops on needles that are empty bc of half gauge?
+				# for n in range(1, gauge+1):
+				# 	k.drop(f'f{startN-n}')
+				# for n in range(0, gauge):
+				# 	k.drop(f'b{startN-n}')
+
+			# borderWidth -= gauge #only here
+			startN -= gauge
+			if not tuckForBothSides: endN += gauge #remove #? #go back! #?
+		else:
+			# for n in range(1, gauge+1):
+			# 	if dropWaste or ((startN+n)%gauge != 0):
+			# 		k.drop(f'f{startN+n}')
+			# 		if not tuckForBothSides: k.drop(f'f{endN-n}')
+			# for n in range(0, gauge):
+			# 	if dropWaste or ((startN+n)%gauge == 0): k.drop(f'b{startN+n}')
+			# 	if not tuckForBothSides: k.drop(f'b{endN-n}')
+			# if dropWaste: #remove #?
+			# 	for n in range(1, gauge+1):
+			# 		k.drop(f'f{startN+n}')
+			# 	for n in range(0, gauge):
+			# 		k.drop(f'b{startN+n}')
+
+			# borderWidth -= gauge
+			startN += gauge #go back! #?
+			if not tuckForBothSides: endN -= gauge #remove #? #go back! #?
+
+		# if startLeft:
+		# 	startN -= 1
+		# 	endN += 1
+		# else:
+		# 	startN += 1
+		# 	endN -= 1
+		return endN, startN, borderWidth
+	
+	# skipInc = True
+	skipInc = True
+	onlyLeft = False
+	leftTwistedStitches = None
+	rightTwistedStitches = None
+	for r in range(0, length):
+		print(rightN, leftN, (rightN-leftN)+1) #remove
+		# if (rightN-leftN)+1 == (endWidth*2): skipInc = True
+		if (rightN-leftN)+1 == endWidth: skipInc = True #new
+		elif r == length-1 and (rightN-leftN)+1 < endWidth:
+			skipInc = False
+			onlyLeft = True
+
+		twistedStitches = []
+
+		if r % rowsBtwInc == 0 or onlyLeft: #inc on left side
+			for n in toDrop:
+				k.drop(n)
+			toDrop = []
+
+			# if prevRowsBtwInc != rowsBtwInc: k.pause(f'{rowsBtwInc} rows btw inc') #remove 
+
+			# toDrop.append(wasteBorder(k, borderStartN, borderEndN, rowsBtwInc, c=borderC, width=borderWidth, gauge=2, offLimits=[f'f{leftN}', f'b{leftN}', f'f{rightN}', f'b{rightN}'], firstTime=(r==0), lastTime=False))
+			if tuckForBothSides: lastTime = False
+			else: lastTime = (length-r) <= rowsBtwInc
+
+			offLimits = []
+			for n in range(0, 3):
+				offLimits.append(f'f{leftN-n}')
+				offLimits.append(f'b{leftN-n}')
+				offLimits.append(f'f{rightN+n}')
+				offLimits.append(f'b{rightN+n}')
+
+			toDrop = wasteBorder(k, borderStartN, borderEndN, rowsBtwInc, c=borderC, width=borderWidth, gauge=2, offLimits=offLimits, firstTime=(r==0), lastTime=lastTime)
+
+			borderStartN, borderEndN, borderWidth = shiftBorder(borderStartN, borderEndN, borderStartLeft, borderWidth)
+			borderStartLeft = not borderStartLeft
+
+			if not skipInc: leftN, leftTwistedStitches = incDoubleBed(k, count=1, edgeNeedle=leftN, c=mainC, side='l', gauge=gauge, incMethod=incMethod) #inc 1 on left
+			# leftN, leftTwistedStitches = incDoubleBed(k, count=1, edgeNeedle=leftN, c=mainC, side='l', gauge=gauge, incMethod=incMethod) #inc 1 on left
+
+			# for n in toDrop:
+			# 	k.drop(n)
+			# toDrop = []
+
+			if leftTwistedStitches is not None: twistedStitches.extend(leftTwistedStitches)
+
+		knitPass(k, startN=leftN, endN=rightN, c=mainC, bed=posBed, gauge=gauge) #pos pass
+
+		print(skipInc)
+
+		if onlyLeft: skipInc = True
+
+		print(skipInc)
+
+		if r % rowsBtwInc == 0: #inc on right side
+			if tuckForBothSides: #remove #?
+				for n in toDrop:
+					k.drop(n)
+				toDrop = []
+
+				toDrop = wasteBorder(k, borderStartN, borderEndN, rowsBtwInc, c=borderC, width=borderWidth, gauge=2, offLimits=[f'f{leftN}', f'b{leftN}', f'f{rightN}', f'b{rightN}'], firstTime=False, lastTime=((length-r) <= rowsBtwInc))
+
+				borderStartN, borderEndN = shiftBorder(borderStartN, borderEndN, borderStartLeft)
+				borderStartLeft = not borderStartLeft
+
+			if not skipInc: rightN, rightTwistedStitches = incDoubleBed(k, count=1, edgeNeedle=rightN, c=mainC, side='r', gauge=gauge, incMethod=incMethod) #inc 1 on right
+			# rightN, rightTwistedStitches = incDoubleBed(k, count=1, edgeNeedle=rightN, c=mainC, side='r', gauge=gauge, incMethod=incMethod) #inc 1 on right
+			prevRowsBtwInc = rowsBtwInc
+
+			if not skipInc: print('r:', r, rightN, leftN, (rightN-leftN)+1)
+			# for n in toDrop:
+			# 	k.drop(n)
+			# toDrop = []
+
+			if rightTwistedStitches is not None: twistedStitches.extend(rightTwistedStitches)
+
+		knitPass(k, startN=rightN, endN=leftN, c=mainC, bed=negBed, gauge=gauge) #neg pass
+
+		if len(leftoverTwistedStitches): k.twist(leftoverTwistedStitches, -rollerAdvance)
+
+		if r % rowsBtwInc == 0 and len(twistedStitches):
+			leftoverTwistedStitches = k.twist(twistedStitches, -rollerAdvance)
+
+		# if r == 48: rowsBtwInc = 4 #switch to check it out
+		# elif r == 76: rowsBtwInc = 2 #switch to check it out
+		if r == 0: skipInc = False #new #check
+
+	print('final width:', rightN-leftN+1) #remove
+	#knit 6 rows
+	circular(k, startN=leftN, endN=rightN, length=6, c=mainC, gauge=gauge)
+
+	dropFinish(k, frontNeedleRanges=[leftN, rightN], backNeedleRanges=[leftN, rightN], carriers=[mainC, borderC])
+
