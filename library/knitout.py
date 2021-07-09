@@ -248,7 +248,91 @@ class Writer:
             if 'knit' in self.operations[o] and bn_from in self.operations[o]:
                 self.operations[o] = f'split {direction} {bn_from} {bn_to} {cs}'
                 break
+    
 
+    def tuckOverSplit(self, tuckCarrier, tuckDirection, *args):
+        '''
+        *args: if no argument is passed, will just tuck over most recent split. if one argument, assumes that argument is the number of splits that should be skipped over to find the split that is meant to be tucked over. if two arguments, assumes the argument 1 == bn_from and argument 2 == bn_to
+        '''
+        # direction = None
+        bn_from = None
+        bn_to = None
+        otherDir = None
+
+        if len(args) <= 1:
+            if len(args) == 0: splitSkipCount = 0
+            else: splitSkipCount = args[0]
+            splitCount = -1
+            for op in reversed(self.operations):
+                info = op.split()
+                if info[0] == 'split':
+                    splitCount += 1
+                    if splitCount == splitSkipCount:
+                        # direction = info[1]
+                        otherDir = info[1]
+                        bn_from = info[2]
+                        bn_to = info[3]
+                        break
+                    else: continue
+            # info = self.operations[len(self.operations)-1]
+            # if 'split ' in info:
+            #     info = info.split()
+            #     direction = info[1]
+            #     bn_from = info[2]
+            #     bn_to = info[3]
+            #     # bed = bn_to[0]
+            #     # needle = int(bn_to[1:])
+            if bn_from is None: raise ValueError(f"Couldn't find a split.")
+        else: 
+            info = list(args)
+            # direction = info[0]
+            # bn_from = info[1]
+            # bn_to = info[2]
+            bn_from = info[0]
+            bn_to = info[1]
+
+        bed_from = bn_from[0]
+        needle_from = int(bn_from[1:])
+        bed_to = bn_to[0]
+        needle_to = int(bn_to[1:])
+
+        if otherDir is None:
+            if tuckDirection == '+': otherDir = '-'
+            else: otherDir = '+'
+
+        if otherDir == '-': outNeedle = needle_to-2
+        else: outNeedle = needle_to+2
+        
+        # if tuckDirection == '+':
+        #     otherDir = '-'
+        #     outNeedle = needle_to-2
+        # else:
+        #     otherDir = '+'
+        #     outNeedle = needle_to+2
+
+        
+        for op in reversed(self.operations):
+            if op.split()[0] == 'rack':
+                currentRack = int(op.split()[1])
+                if bed_from == 'b' and needle_from+currentRack == needle_to:
+                    if currentRack == 0 and tuckDirection == '+': self.operations.append('rack -0.25') #check
+                    else: self.operations.append('rack 0.25')
+                elif bed_from == 'f' and needle_to+currentRack == needle_from:
+                    if currentRack == 0 and tuckDirection == '-': self.operations.append('rack -0.25')
+                    else: self.operations.append('rack 0.25')
+                else: currentRack is None
+                # if (bed_from == 'b' and needle_from+rack == needle_to) or (bed_from == 'f' and needle_to+rack == needle_from):
+                #     if currentRack == 0: self.operations.append('rack 0.25')
+                #     else: self.operations.append()
+                # else: currentRack is None
+                break
+
+        self.operations.append(f'tuck {tuckDirection} {bed_from}{needle_to} {tuckCarrier}')
+        self.operations.append(f'tuck {tuckDirection} {bed_to}{needle_from} {tuckCarrier}')
+        self.operations.append(f'tuck {otherDir} {bed_from}{outNeedle} {tuckCarrier}')
+        if currentRack is not None: self.operations.append(f'rack {currentRack}')
+
+        return [f'{bed_from}{outNeedle}', f'{bed_from}{needle_to}', f'{bed_to}{needle_from}'] #to drop
 
     def deleteLastOp(self, kwd=None, breakCondition=None):
     # def deleteLastOp(self, kwd=None, searchRange=None, breakCondition=None):
